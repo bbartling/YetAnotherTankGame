@@ -119,7 +119,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1614743657376917260}
   serializedVersion: 4
-  m_Mass: 1
+  m_Mass: 100
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -152,8 +152,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mainCamera: {fileID: 0}
   launchElevation: 0
+  cannonManager: {fileID: 0}
   flyingShellSound: {fileID: 8300000, guid: 57a72ddad2d69714dbd461ef57b411e8, type: 3}
   explosionSound: {fileID: 8300000, guid: 8e59102916d7cd045b2ef1093db43f67, type: 3}
+  explosionLingerTime: 2
+  explosionVFX: {fileID: 0}
 --- !u!82 &301918593780118311
 AudioSource:
   m_ObjectHideFlags: 0

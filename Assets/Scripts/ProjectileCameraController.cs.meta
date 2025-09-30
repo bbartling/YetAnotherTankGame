@@ -1,2 +1,15 @@
 fileFormatVersion: 2
 guid: 463946aef4dc05e4b978aa92c0336915
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - mainCamera: {instanceID: 0}
+  - flyingShellSound: {fileID: 8300000, guid: 57a72ddad2d69714dbd461ef57b411e8, type: 3}
+  - explosionSound: {fileID: 8300000, guid: 8e59102916d7cd045b2ef1093db43f67, type: 3}
+  - explosionVFX: {fileID: 1121192042590650, guid: e1b08032bec16ba4eb1ae23cbd572664, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-[RequireComponent(typeof(AudioSource))] // Ensures the cannon always has an AudioSource
+[RequireComponent(typeof(AudioSource))]
 public class CannonManager : MonoBehaviour
 {
     [Header("Cannon Parts")]
@@ -11,6 +11,7 @@ public class CannonManager : MonoBehaviour
     public LineRenderer lineRenderer;
 
     [Header("UI Elements")]
+    public Canvas mainUICanvas;
     public Slider elevationSlider;
     public Slider angleSlider;
     public Slider powerSlider;
@@ -24,6 +25,7 @@ public class CannonManager : MonoBehaviour
     private const int N_TRAJECTORY_POINTS = 20;
     private Camera _cam;
     private AudioSource _audioSource;
+    private float _cannonBallMass = 1f; // ADDED: Variable to store the cannonball's mass
 
     private float _elevationAngle;
     private float _traverseAngle;
@@ -32,7 +34,17 @@ public class CannonManager : MonoBehaviour
     void Start()
     {
         _cam = Camera.main;
-        _audioSource = GetComponent<AudioSource>(); // Get the AudioSource component
+        _audioSource = GetComponent<AudioSource>();
+
+        // ADDED: Get the mass from the cannonball prefab
+        if (cannonBallPrefab != null)
+        {
+            Rigidbody rb = cannonBallPrefab.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                _cannonBallMass = rb.mass;
+            }
+        }
 
         lineRenderer.positionCount = N_TRAJECTORY_POINTS;
         lineRenderer.enabled = true;
@@ -45,6 +57,14 @@ public class CannonManager : MonoBehaviour
     void Update()
     {
         _UpdateLineRenderer();
+    }
+
+    public void ShowUI()
+    {
+        if (mainUICanvas != null)
+        {
+            mainUICanvas.gameObject.SetActive(true);
+        }
     }
 
     public void SetElevation()
@@ -83,13 +103,18 @@ public class CannonManager : MonoBehaviour
 
     public void Fire()
     {
-        // Play the cannon fire sound
+        if (mainUICanvas != null)
+        {
+            mainUICanvas.gameObject.SetActive(false);
+        }
+
         if (cannonFireSound != null)
         {
             _audioSource.PlayOneShot(cannonFireSound);
         }
 
-        Vector3 initialVelocity = transform.forward * _launchPower;
+        // The actual firing logic doesn't change, as AddForce already uses mass.
+        Vector3 initialVelocityImpulse = transform.forward * _launchPower;
         GameObject cannonBall = Instantiate(cannonBallPrefab, firePoint.position, transform.rotation);
 
         ProjectileCameraController pcc = cannonBall.GetComponent<ProjectileCameraController>();
@@ -97,15 +122,18 @@ public class CannonManager : MonoBehaviour
         {
             pcc.mainCamera = _cam;
             pcc.launchElevation = _elevationAngle;
+            pcc.cannonManager = this;
         }
 
         Rigidbody rb = cannonBall.GetComponent<Rigidbody>();
-        rb.AddForce(initialVelocity, ForceMode.Impulse);
+        rb.AddForce(initialVelocityImpulse, ForceMode.Impulse);
     }
 
     private void _UpdateLineRenderer()
     {
-        Vector3 launchVelocity = transform.forward * _launchPower;
+        // MODIFIED: Calculate the true initial velocity by dividing the impulse power by the mass
+        Vector3 launchVelocity = (transform.forward * _launchPower) / _cannonBallMass;
+
         Vector3 startPosition = firePoint.position;
 
         for (int i = 0; i < N_TRAJECTORY_POINTS; i++)
@@ -116,4 +144,3 @@ public class CannonManager : MonoBehaviour
         }
     }
 }
-
