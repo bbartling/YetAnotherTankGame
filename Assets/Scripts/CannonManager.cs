@@ -10,7 +10,7 @@ public class CannonManager : MonoBehaviour
     public Transform firePoint;
     public LineRenderer lineRenderer;
 
-    [Header("UI Elements")]
+    [Header("UI (Player Only)")]
     public Canvas mainUICanvas;
     public Slider elevationSlider;
     public Slider angleSlider;
@@ -23,31 +23,32 @@ public class CannonManager : MonoBehaviour
     public AudioClip cannonFireSound;
 
     private const int N_TRAJECTORY_POINTS = 20;
-    private Camera _cam;
-    private AudioSource _audioSource;
-    private float _cannonBallMass = 1f; // ADDED: Variable to store the cannonball's mass
+    private Camera _mainCam;
+    private AudioSource _audio;
+    private float _ballMass = 1f;
 
-    private float _elevationAngle;
-    private float _traverseAngle;
-    private float _launchPower;
+    private float _elevationDeg;
+    private float _traverseDeg;
+    private float _powerImpulse;
 
-    void Start()
+    void Awake()
     {
-        _cam = Camera.main;
-        _audioSource = GetComponent<AudioSource>();
+        _mainCam = Camera.main;
+        _audio = GetComponent<AudioSource>();
 
-        // ADDED: Get the mass from the cannonball prefab
-        if (cannonBallPrefab != null)
+        if (lineRenderer == null)
+            lineRenderer = GetComponent<LineRenderer>();
+
+        if (cannonBallPrefab?.GetComponent<Rigidbody>() != null)
         {
-            Rigidbody rb = cannonBallPrefab.GetComponent<Rigidbody>();
-            if (rb != null)
-            {
-                _cannonBallMass = rb.mass;
-            }
+            _ballMass = cannonBallPrefab.GetComponent<Rigidbody>().mass;
         }
 
-        lineRenderer.positionCount = N_TRAJECTORY_POINTS;
-        lineRenderer.enabled = true;
+        if (lineRenderer != null)
+        {
+            lineRenderer.positionCount = N_TRAJECTORY_POINTS;
+            lineRenderer.enabled = true;
+        }
 
         SetElevation();
         SetAngle();
@@ -56,91 +57,68 @@ public class CannonManager : MonoBehaviour
 
     void Update()
     {
-        _UpdateLineRenderer();
-    }
-
-    public void ShowUI()
-    {
-        if (mainUICanvas != null)
-        {
-            mainUICanvas.gameObject.SetActive(true);
-        }
+        UpdateTrajectoryPreview();
     }
 
     public void SetElevation()
     {
-        _elevationAngle = elevationSlider.value;
-        if (elevationText != null)
-        {
-            elevationText.text = _elevationAngle.ToString("F0") + "°";
-        }
-        AimCannon();
+        if (elevationSlider == null) return;
+        _elevationDeg = elevationSlider.value;
+        if (elevationText != null) elevationText.text = $"{_elevationDeg:F0}°";
+        ApplyAim();
     }
 
     public void SetAngle()
     {
-        _traverseAngle = angleSlider.value;
-        if (angleText != null)
-        {
-            angleText.text = _traverseAngle.ToString("F0") + "°";
-        }
-        AimCannon();
+        if (angleSlider == null) return;
+        _traverseDeg = angleSlider.value;
+        if (angleText != null) angleText.text = $"{_traverseDeg:F0}°";
+        ApplyAim();
     }
 
     public void SetPower()
     {
-        _launchPower = powerSlider.value;
-        if (powerText != null)
-        {
-            powerText.text = _launchPower.ToString("F0");
-        }
-    }
-
-    private void AimCannon()
-    {
-        transform.localRotation = Quaternion.Euler(-_elevationAngle, _traverseAngle, 0f);
+        if (powerSlider == null) return;
+        _powerImpulse = powerSlider.value;
+        if (powerText != null) powerText.text = $"{_powerImpulse:F0}";
     }
 
     public void Fire()
     {
-        if (mainUICanvas != null)
-        {
-            mainUICanvas.gameObject.SetActive(false);
-        }
+        // REMOVED: No longer hiding the UI
+        if (cannonFireSound != null) _audio.PlayOneShot(cannonFireSound);
 
-        if (cannonFireSound != null)
-        {
-            _audioSource.PlayOneShot(cannonFireSound);
-        }
+        Vector3 impulse = transform.forward * _powerImpulse;
+        GameObject ball = Instantiate(cannonBallPrefab, firePoint.position, transform.rotation);
 
-        // The actual firing logic doesn't change, as AddForce already uses mass.
-        Vector3 initialVelocityImpulse = transform.forward * _launchPower;
-        GameObject cannonBall = Instantiate(cannonBallPrefab, firePoint.position, transform.rotation);
-
-        ProjectileCameraController pcc = cannonBall.GetComponent<ProjectileCameraController>();
+        var pcc = ball.GetComponent<ProjectileCameraController>();
         if (pcc != null)
         {
-            pcc.mainCamera = _cam;
-            pcc.launchElevation = _elevationAngle;
-            pcc.cannonManager = this;
+            pcc.owner = ProjectileCameraController.OwnerType.Player;
+            pcc.mainCamera = _mainCam; // For the player's FPS camera view
         }
 
-        Rigidbody rb = cannonBall.GetComponent<Rigidbody>();
-        rb.AddForce(initialVelocityImpulse, ForceMode.Impulse);
+        var rb = ball.GetComponent<Rigidbody>();
+        if (rb != null) rb.AddForce(impulse, ForceMode.Impulse);
     }
 
-    private void _UpdateLineRenderer()
+    private void ApplyAim()
     {
-        // MODIFIED: Calculate the true initial velocity by dividing the impulse power by the mass
-        Vector3 launchVelocity = (transform.forward * _launchPower) / _cannonBallMass;
+        transform.localRotation = Quaternion.Euler(-_elevationDeg, _traverseDeg, 0f);
+    }
 
-        Vector3 startPosition = firePoint.position;
+    private void UpdateTrajectoryPreview()
+    {
+        if (lineRenderer == null || firePoint == null) return;
+
+        Vector3 v0 = (transform.forward * _powerImpulse) / Mathf.Max(_ballMass, 0.0001f);
+        Vector3 p0 = firePoint.position;
 
         for (int i = 0; i < N_TRAJECTORY_POINTS; i++)
         {
             float t = i * 0.1f;
-            Vector3 pointPosition = startPosition + launchVelocity * t + 0.5f * Physics.gravity * t * t;
-            lineRenderer.SetPosition(i, pointPosition);
+            Vector3 p = p0 + v0 * t + 0.5f * Physics.gravity * (t * t);
+            lineRenderer.SetPosition(i, p);
         }
     }
 }

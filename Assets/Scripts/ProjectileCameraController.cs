@@ -4,141 +4,128 @@ using System.Collections;
 [RequireComponent(typeof(AudioSource))]
 public class ProjectileCameraController : MonoBehaviour
 {
-    // These will be set by the CannonManager when the ball is fired
-    public Camera mainCamera;
-    public float launchElevation;
-    public CannonManager cannonManager;
+    public enum OwnerType { Player, Enemy }
 
-    [Header("Sound Effects")]
+    [Header("Ownership")]
+    public OwnerType owner = OwnerType.Player;
+    public Camera mainCamera;
+
+    [Header("Audio")]
     public AudioClip flyingShellSound;
+    public AudioClip enemyFlyingShellSound;
     public AudioClip explosionSound;
 
-    [Header("Cinematic Settings")]
-    [Tooltip("How long the camera stays on the explosion before returning to the cannon.")]
-    public float explosionLingerTime = 5.0f;
+    [Header("Cinematics (Player Only)")]
+    public float explosionLingerTime = 2.0f;
+    public float cameraPitchOffset = 15.0f; // ADDED: Adjustable downward angle
 
-    [Header("Explosion Settings")]
-    public GameObject explosionVFX; // The particle effect is still used!
+    [Header("Explosion")]
+    public GameObject explosionVFX;
+    public float explosionRadius = 10f;
+    public float explosionForce = .7f;
+    public float upwardsModifier = 1.0f;
 
-    private Camera projectileCamera;
-    private AudioSource audioSource;
-    private bool isDestroying = false;
-    private const float selfDestructTime = 20f;
-    private AudioListener mainCameraListener;
-    private Camera mainCameraComponent;
+    private Camera _projCam;
+    private AudioSource _audio;
+    private bool _isDestroying = false;
+    private const float SELF_DESTRUCT_S = 8f;
+
+    private AudioListener _mainCamListener;
+    private Camera _mainCamComponent;
 
     void Start()
     {
-        audioSource = GetComponent<AudioSource>();
+        _audio = GetComponent<AudioSource>();
 
-        if (mainCamera != null)
+        if (owner == OwnerType.Player)
         {
-            mainCameraListener = mainCamera.GetComponent<AudioListener>();
-            if (mainCameraListener != null)
+            if (mainCamera != null)
             {
-                mainCameraListener.enabled = false;
+                _mainCamListener = mainCamera.GetComponent<AudioListener>();
+                if (_mainCamListener != null) _mainCamListener.enabled = false;
+
+                _mainCamComponent = mainCamera.GetComponent<Camera>();
+                if (_mainCamComponent != null) _mainCamComponent.enabled = false;
             }
 
-            mainCameraComponent = mainCamera.GetComponent<Camera>();
-            if (mainCameraComponent != null)
+            if (flyingShellSound != null)
             {
-                mainCameraComponent.enabled = false;
+                _audio.clip = flyingShellSound;
+                _audio.Play();
+            }
+
+            _projCam = gameObject.AddComponent<Camera>();
+            if (_mainCamComponent != null) _projCam.rect = _mainCamComponent.rect;
+
+            // ADDED: This line tilts the camera downwards
+            transform.Rotate(cameraPitchOffset, 0, 0, Space.Self);
+
+            gameObject.AddComponent<AudioListener>();
+        }
+        else
+        {
+            if (enemyFlyingShellSound != null)
+            {
+                _audio.clip = enemyFlyingShellSound;
+                _audio.Play();
             }
         }
 
-        if (flyingShellSound != null)
-        {
-            audioSource.loop = false;
-            audioSource.clip = flyingShellSound;
-            audioSource.Play();
-        }
-
-        projectileCamera = gameObject.AddComponent<Camera>();
-        projectileCamera.fieldOfView = 75;
-        projectileCamera.rect = new Rect(0, 0, 0.5f, 1);
-        gameObject.AddComponent<AudioListener>();
-
-        float currentYaw = transform.eulerAngles.y;
-        float newPitch = -(launchElevation - 25f);
-        transform.rotation = Quaternion.Euler(newPitch, currentYaw, 0);
-
-        Invoke("SelfDestruct", selfDestructTime);
+        Invoke(nameof(SelfDestruct), SELF_DESTRUCT_S);
     }
 
+    // ... The rest of the script is unchanged ...
     void OnCollisionEnter(Collision collision)
     {
-        // When we hit something, the physics engine will handle the impact.
-        // We just need to start the visual/audio sequence.
-        if (!isDestroying)
+        if (!_isDestroying)
         {
+            if (collision.gameObject.CompareTag("Enemy"))
+                Destroy(collision.gameObject);
+
             StartCoroutine(ExplosionSequence());
         }
     }
 
     void SelfDestruct()
     {
-        if (!isDestroying)
-        {
-            StartCoroutine(ExplosionSequence());
-        }
+        if (!_isDestroying) StartCoroutine(ExplosionSequence());
     }
 
-    // --- THIS METHOD IS NOW MUCH SIMPLER ---
-    IEnumerator ExplosionSequence()
+    private IEnumerator ExplosionSequence()
     {
-        isDestroying = true;
-        CancelInvoke("SelfDestruct");
+        _isDestroying = true;
+        CancelInvoke(nameof(SelfDestruct));
 
-        // We stop the flying sound
-        audioSource.Stop();
+        if (_audio != null) _audio.Stop();
 
-        // Play the explosion sound at the point of impact
-        if (explosionSound != null)
+        var rb = GetComponent<Rigidbody>();
+        if (rb != null) rb.isKinematic = true;
+
+        Collider[] hits = Physics.OverlapSphere(transform.position, explosionRadius);
+        foreach (var h in hits)
         {
+            var hrb = h.attachedRigidbody;
+            if (hrb != null)
+                hrb.AddExplosionForce(explosionForce, transform.position, explosionRadius, upwardsModifier, ForceMode.Impulse);
+        }
+
+        var mr = GetComponent<MeshRenderer>();
+        if (mr != null) mr.enabled = false;
+        var col = GetComponent<Collider>();
+        if (col != null) col.enabled = false;
+
+        if (explosionSound != null && _audio != null && _audio.enabled)
             AudioSource.PlayClipAtPoint(explosionSound, transform.position);
-        }
-
-        // Spawn the visual particle effect
         if (explosionVFX != null)
-        {
             Instantiate(explosionVFX, transform.position, Quaternion.identity);
-        }
 
-        // Immediately hide the cannonball so it looks like it exploded on impact
-        MeshRenderer renderer = GetComponent<MeshRenderer>();
-        if (renderer != null)
-        {
-            renderer.enabled = false;
-        }
-        // Stop the cannonball from colliding with more things after the first hit
-        Collider collider = GetComponent<Collider>();
-        if (collider != null)
-        {
-            collider.enabled = false;
-        }
-        Rigidbody rb = GetComponent<Rigidbody>();
-        if (rb != null)
-        {
-            rb.isKinematic = true;
-        }
+        if (owner == OwnerType.Player)
+            yield return new WaitForSeconds(explosionLingerTime);
 
-
-        // Wait for the cinematic camera linger
-        yield return new WaitForSeconds(explosionLingerTime);
-
-        if (cannonManager != null)
+        if (owner == OwnerType.Player)
         {
-            cannonManager.ShowUI();
-        }
-
-        if (mainCameraComponent != null)
-        {
-            mainCameraComponent.enabled = true;
-        }
-
-        if (mainCameraListener != null)
-        {
-            mainCameraListener.enabled = true;
+            if (_mainCamComponent != null) _mainCamComponent.enabled = true;
+            if (_mainCamListener != null) _mainCamListener.enabled = true;
         }
 
         Destroy(gameObject);
