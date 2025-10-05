@@ -14,7 +14,6 @@ public class EnemyCannonAI : MonoBehaviour
     [Header("Cannon Parts")]
     public GameObject cannonBallPrefab;
     public Transform firePoint;
-    public LineRenderer lineRenderer;
 
     [Header("Audio")]
     public AudioClip enemyFireSound;
@@ -22,9 +21,8 @@ public class EnemyCannonAI : MonoBehaviour
     [Header("Timing")]
     public float initialDelay = 3.0f;
     public float fireInterval = 5.0f;
-    public float aimAndFireDelay = 3.0f; // ADDED: Delay between aiming and firing
+    public float aimAndFireDelay = 3.0f;
 
-    private const int N_TRAJECTORY_POINTS = 20;
     private float _cannonBallMass = 1f;
     private AudioSource _audioSource;
 
@@ -35,12 +33,6 @@ public class EnemyCannonAI : MonoBehaviour
         if (cannonBallPrefab?.GetComponent<Rigidbody>() != null)
         {
             _cannonBallMass = cannonBallPrefab.GetComponent<Rigidbody>().mass;
-        }
-
-        if (lineRenderer != null)
-        {
-            lineRenderer.positionCount = N_TRAJECTORY_POINTS;
-            lineRenderer.enabled = false;
         }
 
         StartCoroutine(AutonomousFireLoop());
@@ -80,9 +72,6 @@ public class EnemyCannonAI : MonoBehaviour
             var e = transform.eulerAngles;
             transform.rotation = Quaternion.Euler(-elev, e.y, 0f);
 
-            DrawTrajectory(speed * _cannonBallMass);
-
-            // UPDATED: Using the new adjustable delay
             Debug.Log($"AI: Aiming for {aimAndFireDelay} seconds before firing.");
             yield return new WaitForSeconds(aimAndFireDelay);
 
@@ -97,7 +86,6 @@ public class EnemyCannonAI : MonoBehaviour
         if (aimInaccuracy > 0.5f) aimInaccuracy *= 0.9f;
     }
 
-    // ... The rest of the script is unchanged ...
     private void Fire(float impulsePower)
     {
         Debug.Log("AI: Firing now!");
@@ -105,11 +93,6 @@ public class EnemyCannonAI : MonoBehaviour
         if (enemyFireSound != null)
         {
             _audioSource.PlayOneShot(enemyFireSound);
-        }
-
-        if (lineRenderer != null)
-        {
-            lineRenderer.enabled = false;
         }
 
         GameObject ball = Instantiate(cannonBallPrefab, firePoint.position, transform.rotation);
@@ -124,22 +107,6 @@ public class EnemyCannonAI : MonoBehaviour
         if (rb != null)
         {
             rb.AddForce(transform.forward * impulsePower, ForceMode.Impulse);
-        }
-    }
-
-    private void DrawTrajectory(float impulsePower)
-    {
-        if (lineRenderer == null || firePoint == null) return;
-
-        lineRenderer.enabled = true;
-        Vector3 launchVelocity = (transform.forward * impulsePower) / Mathf.Max(_cannonBallMass, 0.0001f);
-        Vector3 startPosition = firePoint.position;
-
-        for (int i = 0; i < N_TRAJECTORY_POINTS; i++)
-        {
-            float t = i * 0.1f;
-            Vector3 pointPosition = startPosition + launchVelocity * t + 0.5f * Physics.gravity * t * t;
-            lineRenderer.SetPosition(i, pointPosition);
         }
     }
 
