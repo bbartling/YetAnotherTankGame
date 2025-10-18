@@ -2,22 +2,25 @@ using UnityEngine;
 using System.Collections;
 
 [RequireComponent(typeof(AudioSource))]
+[RequireComponent(typeof(TrailRenderer))] // Ensures a Trail Renderer is attached
 public class ProjectileCameraController : MonoBehaviour
 {
-    public enum OwnerType { Player, Enemy }
-
-    [Header("Ownership")]
-    public OwnerType owner = OwnerType.Player;
+    [Header("References")]
     public Camera mainCamera;
+    public Transform trackingBase;
+    public Vector3 cameraPositionOffset = new Vector3(0, 2f, 0);
+
+    [Header("Visuals")] // NEW SECTION
+    public Gradient fireGradient;
+    public float trailFlickerSpeed = 10f;
 
     [Header("Audio")]
     public AudioClip flyingShellSound;
-    public AudioClip enemyFlyingShellSound;
     public AudioClip explosionSound;
+    public float soundActivationDistance = 100f;
 
-    [Header("Cinematics (Player Only)")]
+    [Header("Cinematics")]
     public float explosionLingerTime = 2.0f;
-    public float cameraPitchOffset = 15.0f; // ADDED: Adjustable downward angle
 
     [Header("Explosion")]
     public GameObject explosionVFX;
@@ -25,63 +28,99 @@ public class ProjectileCameraController : MonoBehaviour
     public float explosionForce = .7f;
     public float upwardsModifier = 1.0f;
 
-    private Camera _projCam;
     private AudioSource _audio;
+    private TrailRenderer _trailRenderer; // ADDED
     private bool _isDestroying = false;
     private const float SELF_DESTRUCT_S = 8f;
 
-    private AudioListener _mainCamListener;
-    private Camera _mainCamComponent;
+    private Vector3 _originalCamPos;
+    private Quaternion _originalCamRot;
+    private Transform _mainCamTransform;
+    private LineRenderer _cannonLineRenderer;
 
     void Start()
     {
         _audio = GetComponent<AudioSource>();
+        _trailRenderer = GetComponent<TrailRenderer>(); // ADDED
+        _audio.loop = true;
 
-        if (owner == OwnerType.Player)
+        if (mainCamera != null)
         {
-            if (mainCamera != null)
-            {
-                _mainCamListener = mainCamera.GetComponent<AudioListener>();
-                if (_mainCamListener != null) _mainCamListener.enabled = false;
-
-                _mainCamComponent = mainCamera.GetComponent<Camera>();
-                if (_mainCamComponent != null) _mainCamComponent.enabled = false;
-            }
-
-            if (flyingShellSound != null)
-            {
-                _audio.clip = flyingShellSound;
-                _audio.Play();
-            }
-
-            _projCam = gameObject.AddComponent<Camera>();
-            if (_mainCamComponent != null) _projCam.rect = _mainCamComponent.rect;
-
-            // ADDED: This line tilts the camera downwards
-            transform.Rotate(cameraPitchOffset, 0, 0, Space.Self);
-
-            gameObject.AddComponent<AudioListener>();
+            _mainCamTransform = mainCamera.transform;
+            _originalCamPos = _mainCamTransform.position;
+            _originalCamRot = _mainCamTransform.rotation;
         }
         else
         {
-            if (enemyFlyingShellSound != null)
-            {
-                _audio.clip = enemyFlyingShellSound;
-                _audio.Play();
-            }
+            Debug.LogError("Main Camera reference is not set on the projectile!");
+        }
+
+        GameObject cannonObject = GameObject.Find("cannon");
+        if (cannonObject != null)
+        {
+            _cannonLineRenderer = cannonObject.GetComponent<LineRenderer>();
+            if (_cannonLineRenderer != null) _cannonLineRenderer.enabled = false;
+        }
+
+        if (flyingShellSound != null)
+        {
+            _audio.clip = flyingShellSound;
         }
 
         Invoke(nameof(SelfDestruct), SELF_DESTRUCT_S);
     }
 
-    // ... The rest of the script is unchanged ...
+    void LateUpdate()
+    {
+        // --- Camera Tracking Logic ---
+        if (trackingBase != null && _mainCamTransform != null && !_isDestroying)
+        {
+            _mainCamTransform.position = trackingBase.position + cameraPositionOffset;
+            _mainCamTransform.LookAt(transform.position);
+        }
+
+        // --- Proximity Audio Logic ---
+        HandleProximitySound();
+
+        // --- ADDED: Trail Color Logic ---
+        UpdateTrailColor();
+    }
+
+    private void UpdateTrailColor()
+    {
+        if (_trailRenderer == null) return;
+
+        // Use PingPong to create a value that cycles back and forth between 0 and 1
+        float t = Mathf.PingPong(Time.time * trailFlickerSpeed, 1f);
+
+        // Evaluate the gradient at that point in the cycle to get a color
+        Color color = fireGradient.Evaluate(t);
+
+        // Apply the new color to the trail
+        _trailRenderer.startColor = color;
+        _trailRenderer.endColor = color;
+    }
+
+    private void HandleProximitySound()
+    {
+        if (_isDestroying || trackingBase == null || _audio == null || flyingShellSound == null) return;
+
+        float distance = Vector3.Distance(transform.position, trackingBase.position);
+
+        if (distance <= soundActivationDistance && !_audio.isPlaying)
+        {
+            _audio.Play();
+        }
+        else if (distance > soundActivationDistance && _audio.isPlaying)
+        {
+            _audio.Stop();
+        }
+    }
+
     void OnCollisionEnter(Collision collision)
     {
         if (!_isDestroying)
         {
-            if (collision.gameObject.CompareTag("Enemy"))
-                Destroy(collision.gameObject);
-
             StartCoroutine(ExplosionSequence());
         }
     }
@@ -119,15 +158,20 @@ public class ProjectileCameraController : MonoBehaviour
         if (explosionVFX != null)
             Instantiate(explosionVFX, transform.position, Quaternion.identity);
 
-        if (owner == OwnerType.Player)
-            yield return new WaitForSeconds(explosionLingerTime);
+        yield return new WaitForSeconds(explosionLingerTime);
 
-        if (owner == OwnerType.Player)
+        if (_mainCamTransform != null)
         {
-            if (_mainCamComponent != null) _mainCamComponent.enabled = true;
-            if (_mainCamListener != null) _mainCamListener.enabled = true;
+            _mainCamTransform.position = _originalCamPos;
+            _mainCamTransform.rotation = _originalCamRot;
+        }
+
+        if (_cannonLineRenderer != null)
+        {
+            _cannonLineRenderer.enabled = true;
         }
 
         Destroy(gameObject);
     }
 }
+

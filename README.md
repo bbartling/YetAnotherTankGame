@@ -1,2 +1,2 @@
-# CannonWars
+# CannonPhysicsSim
 Unity Game
