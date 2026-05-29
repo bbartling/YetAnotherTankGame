@@ -1,0 +1,15 @@
+{
+    "asset": "9aefe98e4cde55c4ea64e59c98847d11",
+    "fileName": "019e74fe-3ac8-77b2-94cc-8b6ebb623924.wav",
+    "prompt": "Hydraulic hiss and mechanical whirring of a heavy tank cannon elevating",
+    "negativePrompt": "",
+    "model": "elevenlabs-sound-effects-v2",
+    "modelName": "ElevenLabs Sound Effects V2",
+    "customSeed": -1,
+    "w3CTraceId": "",
+    "feedback": 0,
+    "duration": 3.0,
+    "autoTrim": false,
+    "hasReference": false,
+    "voice": ""
+}

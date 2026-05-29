@@ -1,0 +1,15 @@
+{
+    "asset": "8de49b50924f76f4eb561555e59b5ce6",
+    "fileName": "019e74fe-2c7a-7592-aa8f-7156ab22340f.wav",
+    "prompt": "Mechanical gear whirring and grinding, heavy turret rotation",
+    "negativePrompt": "",
+    "model": "elevenlabs-sound-effects-v2",
+    "modelName": "ElevenLabs Sound Effects V2",
+    "customSeed": -1,
+    "w3CTraceId": "",
+    "feedback": 0,
+    "duration": 3.0,
+    "autoTrim": false,
+    "hasReference": false,
+    "voice": ""
+}

@@ -6,11 +6,14 @@ using System.Collections;
 public class ProjectileCameraController : MonoBehaviour
 {
     [Header("References")]
-    public Camera mainCamera;
+    public Camera projectileCamera; 
     public Transform trackingBase;
-    public Vector3 cameraPositionOffset = new Vector3(0, 2f, 0);
+    public Vector3 cameraPositionOffset = new Vector3(0, 2f, -5f); 
+    public bool enableCameraSwitching = true; // NEW: Allow disabling camera switch for AI
 
-    [Header("Visuals")] // NEW SECTION
+    public static ProjectileCameraController ActivePlayerProjectile { get; private set; }
+
+    [Header("Visuals")] 
     public Gradient fireGradient;
     public float trailFlickerSpeed = 10f;
 
@@ -29,30 +32,57 @@ public class ProjectileCameraController : MonoBehaviour
     public float upwardsModifier = 1.0f;
 
     private AudioSource _audio;
-    private TrailRenderer _trailRenderer; // ADDED
+    private TrailRenderer _trailRenderer; 
     private bool _isDestroying = false;
     private const float SELF_DESTRUCT_S = 8f;
 
-    private Vector3 _originalCamPos;
-    private Quaternion _originalCamRot;
-    private Transform _mainCamTransform;
+    private Transform _projCamTransform;
     private LineRenderer _cannonLineRenderer;
+
+    private Camera _tankCamera; // Reference to store the tank's camera
 
     void Start()
     {
         _audio = GetComponent<AudioSource>();
-        _trailRenderer = GetComponent<TrailRenderer>(); // ADDED
+        _trailRenderer = GetComponent<TrailRenderer>(); 
         _audio.loop = true;
 
-        if (mainCamera != null)
+        // Try to find the ProjectileCamera
+        if (projectileCamera == null)
         {
-            _mainCamTransform = mainCamera.transform;
-            _originalCamPos = _mainCamTransform.position;
-            _originalCamRot = _mainCamTransform.rotation;
+            GameObject camGo = GameObject.Find("ProjectileCamera");
+            if (camGo != null) projectileCamera = camGo.GetComponent<Camera>();
         }
-        else
+
+        // IMPROVED: Find the tank camera by looking at the trackingBase or using Camera.main
+        if (trackingBase != null)
         {
-            Debug.LogError("Main Camera reference is not set on the projectile!");
+            _tankCamera = trackingBase.GetComponentInChildren<Camera>(true);
+        }
+        
+        if (_tankCamera == null)
+        {
+            _tankCamera = Camera.main;
+        }
+
+        if (enableCameraSwitching && projectileCamera != null && _tankCamera != null)
+        {
+            ActivePlayerProjectile = this;
+            _projCamTransform = projectileCamera.transform;
+            
+            // Switch cameras
+            projectileCamera.enabled = true;
+            _tankCamera.enabled = false;
+            
+            // Move projectile camera to starting position behind projectile
+            projectileCamera.transform.position = transform.position - transform.forward * 5f + Vector3.up * 2f;
+            projectileCamera.transform.LookAt(transform.position);
+            
+            Debug.Log("[Projectile] Camera switched to ProjectileCamera.");
+        }
+        else if (enableCameraSwitching)
+        {
+            Debug.LogWarning("[Projectile] Camera switch failed. ProjCam: " + (projectileCamera != null) + ", TankCam: " + (_tankCamera != null));
         }
 
         GameObject cannonObject = GameObject.Find("cannon");
@@ -73,16 +103,18 @@ public class ProjectileCameraController : MonoBehaviour
     void LateUpdate()
     {
         // --- Camera Tracking Logic ---
-        if (trackingBase != null && _mainCamTransform != null && !_isDestroying)
+        if (_projCamTransform != null && !_isDestroying)
         {
-            _mainCamTransform.position = trackingBase.position + cameraPositionOffset;
-            _mainCamTransform.LookAt(transform.position);
+            // Follow from behind
+            Vector3 targetPos = transform.position - transform.forward * 5f + Vector3.up * 2f;
+            _projCamTransform.position = Vector3.Lerp(_projCamTransform.position, targetPos, Time.deltaTime * 10f);
+            _projCamTransform.LookAt(transform.position);
         }
 
         // --- Proximity Audio Logic ---
         HandleProximitySound();
 
-        // --- ADDED: Trail Color Logic ---
+        // --- Trail Color Logic ---
         UpdateTrailColor();
     }
 
@@ -153,6 +185,14 @@ public class ProjectileCameraController : MonoBehaviour
         var col = GetComponent<Collider>();
         if (col != null) col.enabled = false;
 
+        // Stop all particle systems on impact
+        var systems = GetComponentsInChildren<ParticleSystem>();
+        foreach (var ps in systems)
+        {
+            var emission = ps.emission;
+            emission.enabled = false;
+        }
+
         if (explosionSound != null && _audio != null && _audio.enabled)
             AudioSource.PlayClipAtPoint(explosionSound, transform.position);
         if (explosionVFX != null)
@@ -160,18 +200,23 @@ public class ProjectileCameraController : MonoBehaviour
 
         yield return new WaitForSeconds(explosionLingerTime);
 
-        if (_mainCamTransform != null)
-        {
-            _mainCamTransform.position = _originalCamPos;
-            _mainCamTransform.rotation = _originalCamRot;
-        }
+        if (projectileCamera != null) projectileCamera.enabled = false;
+        if (_tankCamera != null) _tankCamera.enabled = true;
 
         if (_cannonLineRenderer != null)
-        {
+{
             _cannonLineRenderer.enabled = true;
         }
 
         Destroy(gameObject);
+    }
+
+    void OnDestroy()
+    {
+        if (ActivePlayerProjectile == this)
+        {
+            ActivePlayerProjectile = null;
+        }
     }
 }
 

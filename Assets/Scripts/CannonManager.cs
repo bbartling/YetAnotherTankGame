@@ -68,7 +68,7 @@ public class CannonManager : MonoBehaviour
     {
         if (elevationSlider == null) return;
         _elevationDeg = elevationSlider.value;
-        if (elevationText != null) elevationText.text = $"{_elevationDeg:F0}°";
+        if (elevationText != null) elevationText.text = $"{_elevationDeg:F0}ï¿½";
         ApplyAim();
     }
 
@@ -76,7 +76,7 @@ public class CannonManager : MonoBehaviour
     {
         if (angleSlider == null) return;
         _traverseDeg = angleSlider.value;
-        if (angleText != null) angleText.text = $"{_traverseDeg:F0}°";
+        if (angleText != null) angleText.text = $"{_traverseDeg:F0}ï¿½";
         ApplyAim();
     }
 
@@ -96,6 +96,9 @@ public class CannonManager : MonoBehaviour
 
     public void Fire()
     {
+        // Check if a player projectile already exists
+        if (ProjectileCameraController.ActivePlayerProjectile != null) return;
+
         if (cannonFireSound != null) _audio.PlayOneShot(cannonFireSound);
 
         // Instantiate the cannonball
@@ -105,7 +108,6 @@ public class CannonManager : MonoBehaviour
         var pcc = ball.GetComponent<ProjectileCameraController>();
         if (pcc != null)
         {
-            pcc.mainCamera = _mainCam;
             pcc.trackingBase = baseForCamera; // MODIFIED: Pass the transform of the base
         }
 

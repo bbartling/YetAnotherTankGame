@@ -1,0 +1,15 @@
+{
+    "asset": "fa8aa9a390bdaec4abdb247d3e6dcf27",
+    "fileName": "019e74fe-1e63-7096-803f-60d5fa7b8908.wav",
+    "prompt": "Heavy tank diesel engine idling and rumbling",
+    "negativePrompt": "",
+    "model": "elevenlabs-sound-effects-v2",
+    "modelName": "ElevenLabs Sound Effects V2",
+    "customSeed": -1,
+    "w3CTraceId": "",
+    "feedback": 0,
+    "duration": 5.0,
+    "autoTrim": false,
+    "hasReference": false,
+    "voice": ""
+}
