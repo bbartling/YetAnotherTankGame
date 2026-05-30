@@ -153,16 +153,34 @@ public class ProjectileCameraController : MonoBehaviour
     {
         if (!_isDestroying)
         {
-            StartCoroutine(ExplosionSequence());
+            // Stop movement immediately on any collision
+            var rb = GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.isKinematic = true;
+            }
+
+            if (collision.gameObject.CompareTag("EnemyTurret"))
+            {
+                Destroy(collision.gameObject);
+                if (LevelManager.Instance != null) LevelManager.Instance.TurretDestroyed();
+                StartCoroutine(ExplosionSequence(false));
+            }
+            else
+            {
+                // Ground, Buildings, or anything else
+                StartCoroutine(ExplosionSequence(false));
+            }
         }
     }
 
     void SelfDestruct()
     {
-        if (!_isDestroying) StartCoroutine(ExplosionSequence());
+        if (!_isDestroying) StartCoroutine(ExplosionSequence(false));
     }
 
-    private IEnumerator ExplosionSequence()
+    private IEnumerator ExplosionSequence(bool isInstant)
     {
         _isDestroying = true;
         CancelInvoke(nameof(SelfDestruct));
@@ -172,12 +190,15 @@ public class ProjectileCameraController : MonoBehaviour
         var rb = GetComponent<Rigidbody>();
         if (rb != null) rb.isKinematic = true;
 
-        Collider[] hits = Physics.OverlapSphere(transform.position, explosionRadius);
-        foreach (var h in hits)
+        if (!isInstant)
         {
-            var hrb = h.attachedRigidbody;
-            if (hrb != null)
-                hrb.AddExplosionForce(explosionForce, transform.position, explosionRadius, upwardsModifier, ForceMode.Impulse);
+            Collider[] hits = Physics.OverlapSphere(transform.position, explosionRadius);
+            foreach (var h in hits)
+            {
+                var hrb = h.attachedRigidbody;
+                if (hrb != null)
+                    hrb.AddExplosionForce(explosionForce, transform.position, explosionRadius, upwardsModifier, ForceMode.Impulse);
+            }
         }
 
         var mr = GetComponent<MeshRenderer>();
@@ -198,7 +219,8 @@ public class ProjectileCameraController : MonoBehaviour
         if (explosionVFX != null)
             Instantiate(explosionVFX, transform.position, Quaternion.identity);
 
-        yield return new WaitForSeconds(explosionLingerTime);
+        if (isInstant) yield return null;
+        else yield return new WaitForSeconds(explosionLingerTime);
 
         if (projectileCamera != null) projectileCamera.enabled = false;
         if (_tankCamera != null) _tankCamera.enabled = true;

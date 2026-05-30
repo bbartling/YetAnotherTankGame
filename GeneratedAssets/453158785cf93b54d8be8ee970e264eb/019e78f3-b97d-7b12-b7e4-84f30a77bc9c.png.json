@@ -1,0 +1,28 @@
+{
+    "asset": "453158785cf93b54d8be8ee970e264eb",
+    "fileName": "019e78f3-b97d-7b12-b7e4-84f30a77bc9c.png",
+    "prompt": "A stylized fire explosion texture for particle systems, bright orange and yellow flames, dark smoke edges, circular shape, transparent background, game art style.",
+    "negativePrompt": "",
+    "model": "gemini-3.1-flash",
+    "modelName": "Gemini 3.1 Nano Banana 2",
+    "customSeed": -1,
+    "w3CTraceId": "",
+    "feedback": 0,
+    "refinementMode": "Generation",
+    "pixelateTargetSize": 0,
+    "pixelateKeepImageSize": false,
+    "pixelatePixelBlockSize": 0,
+    "pixelatePixelGridSize": 0,
+    "pixelateMode": 0,
+    "pixelateOutlineThickness": 0,
+    "doodles": {
+        "m_Items": []
+    },
+    "upscaleFactor": 0,
+    "dimensions": {
+        "width": 1024,
+        "height": 1024
+    },
+    "spriteSheet": false,
+    "duration": 0.0
+}

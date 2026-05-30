@@ -29,6 +29,12 @@ public class MenuManager : MonoBehaviour
     {
         mainPanel.SetActive(false);
         if (playerTank != null) playerTank.enabled = true;
+        
+        if (LevelManager.Instance != null)
+        {
+            LevelManager.Instance.StartGame();
+        }
+
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
     }
