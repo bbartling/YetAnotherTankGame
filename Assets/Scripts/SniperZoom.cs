@@ -4,13 +4,13 @@ public class SniperZoom : MonoBehaviour
 {
     public Camera zoomCamera;
     public float zoomFOV = 15f;
-    public float normalFOV = 60f;
-    public float smoothSpeed = 10f;
+    public float normalFOV = 45f; // Reduced from 60 to fix fisheye
+    public float smoothSpeed = 15f; // Faster transition
 
     void Start()
     {
         if (zoomCamera == null) zoomCamera = GetComponent<Camera>();
-        if (zoomCamera != null) normalFOV = zoomCamera.fieldOfView;
+        if (zoomCamera != null) zoomCamera.fieldOfView = normalFOV;
     }
 
     void Update()

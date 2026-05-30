@@ -54,13 +54,9 @@ public class TerrainGenerator : MonoBehaviour
                 float xCoord = (float)x / width * scale + xOffset;
                 float zCoord = (float)z / length * scale + zOffset;
                 
-                // Base noise
-                float y = Mathf.PerlinNoise(xCoord, zCoord) * heightMultiplier;
+                // Base noise - REMOVED for flat terrain
+                float y = 0f;
                 
-                // Add some high peaks
-                float peaks = Mathf.Pow(Mathf.PerlinNoise(xCoord * 2, zCoord * 2), 3) * heightMultiplier * 2f;
-                y += peaks;
-
                 // Wall logic: boost height at edges
                 if (x == 0 || x == width || z == 0 || z == length)
                 {
@@ -71,7 +67,7 @@ public class TerrainGenerator : MonoBehaviour
                     float edgeDistX = Mathf.Min(x, width - x);
                     float edgeDistZ = Mathf.Min(z, length - z);
                     float edgeDist = Mathf.Min(edgeDistX, edgeDistZ);
-                    y = Mathf.Lerp(wallHeight, y, edgeDist / 10f);
+                    y = Mathf.Lerp(wallHeight, 0f, edgeDist / 10f);
                 }
 
                 // Double map size: center at 0, spread to 1000x800
@@ -119,10 +115,14 @@ public class TerrainGenerator : MonoBehaviour
     {
         // Cleanup existing walls
         var oldWalls = GameObject.Find("BoundaryWalls");
-        if (oldWalls != null) Destroy(oldWalls);
+        if (oldWalls != null)
+        {
+            if (Application.isPlaying) Destroy(oldWalls);
+            else DestroyImmediate(oldWalls);
+        }
 
         GameObject root = new GameObject("BoundaryWalls");
-        root.transform.SetParent(this.transform);
+root.transform.SetParent(this.transform);
 
         float mapWidth = 1000f;
         float mapLength = 800f;

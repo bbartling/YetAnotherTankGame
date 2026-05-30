@@ -155,9 +155,10 @@ public class ProjectileCameraController : MonoBehaviour
         {
             // Stop movement immediately on any collision
             var rb = GetComponent<Rigidbody>();
-            if (rb != null)
+            if (rb != null && !rb.isKinematic)
             {
                 rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
                 rb.isKinematic = true;
             }
 
