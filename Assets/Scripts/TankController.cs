@@ -16,8 +16,8 @@ public class TankController : MonoBehaviour
     public LineRenderer lineRenderer;
 
     [Header("Movement Settings")]
-    public float moveSpeed = 10f;
-    public float turnSpeed = 50f;
+    public float moveSpeed = 100f;
+    public float turnSpeed = 500f;
 
     // Advanced movement options for a more arcadey, Hill‑Climb‑style feel.
     [Header("Advanced Movement Settings")]
@@ -281,15 +281,15 @@ public class TankController : MonoBehaviour
 
     private void HandleMovement()
     {
-        // Handle forward/backward input using arrow keys.
+        // Handle forward/backward input using arrow keys or WASD
         float moveInput = 0f;
-        if (Input.GetKey(KeyCode.UpArrow)) moveInput = 1f;
-        if (Input.GetKey(KeyCode.DownArrow)) moveInput = -1f;
+        if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W)) moveInput = 1f;
+        if (Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.S)) moveInput = -1f;
 
         // Handle left/right turning input
         float turnInput = 0f;
-        if (Input.GetKey(KeyCode.RightArrow)) turnInput = 1f;
-        if (Input.GetKey(KeyCode.LeftArrow)) turnInput = -1f;
+        if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D)) turnInput = 1f;
+        if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A)) turnInput = -1f;
 
         // Apply forward/backward force for acceleration. 
         if (moveInput != 0f)
@@ -305,8 +305,6 @@ public class TankController : MonoBehaviour
         // Apply torque for rotation.
         if (turnInput != 0f)
         {
-            // For a "car-like" feel, we can scale torque by speed, but tanks can pivot in place.
-            // We'll keep it simple but strong enough to move the mass.
             float torqueAmount = turnInput * turnTorque;
             _rb.AddTorque(Vector3.up * torqueAmount, ForceMode.Force);
         }

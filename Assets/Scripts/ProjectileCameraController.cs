@@ -2,18 +2,26 @@ using UnityEngine;
 using System.Collections;
 
 [RequireComponent(typeof(AudioSource))]
-[RequireComponent(typeof(TrailRenderer))] // Ensures a Trail Renderer is attached
+[RequireComponent(typeof(TrailRenderer))]
+[RequireComponent(typeof(Rigidbody))]
 public class ProjectileCameraController : MonoBehaviour
 {
     [Header("References")]
-    public Camera projectileCamera; 
+    public Camera projectileCamera;
     public Transform trackingBase;
-    public Vector3 cameraPositionOffset = new Vector3(0, 2f, -5f); 
-    public bool enableCameraSwitching = true; // NEW: Allow disabling camera switch for AI
+    public bool enableCameraSwitching = true;
 
     public static ProjectileCameraController ActivePlayerProjectile { get; private set; }
 
-    [Header("Visuals")] 
+    [Header("Smooth Projectile Camera")]
+    public Vector3 cameraOffset = new Vector3(0f, 3f, -9f);
+    public float positionSmoothTime = 0.16f;
+    public float rotationSmoothSpeed = 7f;
+    public float lookAheadDistance = 5f;
+    public float minVelocityForDirection = 0.5f;
+    public bool logCameraSwitch = false;
+
+    [Header("Visuals")]
     public Gradient fireGradient;
     public float trailFlickerSpeed = 10f;
 
@@ -28,38 +36,49 @@ public class ProjectileCameraController : MonoBehaviour
     [Header("Explosion")]
     public GameObject explosionVFX;
     public float explosionRadius = 10f;
-    public float explosionForce = .7f;
+    public float explosionForce = 0.7f;
     public float upwardsModifier = 1.0f;
 
     private AudioSource _audio;
-    private TrailRenderer _trailRenderer; 
+    private TrailRenderer _trailRenderer;
+    private Rigidbody _rb;
+
     private bool _isDestroying = false;
     private const float SELF_DESTRUCT_S = 8f;
 
     private Transform _projCamTransform;
     private LineRenderer _cannonLineRenderer;
+    private Camera _tankCamera;
 
-    private Camera _tankCamera; // Reference to store the tank's camera
+    private Vector3 _cameraVelocity;
+    private Vector3 _lastGoodFlightDirection;
 
     void Start()
     {
         _audio = GetComponent<AudioSource>();
-        _trailRenderer = GetComponent<TrailRenderer>(); 
+        _trailRenderer = GetComponent<TrailRenderer>();
+        _rb = GetComponent<Rigidbody>();
+
         _audio.loop = true;
 
-        // Try to find the ProjectileCamera
+        // Big help for smoother visual motion on fast physics objects.
+        _rb.interpolation = RigidbodyInterpolation.Interpolate;
+        _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+
+        _lastGoodFlightDirection = transform.forward;
+
         if (projectileCamera == null)
         {
             GameObject camGo = GameObject.Find("ProjectileCamera");
-            if (camGo != null) projectileCamera = camGo.GetComponent<Camera>();
+            if (camGo != null)
+                projectileCamera = camGo.GetComponent<Camera>();
         }
 
-        // IMPROVED: Find the tank camera by looking at the trackingBase or using Camera.main
         if (trackingBase != null)
         {
             _tankCamera = trackingBase.GetComponentInChildren<Camera>(true);
         }
-        
+
         if (_tankCamera == null)
         {
             _tankCamera = Camera.main;
@@ -69,27 +88,41 @@ public class ProjectileCameraController : MonoBehaviour
         {
             ActivePlayerProjectile = this;
             _projCamTransform = projectileCamera.transform;
-            
-            // Switch cameras
+
             projectileCamera.enabled = true;
             _tankCamera.enabled = false;
-            
-            // Move projectile camera to starting position behind projectile
-            projectileCamera.transform.position = transform.position - transform.forward * 5f + Vector3.up * 2f;
-            projectileCamera.transform.LookAt(transform.position);
-            
-            Debug.Log("[Projectile] Camera switched to ProjectileCamera.");
+
+            Vector3 flightDir = GetFlightDirection();
+            Vector3 startPos = transform.position
+                             - flightDir * Mathf.Abs(cameraOffset.z)
+                             + Vector3.up * cameraOffset.y
+                             + transform.right * cameraOffset.x;
+
+            projectileCamera.transform.position = startPos;
+            projectileCamera.transform.rotation = Quaternion.LookRotation(
+                transform.position + flightDir * lookAheadDistance - startPos,
+                Vector3.up
+            );
+
+            if (logCameraSwitch)
+            {
+                Debug.Log("[Projectile] Camera switched to ProjectileCamera.");
+            }
         }
         else if (enableCameraSwitching)
         {
-            Debug.LogWarning("[Projectile] Camera switch failed. ProjCam: " + (projectileCamera != null) + ", TankCam: " + (_tankCamera != null));
+            Debug.LogWarning("[Projectile] Camera switch failed. ProjCam: "
+                + (projectileCamera != null)
+                + ", TankCam: "
+                + (_tankCamera != null));
         }
 
         GameObject cannonObject = GameObject.Find("cannon");
         if (cannonObject != null)
         {
             _cannonLineRenderer = cannonObject.GetComponent<LineRenderer>();
-            if (_cannonLineRenderer != null) _cannonLineRenderer.enabled = false;
+            if (_cannonLineRenderer != null)
+                _cannonLineRenderer.enabled = false;
         }
 
         if (flyingShellSound != null)
@@ -102,40 +135,96 @@ public class ProjectileCameraController : MonoBehaviour
 
     void LateUpdate()
     {
-        // --- Camera Tracking Logic ---
-        if (_projCamTransform != null && !_isDestroying)
+        UpdateProjectileCamera();
+        HandleProximitySound();
+        UpdateTrailColor();
+    }
+
+    private void UpdateProjectileCamera()
+    {
+        if (_projCamTransform == null || _isDestroying)
+            return;
+
+        Vector3 flightDir = GetFlightDirection();
+
+        Vector3 targetPos = transform.position
+                          - flightDir * Mathf.Abs(cameraOffset.z)
+                          + Vector3.up * cameraOffset.y
+                          + transform.right * cameraOffset.x;
+
+        _projCamTransform.position = Vector3.SmoothDamp(
+            _projCamTransform.position,
+            targetPos,
+            ref _cameraVelocity,
+            positionSmoothTime
+        );
+
+        Vector3 lookTarget = transform.position + flightDir * lookAheadDistance;
+        Vector3 lookDir = lookTarget - _projCamTransform.position;
+
+        if (lookDir.sqrMagnitude > 0.001f)
         {
-            // Follow from behind
-            Vector3 targetPos = transform.position - transform.forward * 5f + Vector3.up * 2f;
-            _projCamTransform.position = Vector3.Lerp(_projCamTransform.position, targetPos, Time.deltaTime * 10f);
-            _projCamTransform.LookAt(transform.position);
+            Quaternion targetRot = Quaternion.LookRotation(lookDir.normalized, Vector3.up);
+
+            _projCamTransform.rotation = Quaternion.Slerp(
+                _projCamTransform.rotation,
+                targetRot,
+                Time.deltaTime * rotationSmoothSpeed
+            );
+        }
+    }
+
+    private Vector3 GetFlightDirection()
+    {
+        Vector3 velocity = GetRigidbodyVelocity();
+
+        if (velocity.magnitude > minVelocityForDirection)
+        {
+            _lastGoodFlightDirection = velocity.normalized;
         }
 
-        // --- Proximity Audio Logic ---
-        HandleProximitySound();
+        if (_lastGoodFlightDirection.sqrMagnitude < 0.001f)
+        {
+            _lastGoodFlightDirection = transform.forward;
+        }
 
-        // --- Trail Color Logic ---
-        UpdateTrailColor();
+        return _lastGoodFlightDirection;
+    }
+
+    private Vector3 GetRigidbodyVelocity()
+    {
+#if UNITY_6000_0_OR_NEWER
+        return _rb.linearVelocity;
+#else
+        return _rb.velocity;
+#endif
+    }
+
+    private void SetRigidbodyVelocity(Vector3 value)
+    {
+#if UNITY_6000_0_OR_NEWER
+        _rb.linearVelocity = value;
+#else
+        _rb.velocity = value;
+#endif
     }
 
     private void UpdateTrailColor()
     {
-        if (_trailRenderer == null) return;
+        if (_trailRenderer == null)
+            return;
 
-        // Use PingPong to create a value that cycles back and forth between 0 and 1
         float t = Mathf.PingPong(Time.time * trailFlickerSpeed, 1f);
-
-        // Evaluate the gradient at that point in the cycle to get a color
         Color color = fireGradient.Evaluate(t);
 
-        // Apply the new color to the trail
         _trailRenderer.startColor = color;
         _trailRenderer.endColor = color;
     }
 
     private void HandleProximitySound()
     {
-        if (_isDestroying || trackingBase == null || _audio == null || flyingShellSound == null) return;
+        if (_isDestroying || trackingBase == null || _audio == null || flyingShellSound == null)
+            return;
 
         float distance = Vector3.Distance(transform.position, trackingBase.position);
 
@@ -151,34 +240,30 @@ public class ProjectileCameraController : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        if (!_isDestroying)
-        {
-            // Stop movement immediately on any collision
-            var rb = GetComponent<Rigidbody>();
-            if (rb != null && !rb.isKinematic)
-            {
-                rb.linearVelocity = Vector3.zero;
-                rb.angularVelocity = Vector3.zero;
-                rb.isKinematic = true;
-            }
+        if (_isDestroying)
+            return;
 
-            if (collision.gameObject.CompareTag("EnemyTurret"))
-            {
-                Destroy(collision.gameObject);
-                if (LevelManager.Instance != null) LevelManager.Instance.TurretDestroyed();
-                StartCoroutine(ExplosionSequence(false));
-            }
-            else
-            {
-                // Ground, Buildings, or anything else
-                StartCoroutine(ExplosionSequence(false));
-            }
+        if (_rb != null && !_rb.isKinematic)
+        {
+            SetRigidbodyVelocity(Vector3.zero);
+            _rb.angularVelocity = Vector3.zero;
+            _rb.isKinematic = true;
         }
+
+        if (collision.gameObject.CompareTag("EnemyTurret"))
+        {
+            Destroy(collision.gameObject);
+        }
+
+        StartCoroutine(ExplosionSequence(false));
     }
 
     void SelfDestruct()
     {
-        if (!_isDestroying) StartCoroutine(ExplosionSequence(false));
+        if (!_isDestroying)
+        {
+            StartCoroutine(ExplosionSequence(false));
+        }
     }
 
     private IEnumerator ExplosionSequence(bool isInstant)
@@ -186,29 +271,42 @@ public class ProjectileCameraController : MonoBehaviour
         _isDestroying = true;
         CancelInvoke(nameof(SelfDestruct));
 
-        if (_audio != null) _audio.Stop();
+        if (_audio != null)
+            _audio.Stop();
 
-        var rb = GetComponent<Rigidbody>();
-        if (rb != null) rb.isKinematic = true;
+        if (_rb != null)
+            _rb.isKinematic = true;
 
         if (!isInstant)
         {
             Collider[] hits = Physics.OverlapSphere(transform.position, explosionRadius);
+
             foreach (var h in hits)
             {
-                var hrb = h.attachedRigidbody;
-                if (hrb != null)
-                    hrb.AddExplosionForce(explosionForce, transform.position, explosionRadius, upwardsModifier, ForceMode.Impulse);
+                Rigidbody hitRb = h.attachedRigidbody;
+
+                if (hitRb != null)
+                {
+                    hitRb.AddExplosionForce(
+                        explosionForce,
+                        transform.position,
+                        explosionRadius,
+                        upwardsModifier,
+                        ForceMode.Impulse
+                    );
+                }
             }
         }
 
-        var mr = GetComponent<MeshRenderer>();
-        if (mr != null) mr.enabled = false;
-        var col = GetComponent<Collider>();
-        if (col != null) col.enabled = false;
+        MeshRenderer mr = GetComponent<MeshRenderer>();
+        if (mr != null)
+            mr.enabled = false;
 
-        // Stop all particle systems on impact
-        var systems = GetComponentsInChildren<ParticleSystem>();
+        Collider col = GetComponent<Collider>();
+        if (col != null)
+            col.enabled = false;
+
+        ParticleSystem[] systems = GetComponentsInChildren<ParticleSystem>();
         foreach (var ps in systems)
         {
             var emission = ps.emission;
@@ -216,20 +314,28 @@ public class ProjectileCameraController : MonoBehaviour
         }
 
         if (explosionSound != null && _audio != null && _audio.enabled)
+        {
             AudioSource.PlayClipAtPoint(explosionSound, transform.position);
+        }
+
         if (explosionVFX != null)
+        {
             Instantiate(explosionVFX, transform.position, Quaternion.identity);
+        }
 
-        if (isInstant) yield return null;
-        else yield return new WaitForSeconds(explosionLingerTime);
+        if (isInstant)
+            yield return null;
+        else
+            yield return new WaitForSeconds(explosionLingerTime);
 
-        if (projectileCamera != null) projectileCamera.enabled = false;
-        if (_tankCamera != null) _tankCamera.enabled = true;
+        if (projectileCamera != null)
+            projectileCamera.enabled = false;
+
+        if (_tankCamera != null)
+            _tankCamera.enabled = true;
 
         if (_cannonLineRenderer != null)
-{
             _cannonLineRenderer.enabled = true;
-        }
 
         Destroy(gameObject);
     }
@@ -242,4 +348,3 @@ public class ProjectileCameraController : MonoBehaviour
         }
     }
 }
-
