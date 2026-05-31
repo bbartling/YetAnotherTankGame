@@ -21,10 +21,13 @@ public class TankController : MonoBehaviour
 
     // Advanced movement options for a more arcadey, Hill‑Climb‑style feel.
     [Header("Advanced Movement Settings")]
-    [Tooltip("Offset applied to the rigidbody centre of mass for stability")] public Vector3 centerOfMassOffset = new Vector3(0f, 0.01f, 0f);
-    [Tooltip("Force applied when accelerating forward/backward")] public float accelerationForce = 150f;
-    [Tooltip("Torque applied when rotating the tank")]
-    public float turnTorque = 100f;
+[Tooltip("Offset applied to the rigidbody centre of mass for stability")] public Vector3 centerOfMassOffset = new Vector3(0f, -0.2f, 0f);
+[Tooltip("Torque applied when rotating the tank")]
+    public float turnTorque = 35f;
+[Tooltip("Force applied when accelerating forward/backward")] public float accelerationForce = 130f;
+
+
+
     [Tooltip("Maximum linear speed for the tank (prevents runaway acceleration)")]
     public float maxVelocity = 15f;
 
@@ -33,12 +36,28 @@ public class TankController : MonoBehaviour
     public float barrelElevationSpeed = 30f;
     public float minElevation = -10f;
     public float maxElevation = 60f;
+    public float mouseTurretSensitivity = 1.2f;
+    public float mouseBarrelSensitivity = 2.0f;
+    public float mouseWheelBarrelSensitivity = 0.225f;
+    public float keyboardBarrelSensitivity = 24f;
+    public float elevationSoundRepeatDelay = 0.16f;
+
+    [Header("Camera View")]
+    public Camera gameplayCamera;
+    public KeyCode viewToggleKey = KeyCode.Escape;
+    public Vector3 firstPersonCameraLocalPosition = new Vector3(0f, 1.55f, 0.35f);
+    public Vector3 firstPersonCameraLocalEuler = new Vector3(8f, 0f, 0f);
+    public float firstPersonCameraFov = 62f;
+    public Vector3 overviewCameraLocalPosition = new Vector3(0f, 7.5f, -12f);
+    public Vector3 overviewCameraLocalEuler = new Vector3(18f, 0f, 0f);
+    public float overviewCameraFov = 52f;
 
     [Header("Firing Settings")]
-    public float maxPower = 150f; // Reduced from 2000 for better arc
+    public float maxPower = 75f; // Cannon shells should arc, not laser-beam forward
     public float powerPercentage = 50f;
     public float mass = 1f;
-    public AudioClip fireSound;
+    public AudioClip playerFireSound;
+    public AudioClip treeSmashSound;
     
     [Header("Trajectory Settings")]
     public int trajectoryPointCount = 30;
@@ -64,28 +83,46 @@ public class TankController : MonoBehaviour
     [Header("Audio Settings")]
     public float engineStopDelay = 1.0f; 
 
+    [Header("Spawn")]
+    public string spawnGroundName = "Ground";
+    public Vector3 spawnOffset = new Vector3(0f, 0.35f, 0f);
+    public float spawnProbeHeight = 25f;
+
     private Rigidbody _rb;
     private AudioSource _audio;
     private float _currentElevation = 0f;
     private float _currentRotation = 0f;
+    private Transform _turretYawPivot;
 
     private bool _isEngineStarting = false;
     private bool _isEngineRunning = false;
+    private bool _isOverviewView = false;
     private float _stopTimer = 0f;
+    private bool _wasDriveInput = false;
+    private bool _wasRotatingInput = false;
+    private bool _wasElevatingInput = false;
+    private float _nextTreeSmashTime = 0f;
+    private float _nextElevationSoundTime = 0f;
 
     void Awake()
     {
         _rb = GetComponent<Rigidbody>();
         _audio = GetComponent<AudioSource>();
 
-        // Adjust the centre of mass. A higher CoM makes it possible to topple over.
+        // Keep the hull stable and prevent turret input from tipping the chassis.
         if (_rb != null)
         {
             _rb.centerOfMass += centerOfMassOffset;
-            _rb.linearDamping = 0.5f; 
-            _rb.angularDamping = 0.8f; 
+            _rb.linearDamping = 0.75f;
+            _rb.angularDamping = 2.5f;
+            _rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
             _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
         }
+
+        EnsureAudioSources();
+        EnsureTurretYawPivot();
+        EnsureGameplayCamera();
+        ApplyCameraView();
         
         // Ensure LineRenderer is set up but hidden
         if (lineRenderer != null)
@@ -95,33 +132,43 @@ public class TankController : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        PlaceOnGround();
+    }
+
     void Update()
     {
+        HandleViewToggle();
         HandleInput();
         HandleAudio();
         UpdateTrajectory();
     }
 
-    private void UpdateTrajectory()
+private void UpdateTrajectory()
     {
-        if (lineRenderer == null) return;
+        if (lineRenderer == null || firePoint == null)
+        {
+            return;
+        }
 
-        // Show trajectory only when Right Click (Sniper Mode) is active
         bool isSniperMode = Input.GetMouseButton(1);
         lineRenderer.enabled = isSniperMode;
 
-        if (isSniperMode)
+        if (!isSniperMode)
         {
-            Vector3 startPos = firePoint.position;
-            float actualPower = (powerPercentage / 100f) * maxPower;
-            Vector3 startVelocity = firePoint.forward * (actualPower / mass);
+            return;
+        }
 
-            for (int i = 0; i < trajectoryPointCount; i++)
-            {
-                float t = i * trajectoryTimeStep;
-                Vector3 point = startPos + startVelocity * t + 0.5f * Physics.gravity * t * t;
-                lineRenderer.SetPosition(i, point);
-            }
+        Vector3 startPos = firePoint.position;
+        float muzzleSpeed = Mathf.Lerp(maxPower * 0.45f, maxPower, powerPercentage / 100f);
+        Vector3 startVelocity = firePoint.forward * muzzleSpeed + GetTankVelocity();
+
+        for (int i = 0; i < trajectoryPointCount; i++)
+        {
+            float t = i * trajectoryTimeStep;
+            Vector3 point = startPos + startVelocity * t + 0.5f * Physics.gravity * t * t;
+            lineRenderer.SetPosition(i, point);
         }
     }
     void FixedUpdate()
@@ -131,23 +178,27 @@ public class TankController : MonoBehaviour
 
     private void HandleInput()
     {
-        // Turret Rotation (A/D)
-        float rotInput = 0;
-        if (Input.GetKey(KeyCode.D)) rotInput = 1;
-        if (Input.GetKey(KeyCode.A)) rotInput = -1;
+        // Mouse drives the turret now: horizontal for yaw, vertical for elevation.
+        float mouseX = Input.GetAxis("Mouse X");
+        float mouseWheel = Input.GetAxis("Mouse ScrollWheel");
+        float keyboardElevation = 0f;
+        if (Input.GetKey(KeyCode.PageUp)) keyboardElevation += 1f;
+        if (Input.GetKey(KeyCode.PageDown)) keyboardElevation -= 1f;
 
-        _currentRotation += rotInput * turretTurnSpeed * Time.deltaTime;
-        if (turret != null) turret.localRotation = Quaternion.Euler(0, _currentRotation, 0);
+        _currentRotation += mouseX * mouseTurretSensitivity * turretTurnSpeed * Time.deltaTime;
+        if (_turretYawPivot != null)
+        {
+            _turretYawPivot.localRotation = Quaternion.Euler(0f, _currentRotation, 0f);
+        }
 
-        // Elevation (W/S)
-        float elevInput = 0;
-        if (Input.GetKey(KeyCode.W)) elevInput = 1;
-        if (Input.GetKey(KeyCode.S)) elevInput = -1;
-
-        _currentElevation += elevInput * barrelElevationSpeed * Time.deltaTime;
+        _currentElevation += mouseWheel * mouseWheelBarrelSensitivity * barrelElevationSpeed;
+        _currentElevation += keyboardElevation * keyboardBarrelSensitivity * Time.deltaTime;
         _currentElevation = Mathf.Clamp(_currentElevation, minElevation, maxElevation);
-        
-        if (barrel != null) barrel.localRotation = Quaternion.Euler(-_currentElevation, 0, 0);
+
+        if (barrel != null)
+        {
+            barrel.localRotation = Quaternion.Euler(-_currentElevation, 0, 0);
+        }
 
         // Power Adjustment (Q/E)
         if (Input.GetKey(KeyCode.E)) powerPercentage += 20f * Time.deltaTime;
@@ -170,42 +221,136 @@ public class TankController : MonoBehaviour
         if (powerText != null) powerText.text = "Power: " + powerPercentage.ToString("F0") + "%";
     }
 
-    private void HandleAudio()
+    public float TurretYawDegrees
     {
-        // Engine sound logic: True if any movement key is held
-        bool driveInput = Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.DownArrow) || 
-                          Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow);
-        
-        if (driveInput)
-        {
-            // Reset the timer while any key is pressed
-            _stopTimer = engineStopDelay;
+        get { return Mathf.Repeat(_currentRotation, 360f); }
+    }
 
-            if (!_isEngineStarting && !_isEngineRunning)
-            {
-                StartEngine();
-            }
+    private void HandleViewToggle()
+    {
+        if (Input.GetKeyDown(viewToggleKey))
+        {
+            _isOverviewView = !_isOverviewView;
+            ApplyCameraView();
+        }
+    }
+
+    private void EnsureGameplayCamera()
+    {
+        if (gameplayCamera == null)
+        {
+            gameplayCamera = GetComponentInChildren<Camera>(true);
+        }
+
+        if (gameplayCamera == null)
+        {
+            gameplayCamera = Camera.main;
+        }
+
+        if (gameplayCamera == null)
+        {
+            return;
+        }
+
+        Transform parent = GetCameraParent();
+        if (parent != null && gameplayCamera.transform.parent != parent)
+        {
+            gameplayCamera.transform.SetParent(parent, false);
+        }
+    }
+
+    private Transform GetCameraParent()
+    {
+        if (turret != null)
+        {
+            return turret;
+        }
+
+        return transform;
+    }
+
+    private void ApplyCameraView()
+    {
+        if (gameplayCamera == null)
+        {
+            return;
+        }
+
+        Transform parent = GetCameraParent();
+        if (parent != null && gameplayCamera.transform.parent != parent)
+        {
+            gameplayCamera.transform.SetParent(parent, false);
+        }
+
+        if (_isOverviewView)
+        {
+            gameplayCamera.transform.localPosition = overviewCameraLocalPosition;
+            gameplayCamera.transform.localRotation = Quaternion.Euler(overviewCameraLocalEuler);
+            gameplayCamera.fieldOfView = overviewCameraFov;
         }
         else
         {
-            // If the engine is running or starting, but no keys are held, count down
-            if (_isEngineStarting || _isEngineRunning)
+            gameplayCamera.transform.localPosition = firstPersonCameraLocalPosition;
+            gameplayCamera.transform.localRotation = Quaternion.Euler(firstPersonCameraLocalEuler);
+            gameplayCamera.fieldOfView = firstPersonCameraFov;
+        }
+    }
+
+    private void HandleAudio()
+    {
+        // Engine sound logic: True if any movement key is held
+        bool driveInput = Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.A) ||
+                          Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.D);
+        
+        if (driveInput && !_wasDriveInput)
+        {
+            _stopTimer = engineStopDelay;
+            StartEngine();
+        }
+        else if (!driveInput && _wasDriveInput)
+        {
+            StopEngine();
+        }
+        else if (driveInput)
+        {
+            _stopTimer = engineStopDelay;
+        }
+        else if (_isEngineStarting || _isEngineRunning)
+        {
+            _stopTimer -= Time.deltaTime;
+            if (_stopTimer <= 0)
             {
-                _stopTimer -= Time.deltaTime;
-                if (_stopTimer <= 0)
-                {
-                    StopEngine();
-                }
+                StopEngine();
             }
         }
 
         // Turret sound logic
-        bool isRotating = Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D);
-        ToggleAudio(turretAudioSource, rotateTurretClip, isRotating);
+        bool isRotating = Mathf.Abs(Input.GetAxis("Mouse X")) > 0.01f;
+        if (isRotating && !_wasRotatingInput)
+        {
+            PlayLoopAudio(turretAudioSource, rotateTurretClip);
+        }
+        else if (!isRotating && _wasRotatingInput)
+        {
+            StopLoopAudio(turretAudioSource, rotateTurretClip);
+        }
 
-        // Elevation sound logic
-        bool isElevating = Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S);
-        ToggleAudio(elevationAudioSource, adjustElevationClip, isElevating);
+        // Elevation sound logic: short one-shot ticks with a small repeat gap.
+        bool isElevating = Mathf.Abs(Input.GetAxis("Mouse ScrollWheel")) > 0.01f || Input.GetKey(KeyCode.PageUp) || Input.GetKey(KeyCode.PageDown);
+        if (isElevating && Time.time >= _nextElevationSoundTime && adjustElevationClip != null && elevationAudioSource != null)
+        {
+            if (elevationAudioSource.isPlaying)
+            {
+                elevationAudioSource.Stop();
+            }
+
+            elevationAudioSource.PlayOneShot(adjustElevationClip);
+            _nextElevationSoundTime = Time.time + elevationSoundRepeatDelay;
+        }
+
+        _wasDriveInput = driveInput;
+        _wasRotatingInput = isRotating;
+        _wasElevatingInput = isElevating;
     }
 
     private void StartEngine()
@@ -257,66 +402,236 @@ public class TankController : MonoBehaviour
         }
     }
 
-    private void ToggleAudio(AudioSource source, AudioClip clip, bool shouldPlay)
+    private void PlayLoopAudio(AudioSource source, AudioClip clip)
     {
-        if (source == null || clip == null) return;
-        
-        if (shouldPlay)
+        if (source == null || clip == null)
         {
-            if (!source.isPlaying || source.clip != clip)
-            {
-                source.clip = clip;
-                source.loop = true;
-                source.Play();
-            }
+            return;
+        }
+        
+        if (!source.isPlaying || source.clip != clip)
+        {
+            source.clip = clip;
+            source.loop = true;
+            source.Play();
+        }
+    }
+
+    private void StopLoopAudio(AudioSource source, AudioClip clip)
+    {
+        if (source == null || clip == null)
+        {
+            return;
+        }
+
+        if (source.isPlaying && source.clip == clip)
+        {
+            source.Stop();
+        }
+    }
+
+    private void EnsureAudioSources()
+    {
+        AudioSource[] sources = GetComponents<AudioSource>();
+        if (engineAudioSource == null && sources.Length > 0)
+        {
+            engineAudioSource = sources[0];
+        }
+
+        if (turretAudioSource == null || turretAudioSource == engineAudioSource)
+        {
+            turretAudioSource = gameObject.AddComponent<AudioSource>();
+        }
+
+        if (elevationAudioSource == null || elevationAudioSource == engineAudioSource || elevationAudioSource == turretAudioSource)
+        {
+            elevationAudioSource = gameObject.AddComponent<AudioSource>();
+        }
+
+        ConfigureAudioSource(engineAudioSource, true);
+        ConfigureAudioSource(turretAudioSource, false);
+        ConfigureAudioSource(elevationAudioSource, false);
+    }
+
+    private void EnsureTurretYawPivot()
+    {
+        if (turret == null)
+        {
+            return;
+        }
+
+        if (_turretYawPivot != null)
+        {
+            return;
+        }
+
+        if (turret.parent != null && turret.parent.name == "TurretYawPivot")
+        {
+            _turretYawPivot = turret.parent;
+            return;
+        }
+
+        Transform parent = turret.parent;
+        if (parent == null)
+        {
+            _turretYawPivot = turret;
+            return;
+        }
+
+        GameObject pivotGo = new GameObject("TurretYawPivot");
+        Transform pivot = pivotGo.transform;
+        pivot.SetParent(parent, false);
+        pivot.localPosition = turret.localPosition;
+        pivot.localRotation = Quaternion.identity;
+
+        Vector3 parentScale = parent.lossyScale;
+        pivot.localScale = new Vector3(
+            parentScale.x != 0f ? 1f / parentScale.x : 1f,
+            parentScale.y != 0f ? 1f / parentScale.y : 1f,
+            parentScale.z != 0f ? 1f / parentScale.z : 1f
+        );
+
+        turret.SetParent(pivot, true);
+        _turretYawPivot = pivot;
+    }
+
+    private void ConfigureAudioSource(AudioSource source, bool loop)
+    {
+        if (source == null)
+        {
+            return;
+        }
+
+        source.playOnAwake = false;
+        source.loop = loop;
+        source.spatialBlend = 0f;
+        source.dopplerLevel = 0f;
+        source.volume = 0.8f;
+        source.Stop();
+    }
+
+    private void PlaceOnGround()
+    {
+        if (_rb == null)
+        {
+            return;
+        }
+
+        Collider bodyCollider = GetComponent<Collider>();
+        float lift = bodyCollider != null ? Mathf.Max(0.25f, bodyCollider.bounds.extents.y + 0.05f) : 0.5f;
+
+        GameObject groundObject = GameObject.Find(spawnGroundName);
+        if (groundObject == null)
+        {
+            return;
+        }
+
+        Collider groundCollider = groundObject.GetComponent<Collider>();
+        Bounds spawnBounds;
+        if (groundCollider != null)
+        {
+            spawnBounds = groundCollider.bounds;
         }
         else
         {
-            if (source.isPlaying && source.clip == clip)
+            Renderer groundRenderer = groundObject.GetComponent<Renderer>();
+            if (groundRenderer == null)
             {
-                source.Stop();
+                return;
             }
+
+            spawnBounds = groundRenderer.bounds;
         }
+
+        Vector3 target = transform.position + spawnOffset;
+        Vector3 origin = new Vector3(target.x, spawnBounds.max.y + spawnProbeHeight, target.z);
+        Vector3 groundedPosition = transform.position;
+
+        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, spawnProbeHeight * 2f, ~0, QueryTriggerInteraction.Ignore))
+        {
+            groundedPosition.y = hit.point.y + lift;
+        }
+        else
+        {
+            groundedPosition.y = spawnBounds.max.y + lift;
+        }
+
+        transform.position = groundedPosition;
+        _rb.position = groundedPosition;
+        _rb.linearVelocity = Vector3.zero;
+        _rb.angularVelocity = Vector3.zero;
     }
 
     private void HandleMovement()
     {
-        // Handle forward/backward input using arrow keys or WASD
+        // Tank movement uses WASD like a classic tank control scheme.
         float moveInput = 0f;
-        if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W)) moveInput = 1f;
-        if (Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.S)) moveInput = -1f;
+        if (Input.GetKey(KeyCode.W)) moveInput = 1f;
+        if (Input.GetKey(KeyCode.S)) moveInput = -1f;
 
-        // Handle left/right turning input
+        // Tank steering uses A/D.
         float turnInput = 0f;
-        if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D)) turnInput = 1f;
-        if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A)) turnInput = -1f;
+        if (Input.GetKey(KeyCode.D)) turnInput = 1f;
+        if (Input.GetKey(KeyCode.A)) turnInput = -1f;
 
-        // Apply forward/backward force for acceleration. 
         if (moveInput != 0f)
         {
             Vector3 force = transform.forward * moveInput * accelerationForce;
-            // Only accelerate if under the max velocity
             if (_rb.linearVelocity.magnitude < maxVelocity)
             {
                 _rb.AddForce(force, ForceMode.Force);
             }
         }
 
-        // Apply torque for rotation.
         if (turnInput != 0f)
         {
-            float torqueAmount = turnInput * turnTorque;
-            _rb.AddTorque(Vector3.up * torqueAmount, ForceMode.Force);
+            _rb.AddTorque(Vector3.up * (turnInput * turnTorque), ForceMode.Force);
         }
     }
 
-    public void Fire()
+    private Vector3 GetTankVelocity()
     {
-        if (fireSound != null) _audio.PlayOneShot(fireSound);
+#if UNITY_6000_0_OR_NEWER
+        return _rb != null ? _rb.linearVelocity : Vector3.zero;
+#else
+        return _rb != null ? _rb.velocity : Vector3.zero;
+#endif
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (treeSmashSound == null || Time.time < _nextTreeSmashTime || collision.collider == null)
+        {
+            return;
+        }
+
+        if (!collision.collider.CompareTag("Tree"))
+        {
+            return;
+        }
+
+        _nextTreeSmashTime = Time.time + 0.22f;
+        if (_audio != null)
+        {
+            _audio.PlayOneShot(treeSmashSound);
+        }
+    }
+
+
+public void Fire()
+    {
+        if (shellPrefab == null || firePoint == null)
+        {
+            return;
+        }
+
+        if (_audio != null && playerFireSound != null)
+        {
+            _audio.PlayOneShot(playerFireSound);
+        }
 
         GameObject shell = Instantiate(shellPrefab, firePoint.position, firePoint.rotation);
-        
-        // Ignore collision with all colliders on the tank
+
         Collider[] tankColliders = GetComponentsInChildren<Collider>();
         Collider shellCollider = shell.GetComponent<Collider>();
         if (shellCollider != null)
@@ -327,18 +642,23 @@ public class TankController : MonoBehaviour
             }
         }
 
-        var pcc = shell.GetComponent<ProjectileCameraController>();
-if (pcc != null)
+        ProjectileCameraController pcc = shell.GetComponent<ProjectileCameraController>();
+        if (pcc != null)
         {
-            pcc.trackingBase = transform; 
+            pcc.trackingBase = transform;
         }
 
-        var rb = shell.GetComponent<Rigidbody>();
+        Rigidbody rb = shell.GetComponent<Rigidbody>();
         if (rb != null)
         {
             rb.mass = mass;
-            float actualPower = (powerPercentage / 100f) * maxPower;
-            rb.AddForce(firePoint.forward * actualPower, ForceMode.Impulse);
+            float muzzleSpeed = Mathf.Lerp(maxPower * 0.45f, maxPower, powerPercentage / 100f);
+            Vector3 launchVelocity = firePoint.forward * muzzleSpeed + GetTankVelocity();
+#if UNITY_6000_0_OR_NEWER
+            rb.linearVelocity = launchVelocity;
+#else
+            rb.velocity = launchVelocity;
+#endif
         }
     }
 }

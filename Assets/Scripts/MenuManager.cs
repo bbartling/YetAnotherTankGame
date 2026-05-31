@@ -1,48 +1,125 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class MenuManager : MonoBehaviour
 {
     public GameObject mainPanel;
-    public GameObject controlsPanel;
     public Button playButton;
-    public Button controlsButton;
-    public Button backButton;
-
     public TankController playerTank;
+    public TextMeshProUGUI instructionsText;
 
-    void Start()
+    [TextArea(4, 12)]
+    public string controlsCopy = "Controls:\nW/S - drive forward/back\nA/D - turn hull\nMouse X - rotate turret\nMouse wheel - elevate barrel\nPageUp / PageDown - fine barrel elevation\nEsc - toggle camera view\nC - controls during game\nLeft click / Space - fire";
+
+    private void Start()
     {
-        if (playerTank != null) playerTank.enabled = false;
-        
-        playButton.onClick.AddListener(PlayGame);
-        controlsButton.onClick.AddListener(ShowControls);
-        backButton.onClick.AddListener(ShowMain);
-        
+        if (playerTank != null)
+        {
+            playerTank.enabled = false;
+        }
+
+        if (playButton != null)
+        {
+            playButton.onClick.RemoveAllListeners();
+            playButton.onClick.AddListener(PlayGame);
+        }
+
+        EnsureInstructionsText();
         ShowMain();
-        
+
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
     }
 
-    void PlayGame()
+    private void PlayGame()
     {
-        mainPanel.SetActive(false);
-        if (playerTank != null) playerTank.enabled = true;
-        
+        if (mainPanel != null)
+        {
+            mainPanel.SetActive(false);
+        }
+
+        if (playerTank != null)
+        {
+            playerTank.enabled = true;
+        }
+
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
     }
 
-    void ShowControls()
+    private void ShowMain()
     {
-        mainPanel.SetActive(false);
-        controlsPanel.SetActive(true);
+        if (mainPanel != null)
+        {
+            mainPanel.SetActive(true);
+        }
+
+        EnsureInstructionsText();
+        if (instructionsText != null)
+        {
+            instructionsText.text = controlsCopy;
+        }
     }
 
-    void ShowMain()
+    private void EnsureInstructionsText()
     {
-        mainPanel.SetActive(true);
-        controlsPanel.SetActive(false);
+        if (instructionsText != null)
+        {
+            StretchInstructionsText(instructionsText.rectTransform);
+            instructionsText.text = controlsCopy;
+            return;
+        }
+
+        if (mainPanel == null)
+        {
+            return;
+        }
+
+        Transform existing = mainPanel.transform.Find("InstructionsText");
+        if (existing != null)
+        {
+            instructionsText = existing.GetComponent<TextMeshProUGUI>();
+            if (instructionsText != null)
+            {
+                StretchInstructionsText(instructionsText.rectTransform);
+                instructionsText.text = controlsCopy;
+                return;
+            }
+        }
+
+        GameObject textGo = new GameObject("InstructionsText", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+        textGo.transform.SetParent(mainPanel.transform, false);
+
+        RectTransform rt = textGo.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0f, 0f);
+        rt.anchorMax = new Vector2(1f, 1f);
+        rt.offsetMin = new Vector2(28f, 28f);
+        rt.offsetMax = new Vector2(-28f, -120f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+
+        instructionsText = textGo.GetComponent<TextMeshProUGUI>();
+        instructionsText.fontSize = 22f;
+        instructionsText.alignment = TextAlignmentOptions.TopLeft;
+        instructionsText.color = new Color(1f, 1f, 1f, 0.95f);
+        instructionsText.enableAutoSizing = true;
+        instructionsText.fontSizeMin = 14f;
+        instructionsText.fontSizeMax = 22f;
+        instructionsText.textWrappingMode = TextWrappingModes.Normal;
+        instructionsText.text = controlsCopy;
+        instructionsText.raycastTarget = false;
+    }
+
+    private void StretchInstructionsText(RectTransform rt)
+    {
+        if (rt == null)
+        {
+            return;
+        }
+
+        rt.anchorMin = new Vector2(0f, 0f);
+        rt.anchorMax = new Vector2(1f, 1f);
+        rt.offsetMin = new Vector2(28f, 28f);
+        rt.offsetMax = new Vector2(-28f, -120f);
     }
 }

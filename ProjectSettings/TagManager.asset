@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Mountain
   - EnemyTurret
+  - EnemyTank
   layers:
   - Default
   - TransparentFX

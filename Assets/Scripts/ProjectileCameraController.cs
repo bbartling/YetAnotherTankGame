@@ -37,7 +37,11 @@ public class ProjectileCameraController : MonoBehaviour
     public GameObject explosionVFX;
     public float explosionRadius = 10f;
     public float explosionForce = 0.7f;
-    public float upwardsModifier = 1.0f;
+    
+    [Header("Impact")]
+    public float groundImpactMultiplier = 1.0f;
+    public float castleImpactMultiplier = 1.0f;
+public float upwardsModifier = 1.0f;
 
     private AudioSource _audio;
     private TrailRenderer _trailRenderer;
@@ -238,10 +242,58 @@ public class ProjectileCameraController : MonoBehaviour
         }
     }
 
+    private void ApplyImpactEffects(Collision collision)
+    {
+        if (collision == null || collision.contactCount == 0)
+        {
+            return;
+        }
+
+        ContactPoint contact = collision.GetContact(0);
+        float impactForce = Mathf.Max(1f, _rb != null ? _rb.mass * GetRigidbodyVelocity().magnitude : 1f);
+
+        CraterTerrain craterTerrain = collision.collider.GetComponentInParent<CraterTerrain>();
+        if (craterTerrain != null)
+        {
+            craterTerrain.ApplyImpact(contact.point, contact.normal, impactForce * groundImpactMultiplier);
+        }
+        else
+        {
+            DestructibleGround ground = collision.collider.GetComponentInParent<DestructibleGround>();
+            if (ground != null)
+            {
+                ground.ApplyImpact(contact.point, contact.normal, impactForce * groundImpactMultiplier);
+            }
+        }
+
+        CastleDamageReceiver castle = collision.collider.GetComponentInParent<CastleDamageReceiver>();
+        if (castle != null)
+        {
+            castle.ApplyImpact(contact.point, contact.normal, impactForce * castleImpactMultiplier);
+        }
+
+        if (collision.collider.CompareTag("Tree"))
+        {
+            Rigidbody treeRb = collision.collider.attachedRigidbody;
+            if (treeRb != null)
+            {
+                treeRb.AddExplosionForce(impactForce * 1.1f, contact.point, explosionRadius, upwardsModifier, ForceMode.Impulse);
+            }
+
+            if (impactForce >= 8f)
+            {
+                Destroy(collision.collider.gameObject, 0.35f);
+            }
+        }
+    }
+
+
     void OnCollisionEnter(Collision collision)
     {
         if (_isDestroying)
             return;
+
+        ApplyImpactEffects(collision);
 
         if (_rb != null && !_rb.isKinematic)
         {

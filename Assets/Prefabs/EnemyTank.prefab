@@ -537,7 +537,7 @@ GameObject:
   - component: {fileID: 2781746947177282001}
   - component: {fileID: 3637885511103161575}
   - component: {fileID: 7400148665512311030}
-  - component: {fileID: 4373312330975003657}
+  - component: {fileID: 4153098575762491214}
   m_Layer: 0
   m_Name: EnemyTank
   m_TagString: Untagged
@@ -686,7 +686,7 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &4373312330975003657
+--- !u!114 &4153098575762491214
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -695,14 +695,30 @@ MonoBehaviour:
   m_GameObject: {fileID: 7903195721744945102}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c076148ed08c50e4e8a093c3a70d6148, type: 3}
+  m_Script: {fileID: 11500000, guid: 1a5b901255b8c2048a2207332aa4c66e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTankAI
   turret: {fileID: 8554127667157870992}
-  barrel: {fileID: 4696742650743481672}
+  barrelPivot: {fileID: 4696742650743481672}
   firePoint: {fileID: 2124435023059397026}
   shellPrefab: {fileID: 1614743657376917260, guid: 40dd80756c9714f4b8dc03e28e0dfbe1, type: 3}
-  detectRange: 100
-  fireRate: 3
-  shellPower: 30
-  fireSound: {fileID: 0}
+  fireSound: {fileID: 8300000, guid: 110dbeec5f15a8345a937d78a4415cd3, type: 3}
+  detectionRange: 180
+  preferredDistance: 85
+  retreatDistance: 50
+  moveForce: 85
+  turnTorque: 75
+  strafeForce: 20
+  shellPower: 55
+  fireCooldown: 2.4
+  aimSpeed: 3.25
+  accuracy: 0.72
+  minElevation: -8
+  maxElevation: 48
+  barrelElevationSpeed: 25
+  engineRunningClip: {fileID: 8300000, guid: fa8aa9a390bdaec4abdb247d3e6dcf27, type: 3}
+  engineStartClip: {fileID: 8300000, guid: a17a1e652e6a5b94ab0143070532b1dc, type: 3}
+  engineStopClip: {fileID: 8300000, guid: 8681f70dd513ca844bffb9f9e6c974b9, type: 3}
+  rotateTurretClip: {fileID: 8300000, guid: 8de49b50924f76f4eb561555e59b5ce6, type: 3}
+  adjustElevationClip: {fileID: 8300000, guid: 9aefe98e4cde55c4ea64e59c98847d11, type: 3}
+  engineStopDelay: 0.8
