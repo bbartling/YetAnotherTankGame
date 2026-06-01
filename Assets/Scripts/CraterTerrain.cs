@@ -14,20 +14,23 @@ public class CraterTerrain : MonoBehaviour
     public float terrainLength = 1400f;
     public float terrainThickness = 0.6f;
 
+    [Header("Generation")]
+    public bool generateOnAwake = true;
+
     [Header("Crater Settings")]
-    public float baseRadius = 3.4f;
-    public float baseDepth = 2.0f;
-    public float forceRadiusScale = 0.04f;
-    public float forceDepthScale = 0.035f;
+    public float baseRadius = 6.5f;
+    public float baseDepth = 4.2f;
+    public float forceRadiusScale = 0.075f;
+    public float forceDepthScale = 0.06f;
     public float rimLift = 0.05f;
     public float roughness = 0.06f;
-    public float chunkThreshold = 28f;
+    public float chunkThreshold = 16f;
 
     [Header("Random Battlefield")]
     public bool seedRandomCraters = true;
     public bool seedRandomHills = true;
-    public int randomCraterCount = 20;
-    public int randomHillCount = 14;
+    public int randomCraterCount = 80;
+    public int randomHillCount = 56;
     public int randomFeatureSeed = 1307;
     public float featureMargin = 120f;
     public float craterForceMin = 92f;
@@ -53,8 +56,23 @@ public class CraterTerrain : MonoBehaviour
         // Keep the world scale baked into the mesh so play mode does not depend on transform scale.
         transform.localScale = Vector3.one;
 
+        if (generateOnAwake)
+        {
+            RegenerateTerrain();
+        }
+    }
+
+    [ContextMenu("Regenerate Terrain")]
+    public void RegenerateTerrain()
+    {
         BuildTerrainMesh();
         SeedBattlefieldNoise();
+    }
+
+    [ContextMenu("Clear Craters And Hills")]
+    public void ClearTerrainDamage()
+    {
+        BuildTerrainMesh();
     }
 
     private void SeedBattlefieldNoise()
@@ -276,9 +294,9 @@ public class CraterTerrain : MonoBehaviour
             float sink = depth * centerBias;
             sink += noise * noiseAmount * centerBias;
 
-            if (punchHole && dist < radius * 0.3f)
+            if (punchHole && dist < radius * 0.34f)
             {
-                sink += depth * 2.4f;
+                sink += depth * 4.5f;
             }
 
             vertex.y -= sink;

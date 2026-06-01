@@ -10,7 +10,7 @@ public class MenuManager : MonoBehaviour
     public TextMeshProUGUI instructionsText;
 
     [TextArea(4, 12)]
-    public string controlsCopy = "Controls:\nW/S - drive forward/back\nA/D - turn hull\nMouse X - rotate turret\nMouse wheel - elevate barrel\nPageUp / PageDown - fine barrel elevation\nEsc - toggle camera view\nC - controls during game\nLeft click / Space - fire";
+    public string controlsCopy = "Controls:\nW/S - hold drive forward/back\nA/D - tap while driving to turn tracks\nMouse X - rotate turret\nMouse wheel - elevate barrel\nPageUp / PageDown - fine barrel elevation\nEsc - toggle camera view\nC - controls during game\nLeft click / Space - fire";
 
     private void Start()
     {

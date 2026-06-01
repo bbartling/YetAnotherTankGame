@@ -14,9 +14,9 @@ public class MiniMapHUD : MonoBehaviour
     public Canvas targetCanvas;
 
     [Header("UI")]
-    public Vector2 panelSize = new Vector2(300f, 230f);
+    public Vector2 panelSize = new Vector2(300f, 420f);
     public Vector2 mapSize = new Vector2(190f, 190f);
-    public Vector2 compassSize = new Vector2(74f, 74f);
+    public Vector2 compassSize = new Vector2(148f, 148f);
     public Vector2 panelMargin = new Vector2(18f, 18f);
     public Color panelColor = new Color(0f, 0f, 0f, 0.55f);
     public Color playerColor = new Color(0.35f, 0.85f, 1f, 1f);
@@ -149,15 +149,15 @@ public class MiniMapHUD : MonoBehaviour
         _compassRoot.anchorMax = new Vector2(0f, 1f);
         _compassRoot.pivot = new Vector2(0f, 1f);
         _compassRoot.sizeDelta = compassSize;
-        _compassRoot.anchoredPosition = new Vector2(mapSize.x + 24f, -28f);
+        _compassRoot.anchoredPosition = new Vector2(10f, -(mapSize.y + 52f));
 
         Image bg = compassGo.GetComponent<Image>();
         bg.color = new Color(0.08f, 0.08f, 0.08f, 0.72f);
 
-        CreateCompassLabel(compassGo.transform, "N", new Vector2(0f, compassSize.y * 0.5f - 10f));
-        CreateCompassLabel(compassGo.transform, "E", new Vector2(compassSize.x * 0.5f - 10f, 0f));
-        CreateCompassLabel(compassGo.transform, "S", new Vector2(0f, -compassSize.y * 0.5f + 10f));
-        CreateCompassLabel(compassGo.transform, "W", new Vector2(-compassSize.x * 0.5f + 10f, 0f));
+        CreateCompassLabel(compassGo.transform, "N", new Vector2(0f, compassSize.y * 0.5f - 14f));
+        CreateCompassLabel(compassGo.transform, "E", new Vector2(compassSize.x * 0.5f - 14f, 0f));
+        CreateCompassLabel(compassGo.transform, "S", new Vector2(0f, -compassSize.y * 0.5f + 14f));
+        CreateCompassLabel(compassGo.transform, "W", new Vector2(-compassSize.x * 0.5f + 14f, 0f));
 
         GameObject needleGo = new GameObject("Needle", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
         needleGo.transform.SetParent(compassGo.transform, false);
@@ -165,7 +165,7 @@ public class MiniMapHUD : MonoBehaviour
         _compassNeedle.anchorMin = new Vector2(0.5f, 0.5f);
         _compassNeedle.anchorMax = new Vector2(0.5f, 0.5f);
         _compassNeedle.pivot = new Vector2(0.5f, 0.1f);
-        _compassNeedle.sizeDelta = new Vector2(6f, compassSize.y * 0.36f);
+        _compassNeedle.sizeDelta = new Vector2(10f, compassSize.y * 0.44f);
         _compassNeedle.anchoredPosition = Vector2.zero;
         Image needleImg = needleGo.GetComponent<Image>();
         needleImg.color = turretColor;
@@ -177,9 +177,9 @@ public class MiniMapHUD : MonoBehaviour
         degreeRt.anchorMax = new Vector2(0.5f, 0.5f);
         degreeRt.pivot = new Vector2(0.5f, 0f);
         degreeRt.sizeDelta = new Vector2(compassSize.x - 8f, 20f);
-        degreeRt.anchoredPosition = new Vector2(0f, -compassSize.y * 0.38f);
+        degreeRt.anchoredPosition = new Vector2(0f, -compassSize.y * 0.36f);
         _compassDegreeLabel = degreeGo.GetComponent<TextMeshProUGUI>();
-        _compassDegreeLabel.fontSize = 12f;
+        _compassDegreeLabel.fontSize = 16f;
         _compassDegreeLabel.alignment = TextAlignmentOptions.Center;
         _compassDegreeLabel.color = new Color(1f, 1f, 1f, 0.9f);
         _compassDegreeLabel.raycastTarget = false;

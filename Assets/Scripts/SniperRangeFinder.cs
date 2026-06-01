@@ -19,9 +19,9 @@ public class SniperRangeFinder : MonoBehaviour
     public LayerMask hitMask = ~0;
 
     [Header("UI")]
-    public float panelWidth = 240f;
-    public float panelHeight = 620f;
-    public float panelInset = 32f;
+    public float panelWidth = 280f;
+    public float panelHeight = 560f;
+    public float panelInset = 0f;
     public Color panelColor = new Color(0f, 0f, 0f, 0.28f);
     public Color tickColor = new Color(1f, 1f, 1f, 0.72f);
     public Color majorTickColor = new Color(1f, 1f, 1f, 0.95f);
@@ -90,11 +90,11 @@ public class SniperRangeFinder : MonoBehaviour
         rootGo.transform.SetParent(targetCanvas.transform, false);
 
         _root = rootGo.GetComponent<RectTransform>();
-        _root.anchorMin = new Vector2(1f, 0.5f);
-        _root.anchorMax = new Vector2(1f, 0.5f);
-        _root.pivot = new Vector2(1f, 0.5f);
+        _root.anchorMin = new Vector2(0.5f, 0.5f);
+        _root.anchorMax = new Vector2(0.5f, 0.5f);
+        _root.pivot = new Vector2(0.5f, 0.5f);
         _root.sizeDelta = new Vector2(panelWidth, panelHeight);
-        _root.anchoredPosition = new Vector2(-panelInset, 0f);
+        _root.anchoredPosition = new Vector2(0f, 0f);
 
         Image background = rootGo.GetComponent<Image>();
         background.color = panelColor;
@@ -117,19 +117,19 @@ public class SniperRangeFinder : MonoBehaviour
 
     private void CreateLabels()
     {
-        _rangeLabel = CreateText("RangeLabel", _root, new Vector2(-18f, panelHeight * 0.5f - 26f), TextAlignmentOptions.Right);
+        _rangeLabel = CreateText("RangeLabel", _root, new Vector2(-18f, panelHeight * 0.5f - 20f), TextAlignmentOptions.Right);
         _rangeLabel.fontSize = fontSize + 6;
         _rangeLabel.color = Color.white;
         _rangeLabel.text = "RANGE --";
         _rangeLabel.enableAutoSizing = true;
         _rangeLabel.fontStyle = FontStyles.Bold;
 
-        TextMeshProUGUI leftLabel = CreateText("NearLabel", _root, new Vector2(-panelWidth + 78f, -panelHeight * 0.5f + 22f), TextAlignmentOptions.Left);
+        TextMeshProUGUI leftLabel = CreateText("NearLabel", _root, new Vector2(-panelWidth + 78f, -panelHeight * 0.5f + 20f), TextAlignmentOptions.Left);
         leftLabel.fontSize = fontSize - 6;
         leftLabel.color = new Color(1f, 1f, 1f, 0.7f);
         leftLabel.text = "NEAR";
 
-        TextMeshProUGUI farLabel = CreateText("FarLabel", _root, new Vector2(-panelWidth + 78f, panelHeight * 0.5f - 48f), TextAlignmentOptions.Left);
+        TextMeshProUGUI farLabel = CreateText("FarLabel", _root, new Vector2(-panelWidth + 78f, panelHeight * 0.5f - 40f), TextAlignmentOptions.Left);
         farLabel.fontSize = fontSize - 6;
         farLabel.color = new Color(1f, 1f, 1f, 0.7f);
         farLabel.text = "FAR";
@@ -153,7 +153,7 @@ public class SniperRangeFinder : MonoBehaviour
 
     private void CreateHint()
     {
-        _hintLabel = CreateText("Hint", _root, new Vector2(-18f, -panelHeight * 0.5f + 22f), TextAlignmentOptions.Right);
+        _hintLabel = CreateText("Hint", _root, new Vector2(-18f, -panelHeight * 0.5f + 26f), TextAlignmentOptions.Right);
         _hintLabel.fontSize = fontSize - 7;
         _hintLabel.color = new Color(1f, 1f, 1f, 0.65f);
         _hintLabel.text = "RMB range finder";

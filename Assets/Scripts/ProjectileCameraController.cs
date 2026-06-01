@@ -33,14 +33,19 @@ public class ProjectileCameraController : MonoBehaviour
     [Header("Cinematics")]
     public float explosionLingerTime = 2.0f;
 
+    [Header("Lifetime")]
+    public float baseSelfDestructSeconds = 8f;
+    [Range(0f, 100f)]
+    public float launchPowerPercentage = 50f;
+
     [Header("Explosion")]
     public GameObject explosionVFX;
     public float explosionRadius = 10f;
     public float explosionForce = 0.7f;
     
     [Header("Impact")]
-    public float groundImpactMultiplier = 1.0f;
-    public float castleImpactMultiplier = 1.0f;
+    public float groundImpactMultiplier = 4.5f;
+    public float castleImpactMultiplier = 3.5f;
 public float upwardsModifier = 1.0f;
 
     private AudioSource _audio;
@@ -48,7 +53,6 @@ public float upwardsModifier = 1.0f;
     private Rigidbody _rb;
 
     private bool _isDestroying = false;
-    private const float SELF_DESTRUCT_S = 8f;
 
     private Transform _projCamTransform;
     private LineRenderer _cannonLineRenderer;
@@ -134,7 +138,7 @@ public float upwardsModifier = 1.0f;
             _audio.clip = flyingShellSound;
         }
 
-        Invoke(nameof(SelfDestruct), SELF_DESTRUCT_S);
+        Invoke(nameof(SelfDestruct), GetSelfDestructSeconds());
     }
 
     void LateUpdate()
@@ -211,6 +215,13 @@ public float upwardsModifier = 1.0f;
 #else
         _rb.velocity = value;
 #endif
+    }
+
+    private float GetSelfDestructSeconds()
+    {
+        float powerT = Mathf.InverseLerp(50f, 100f, launchPowerPercentage);
+        float multiplier = Mathf.Lerp(1f, 2f, powerT);
+        return baseSelfDestructSeconds * multiplier;
     }
 
     private void UpdateTrailColor()

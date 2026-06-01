@@ -49473,10 +49473,10 @@ MonoBehaviour:
   zSegments: 160
   terrainWidth: 1200
   terrainLength: 1400
-  terrainThickness: 10
+  terrainThickness: 0.6
   generateOnAwake: 1
-  baseRadius: 20.5
-  baseDepth: 0.5
+  baseRadius: 10
+  baseDepth: 3
   forceRadiusScale: 0.075
   forceDepthScale: 0.06
   rimLift: 0.03
@@ -49491,9 +49491,9 @@ MonoBehaviour:
   craterForceMin: 88
   craterForceMax: 150
   hillHeightMin: 3
-  hillHeightMax: 100
+  hillHeightMax: 50
   hillRadiusMin: 10
-  hillRadiusMax: 100
+  hillRadiusMax: 30
 --- !u!114 &776996512
 MonoBehaviour:
   m_ObjectHideFlags: 0

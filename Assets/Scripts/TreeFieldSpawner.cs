@@ -8,8 +8,11 @@ public class TreeFieldSpawner : MonoBehaviour
     public Transform playerTarget;
     public Transform castleTarget;
 
+    [Header("Generation")]
+    public bool generateOnAwake = true;
+
     [Header("Trees")]
-    public int treeCount = 96;
+    public int treeCount = 384;
     public float treeMinHeight = 1.8f;
     public float treeMaxHeight = 3.4f;
     public float treeMinTrunkRadius = 0.14f;
@@ -27,7 +30,32 @@ public class TreeFieldSpawner : MonoBehaviour
     private void Awake()
     {
         AutoWire();
+        if (generateOnAwake)
+        {
+            SpawnTrees();
+        }
+    }
+
+    [ContextMenu("Respawn Trees")]
+    public void RespawnTrees()
+    {
         SpawnTrees();
+    }
+
+    [ContextMenu("Clear Trees")]
+    public void ClearTrees()
+    {
+        GameObject existingRoot = GameObject.Find("TreeField");
+        if (existingRoot != null)
+        {
+            DestroyTreeObject(existingRoot);
+        }
+
+        if (_treeRoot != null)
+        {
+            DestroyTreeObject(_treeRoot.gameObject);
+            _treeRoot = null;
+        }
     }
 
     private void AutoWire()
@@ -72,16 +100,7 @@ public class TreeFieldSpawner : MonoBehaviour
             return;
         }
 
-        GameObject existingRoot = GameObject.Find("TreeField");
-        if (existingRoot != null)
-        {
-            Destroy(existingRoot);
-        }
-
-        if (_treeRoot != null)
-        {
-            Destroy(_treeRoot.gameObject);
-        }
+        ClearTrees();
 
         GameObject rootGo = new GameObject("TreeField");
         _treeRoot = rootGo.transform;
@@ -125,6 +144,23 @@ public class TreeFieldSpawner : MonoBehaviour
         }
 
         return false;
+    }
+
+    private void DestroyTreeObject(GameObject treeObject)
+    {
+        if (treeObject == null)
+        {
+            return;
+        }
+
+        if (Application.isPlaying)
+        {
+            Destroy(treeObject);
+        }
+        else
+        {
+            DestroyImmediate(treeObject);
+        }
     }
 
     private Vector3 GetRandomPoint(System.Random rng)

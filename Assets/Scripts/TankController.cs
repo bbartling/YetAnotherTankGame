@@ -23,8 +23,22 @@ public class TankController : MonoBehaviour
     [Header("Advanced Movement Settings")]
 [Tooltip("Offset applied to the rigidbody centre of mass for stability")] public Vector3 centerOfMassOffset = new Vector3(0f, -0.2f, 0f);
 [Tooltip("Torque applied when rotating the tank")]
-    public float turnTorque = 35f;
+    public float turnTorque = 20f;
 [Tooltip("Force applied when accelerating forward/backward")] public float accelerationForce = 130f;
+
+    [Header("Track Drive")]
+    [Tooltip("Force applied to each track when moving")]
+    public float trackDriveForce = 36f;
+    [Tooltip("How much A/D biases the left and right tracks")]
+    public float trackTurnInputScale = 1.05f;
+    [Tooltip("Maximum horizontal speed for the hull")]
+    public float trackMaxVelocity = 7.5f;
+    [Tooltip("Higher values make the hull resist oversteer")]
+    public float trackAngularDamping = 4.8f;
+    [Tooltip("How long a turn tap remains active while moving")]
+    public float trackTurnTapDuration = 0.18f;
+    [Tooltip("How strongly one track slows or reverses during a tap")]
+    public float trackTurnTapStrength = 1.15f;
 
 
 
@@ -45,11 +59,16 @@ public class TankController : MonoBehaviour
     [Header("Camera View")]
     public Camera gameplayCamera;
     public KeyCode viewToggleKey = KeyCode.Escape;
-    public Vector3 firstPersonCameraLocalPosition = new Vector3(0f, 1.55f, 0.35f);
-    public Vector3 firstPersonCameraLocalEuler = new Vector3(8f, 0f, 0f);
-    public float firstPersonCameraFov = 62f;
-    public Vector3 overviewCameraLocalPosition = new Vector3(0f, 7.5f, -12f);
-    public Vector3 overviewCameraLocalEuler = new Vector3(18f, 0f, 0f);
+    public Vector3 firstPersonCameraLocalPosition = new Vector3(0f, 5.2f, -14f);
+    public Vector3 firstPersonCameraLocalEuler = new Vector3(18f, 0f, 0f);
+    public float firstPersonCameraFov = 58f;
+    [Tooltip("Temporary right-click sniper view positioned well in front of the turret")]
+    public Vector3 sniperCameraLocalPosition = new Vector3(0f, 4f, 24f);
+    public Vector3 sniperCameraLocalEuler = new Vector3(8f, 0f, 0f);
+    public float sniperCameraFov = 46f;
+    // Sniper/overview view sits well in front of the tank and looks back at it.
+    public Vector3 overviewCameraLocalPosition = new Vector3(0f, 7.5f, -18f);
+    public Vector3 overviewCameraLocalEuler = new Vector3(22f, 0f, 0f);
     public float overviewCameraFov = 52f;
 
     [Header("Firing Settings")]
@@ -97,12 +116,17 @@ public class TankController : MonoBehaviour
     private bool _isEngineStarting = false;
     private bool _isEngineRunning = false;
     private bool _isOverviewView = false;
+    private bool _isSniperViewActive = false;
     private float _stopTimer = 0f;
     private bool _wasDriveInput = false;
     private bool _wasRotatingInput = false;
     private bool _wasElevatingInput = false;
+    private bool _isElevationAtLimit = false;
+    private bool _engineMutedForProjectileView = false;
     private float _nextTreeSmashTime = 0f;
     private float _nextElevationSoundTime = 0f;
+    private float _trackTurnTapTimer = 0f;
+    private float _trackTurnTapDirection = 0f;
 
     void Awake()
     {
@@ -114,7 +138,7 @@ public class TankController : MonoBehaviour
         {
             _rb.centerOfMass += centerOfMassOffset;
             _rb.linearDamping = 0.75f;
-            _rb.angularDamping = 2.5f;
+            _rb.angularDamping = trackAngularDamping;
             _rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
             _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
         }
@@ -141,6 +165,8 @@ public class TankController : MonoBehaviour
     {
         HandleViewToggle();
         HandleInput();
+        HandleSniperViewOverride();
+        SyncEngineAudioForProjectileView();
         HandleAudio();
         UpdateTrajectory();
     }
@@ -191,9 +217,11 @@ private void UpdateTrajectory()
             _turretYawPivot.localRotation = Quaternion.Euler(0f, _currentRotation, 0f);
         }
 
+        float previousElevation = _currentElevation;
         _currentElevation += mouseWheel * mouseWheelBarrelSensitivity * barrelElevationSpeed;
         _currentElevation += keyboardElevation * keyboardBarrelSensitivity * Time.deltaTime;
         _currentElevation = Mathf.Clamp(_currentElevation, minElevation, maxElevation);
+        _isElevationAtLimit = (Mathf.Abs(mouseWheel) > 0.01f || Mathf.Abs(keyboardElevation) > 0.01f) && Mathf.Approximately(_currentElevation, previousElevation);
 
         if (barrel != null)
         {
@@ -233,6 +261,21 @@ private void UpdateTrajectory()
             _isOverviewView = !_isOverviewView;
             ApplyCameraView();
         }
+    }
+
+    private void HandleSniperViewOverride()
+    {
+        bool sniperHeld = Input.GetMouseButton(1);
+        if (sniperHeld)
+        {
+            ApplySniperCameraView();
+        }
+        else if (_isSniperViewActive)
+        {
+            ApplyCameraView();
+        }
+
+        _isSniperViewActive = sniperHeld;
     }
 
     private void EnsureGameplayCamera()
@@ -296,6 +339,24 @@ private void UpdateTrajectory()
         }
     }
 
+    private void ApplySniperCameraView()
+    {
+        if (gameplayCamera == null)
+        {
+            return;
+        }
+
+        Transform parent = GetCameraParent();
+        if (parent != null && gameplayCamera.transform.parent != parent)
+        {
+            gameplayCamera.transform.SetParent(parent, false);
+        }
+
+        gameplayCamera.transform.localPosition = sniperCameraLocalPosition;
+        gameplayCamera.transform.localRotation = Quaternion.Euler(sniperCameraLocalEuler);
+        gameplayCamera.fieldOfView = sniperCameraFov;
+    }
+
     private void HandleAudio()
     {
         // Engine sound logic: True if any movement key is held
@@ -337,7 +398,14 @@ private void UpdateTrajectory()
 
         // Elevation sound logic: short one-shot ticks with a small repeat gap.
         bool isElevating = Mathf.Abs(Input.GetAxis("Mouse ScrollWheel")) > 0.01f || Input.GetKey(KeyCode.PageUp) || Input.GetKey(KeyCode.PageDown);
-        if (isElevating && Time.time >= _nextElevationSoundTime && adjustElevationClip != null && elevationAudioSource != null)
+        if (_isElevationAtLimit)
+        {
+            if (elevationAudioSource != null && elevationAudioSource.isPlaying)
+            {
+                elevationAudioSource.Stop();
+            }
+        }
+        else if (isElevating && Time.time >= _nextElevationSoundTime && adjustElevationClip != null && elevationAudioSource != null)
         {
             if (elevationAudioSource.isPlaying)
             {
@@ -399,6 +467,26 @@ private void UpdateTrajectory()
             {
                 engineAudioSource.PlayOneShot(engineStopClip);
             }
+        }
+    }
+
+    private void SyncEngineAudioForProjectileView()
+    {
+        bool projectileViewActive = ProjectileCameraController.ActivePlayerProjectile != null;
+        if (engineAudioSource == null)
+        {
+            return;
+        }
+
+        if (projectileViewActive && !_engineMutedForProjectileView)
+        {
+            engineAudioSource.mute = true;
+            _engineMutedForProjectileView = true;
+        }
+        else if (!projectileViewActive && _engineMutedForProjectileView)
+        {
+            engineAudioSource.mute = false;
+            _engineMutedForProjectileView = false;
         }
     }
 
@@ -564,29 +652,72 @@ private void UpdateTrajectory()
 
     private void HandleMovement()
     {
-        // Tank movement uses WASD like a classic tank control scheme.
+        // Tank movement uses differential tracks: W/S drive both tracks, A/D biases one track slower or reversed.
         float moveInput = 0f;
         if (Input.GetKey(KeyCode.W)) moveInput = 1f;
         if (Input.GetKey(KeyCode.S)) moveInput = -1f;
 
-        // Tank steering uses A/D.
         float turnInput = 0f;
-        if (Input.GetKey(KeyCode.D)) turnInput = 1f;
-        if (Input.GetKey(KeyCode.A)) turnInput = -1f;
-
-        if (moveInput != 0f)
+        if (Mathf.Abs(moveInput) > 0.001f)
         {
-            Vector3 force = transform.forward * moveInput * accelerationForce;
-            if (_rb.linearVelocity.magnitude < maxVelocity)
+            if (Input.GetKeyDown(KeyCode.D) || Input.GetKey(KeyCode.D))
             {
-                _rb.AddForce(force, ForceMode.Force);
+                _trackTurnTapDirection = 1f;
+                _trackTurnTapTimer = trackTurnTapDuration;
+            }
+            else if (Input.GetKeyDown(KeyCode.A) || Input.GetKey(KeyCode.A))
+            {
+                _trackTurnTapDirection = -1f;
+                _trackTurnTapTimer = trackTurnTapDuration;
             }
         }
-
-        if (turnInput != 0f)
+        else
         {
-            _rb.AddTorque(Vector3.up * (turnInput * turnTorque), ForceMode.Force);
+            _trackTurnTapTimer = 0f;
+            _trackTurnTapDirection = 0f;
         }
+
+        if (_trackTurnTapTimer > 0f)
+        {
+            _trackTurnTapTimer -= Time.fixedDeltaTime;
+            float tapBlend = trackTurnTapDuration > 0f ? Mathf.Clamp01(_trackTurnTapTimer / trackTurnTapDuration) : 1f;
+            turnInput = _trackTurnTapDirection * trackTurnInputScale * trackTurnTapStrength * Mathf.Max(0.35f, tapBlend);
+        }
+
+        if (Mathf.Abs(moveInput) < 0.001f && Mathf.Abs(turnInput) < 0.001f)
+        {
+            return;
+        }
+
+        Vector3 forward = transform.forward;
+        forward.y = 0f;
+        forward.Normalize();
+
+        Vector3 right = transform.right;
+        right.y = 0f;
+        right.Normalize();
+
+        float leftTrack = moveInput + turnInput;
+        float rightTrack = moveInput - turnInput;
+
+        Collider bodyCollider = GetComponent<Collider>();
+        float trackOffset = bodyCollider != null ? Mathf.Max(0.45f, bodyCollider.bounds.extents.x * 0.65f) : 1.2f;
+        Vector3 leftTrackPoint = _rb.worldCenterOfMass - right * trackOffset;
+        Vector3 rightTrackPoint = _rb.worldCenterOfMass + right * trackOffset;
+
+        Vector3 flatVelocity = GetTankVelocity();
+        flatVelocity.y = 0f;
+        bool overSpeed = flatVelocity.magnitude > trackMaxVelocity;
+        bool movingWithCurrentVelocity = Vector3.Dot(flatVelocity, forward) > 0f && moveInput > 0f;
+        bool reversingWithCurrentVelocity = Vector3.Dot(flatVelocity, forward) < 0f && moveInput < 0f;
+
+        if (!overSpeed || !movingWithCurrentVelocity && !reversingWithCurrentVelocity)
+        {
+            _rb.AddForceAtPosition(forward * (leftTrack * trackDriveForce), leftTrackPoint, ForceMode.Force);
+            _rb.AddForceAtPosition(forward * (rightTrack * trackDriveForce), rightTrackPoint, ForceMode.Force);
+        }
+
+        ClampHorizontalVelocity();
     }
 
     private Vector3 GetTankVelocity()
@@ -596,6 +727,38 @@ private void UpdateTrajectory()
 #else
         return _rb != null ? _rb.velocity : Vector3.zero;
 #endif
+    }
+
+    private void SetTankVelocity(Vector3 velocity)
+    {
+        if (_rb == null)
+        {
+            return;
+        }
+
+#if UNITY_6000_0_OR_NEWER
+        _rb.linearVelocity = velocity;
+#else
+        _rb.velocity = velocity;
+#endif
+    }
+
+    private void ClampHorizontalVelocity()
+    {
+        if (_rb == null)
+        {
+            return;
+        }
+
+        Vector3 velocity = GetTankVelocity();
+        Vector3 flatVelocity = new Vector3(velocity.x, 0f, velocity.z);
+        if (flatVelocity.magnitude <= trackMaxVelocity)
+        {
+            return;
+        }
+
+        Vector3 clampedFlat = flatVelocity.normalized * trackMaxVelocity;
+        SetTankVelocity(new Vector3(clampedFlat.x, velocity.y, clampedFlat.z));
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -646,6 +809,7 @@ public void Fire()
         if (pcc != null)
         {
             pcc.trackingBase = transform;
+            pcc.launchPowerPercentage = powerPercentage;
         }
 
         Rigidbody rb = shell.GetComponent<Rigidbody>();
