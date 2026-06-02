@@ -96,7 +96,8 @@ public class EnemyTankAI : MonoBehaviour
         _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
         AutoWireReferences();
-        _patrolAngle = patrolStartAngle;
+        _patrolAngle = patrolStartAngle;        DisableNonPlayerCameras();
+
         _spawnPosition = transform.position;
         _health = maxHealth;
     }
@@ -183,6 +184,22 @@ public class EnemyTankAI : MonoBehaviour
             firePoint = barrelPivot.Find("FirePoint");
         }
     }
+
+    private void DisableNonPlayerCameras()
+    {
+        Camera[] cameras = GetComponentsInChildren<Camera>(true);
+        for (int i = 0; i < cameras.Length; i++)
+        {
+            cameras[i].enabled = false;
+        }
+
+        AudioListener[] listeners = GetComponentsInChildren<AudioListener>(true);
+        for (int i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].enabled = false;
+        }
+    }
+
 
     private void FindPlayerAndPatrolCenter()
     {

@@ -59,6 +59,7 @@ public class MenuManager : MonoBehaviour
         if (playerTank != null)
         {
             playerTank.enabled = true;
+            playerTank.PrepareForGameplay();
         }
 
         Cursor.visible = false;

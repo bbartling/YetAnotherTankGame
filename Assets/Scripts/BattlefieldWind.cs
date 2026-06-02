@@ -76,14 +76,14 @@ public class BattlefieldWind : MonoBehaviour
     public string GetArrowLabel()
     {
         float normalized = Mathf.Repeat(_currentAngle, 360f);
-        if (normalized < 22.5f || normalized >= 337.5f) return "→";
-        if (normalized < 67.5f) return "↗";
-        if (normalized < 112.5f) return "↑";
-        if (normalized < 157.5f) return "↖";
-        if (normalized < 202.5f) return "←";
-        if (normalized < 247.5f) return "↙";
-        if (normalized < 292.5f) return "↓";
-        return "↘";
+        if (normalized < 22.5f || normalized >= 337.5f) return "E";
+        if (normalized < 67.5f) return "NE";
+        if (normalized < 112.5f) return "N";
+        if (normalized < 157.5f) return "NW";
+        if (normalized < 202.5f) return "W";
+        if (normalized < 247.5f) return "SW";
+        if (normalized < 292.5f) return "S";
+        return "SE";
     }
 
     public string GetWindReadout()

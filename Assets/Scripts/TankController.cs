@@ -68,7 +68,7 @@ public class TankController : MonoBehaviour
     [Tooltip("Temporary right-click sniper view positioned well in front of the turret")]
     public Vector3 sniperCameraLocalPosition = new Vector3(0f, 4f, 24f);
     public Vector3 sniperCameraLocalEuler = new Vector3(8f, 0f, 0f);
-    public float sniperCameraFov = 46f;
+    public float sniperCameraFov = 15f;
     public Vector3 overviewCameraLocalPosition = new Vector3(0f, 4f, 24f);
     public Vector3 overviewCameraLocalEuler = new Vector3(8f, 0f, 0f);
     public float overviewCameraFov = 52f;
@@ -178,7 +178,7 @@ public class TankController : MonoBehaviour
             _rb.centerOfMass += centerOfMassOffset;
             _rb.linearDamping = 0.78f;
             _rb.angularDamping = 2.2f;
-            _rb.constraints = RigidbodyConstraints.None;
+            _rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
             _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             _rb.maxAngularVelocity = 10f;
         }
@@ -207,25 +207,55 @@ public class TankController : MonoBehaviour
 
     private void Start()
     {
+        if (!_spawnPlacementComplete && enabled)
+        {
+            StartCoroutine(InitializeSpawnPlacement());
+        }
+    }
+
+    public void PrepareForGameplay()
+    {
+        if (_spawnPlacementComplete)
+        {
+            SetTankPhysicsActive(true);
+            return;
+        }
+
+        StopAllCoroutines();
         StartCoroutine(InitializeSpawnPlacement());
     }
 
     private IEnumerator InitializeSpawnPlacement()
     {
+        SetTankPhysicsActive(false);
         yield return null;
         yield return new WaitForFixedUpdate();
 
         PlaceOnGround();
         Physics.SyncTransforms();
-
-        if (_rb != null)
-        {
-            _rb.isKinematic = false;
-            _rb.angularVelocity = Vector3.zero;
-        }
+        SetTankPhysicsActive(true);
 
         _spawnPlacementComplete = true;
         UpdateHUD();
+    }
+
+    private void SetTankPhysicsActive(bool active)
+    {
+        if (_rb == null)
+        {
+            return;
+        }
+
+        if (active)
+        {
+            _rb.isKinematic = false;
+            SetTankVelocity(Vector3.zero);
+            _rb.angularVelocity = Vector3.zero;
+        }
+        else
+        {
+            _rb.isKinematic = true;
+        }
     }
 
     private void Update()
@@ -361,6 +391,12 @@ public class TankController : MonoBehaviour
             return;
         }
 
+        SniperZoom sniperZoom = gameplayCamera.GetComponent<SniperZoom>();
+        if (sniperZoom != null)
+        {
+            sniperZoom.enabled = false;
+        }
+
         Transform parent = GetCameraParent();
         if (parent != null && gameplayCamera.transform.parent != parent)
         {
@@ -486,8 +522,14 @@ public class TankController : MonoBehaviour
 
     private void StartEngine()
     {
+        CancelInvoke(nameof(TransitionToRunning));
         _isEngineStarting = true;
         _isEngineRunning = false;
+
+        if (engineAudioSource != null)
+        {
+            engineAudioSource.Stop();
+        }
 
         if (engineAudioSource != null && engineStartClip != null)
         {
@@ -523,15 +565,18 @@ public class TankController : MonoBehaviour
     private void StopEngine()
     {
         CancelInvoke(nameof(TransitionToRunning));
+        bool hadEngineAudio = _isEngineStarting || _isEngineRunning;
         _isEngineStarting = false;
         _isEngineRunning = false;
 
         if (engineAudioSource != null)
         {
             engineAudioSource.Stop();
-            if (engineStopClip != null)
+            engineAudioSource.loop = false;
+            if (hadEngineAudio && engineStopClip != null)
             {
-                engineAudioSource.PlayOneShot(engineStopClip);
+                engineAudioSource.clip = engineStopClip;
+                engineAudioSource.Play();
             }
         }
     }
@@ -672,169 +717,145 @@ public class TankController : MonoBehaviour
         }
 
         Collider bodyCollider = GetComponent<Collider>();
-        float lift = bodyCollider != null ? Mathf.Max(0.25f, bodyCollider.bounds.extents.y + 0.05f) : 0.5f;
+        float lift = bodyCollider != null ? Mathf.Max(0.25f, bodyCollider.bounds.extents.y + 0.08f) : 0.5f;
 
         GameObject groundObject = GameObject.Find(spawnGroundName);
         if (groundObject == null)
         {
+            Debug.LogWarning($"[TankController] Could not find spawn ground '{spawnGroundName}'.");
             return;
         }
 
         Collider groundCollider = groundObject.GetComponent<Collider>();
-        Bounds spawnBounds;
+        Renderer groundRenderer = groundObject.GetComponent<Renderer>();
+        if (groundCollider == null && groundRenderer == null)
+        {
+            Debug.LogWarning($"[TankController] Spawn ground '{spawnGroundName}' has no Collider or Renderer.");
+            return;
+        }
+
+        Bounds spawnBounds = groundCollider != null ? groundCollider.bounds : groundRenderer.bounds;
+        Vector3 target = transform.position + spawnOffset;
+        target.x = Mathf.Clamp(target.x, spawnBounds.min.x + 1f, spawnBounds.max.x - 1f);
+        target.z = Mathf.Clamp(target.z, spawnBounds.min.z + 1f, spawnBounds.max.z - 1f);
+
+        float rayHeight = Mathf.Max(spawnProbeHeight, spawnBounds.size.y + 20f);
+        Vector3 origin = new Vector3(target.x, spawnBounds.max.y + rayHeight, target.z);
+        float rayDistance = rayHeight + spawnBounds.size.y + 80f;
+        Vector3 groundedPosition = new Vector3(target.x, transform.position.y, target.z);
+
+        bool foundGround = false;
         if (groundCollider != null)
         {
-            spawnBounds = groundCollider.bounds;
-        }
-        else
-        {
-            Renderer groundRenderer = groundObject.GetComponent<Renderer>();
-            if (groundRenderer == null)
+            Ray ray = new Ray(origin, Vector3.down);
+            if (groundCollider.Raycast(ray, out RaycastHit colliderHit, rayDistance))
             {
-                return;
+                groundedPosition.y = colliderHit.point.y + lift;
+                foundGround = true;
             }
-
-            spawnBounds = groundRenderer.bounds;
         }
 
-        Vector3 target = transform.position + spawnOffset;
-        Vector3 origin = new Vector3(target.x, spawnBounds.max.y + spawnProbeHeight, target.z);
-        Vector3 groundedPosition = transform.position;
-
-        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, spawnProbeHeight * 2f, ~0, QueryTriggerInteraction.Ignore))
+        if (!foundGround && Physics.Raycast(origin, Vector3.down, out RaycastHit hit, rayDistance, groundMask, QueryTriggerInteraction.Ignore))
         {
-            groundedPosition.y = hit.point.y + lift;
+            if (hit.collider != bodyCollider && (groundCollider == null || hit.collider == groundCollider || hit.collider.transform.IsChildOf(groundObject.transform)))
+            {
+                groundedPosition.y = hit.point.y + lift;
+                foundGround = true;
+            }
         }
-        else
+
+        if (!foundGround)
         {
             groundedPosition.y = spawnBounds.max.y + lift;
+            Debug.LogWarning($"[TankController] Ground ray missed at {target}. Using terrain bounds fallback.");
         }
 
         transform.position = groundedPosition;
+        transform.rotation = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
         _rb.position = groundedPosition;
+        _rb.rotation = transform.rotation;
         SetTankVelocity(Vector3.zero);
-        _rb.angularVelocity = Vector3.zero;
+        if (!_rb.isKinematic)
+        {
+            _rb.angularVelocity = Vector3.zero;
+        }
     }
 
     private void HandleMovement()
     {
-        float moveInput = 0f;
-        if (Input.GetKey(KeyCode.W)) moveInput = 1f;
-        if (Input.GetKey(KeyCode.S)) moveInput = -1f;
+        if (_rb == null || _rb.isKinematic)
+        {
+            return;
+        }
+
+        float driveInput = 0f;
+        if (Input.GetKey(KeyCode.W)) driveInput += 1f;
+        if (Input.GetKey(KeyCode.S)) driveInput -= 1f;
 
         float turnInput = 0f;
         if (Input.GetKey(KeyCode.D)) turnInput += 1f;
         if (Input.GetKey(KeyCode.A)) turnInput -= 1f;
 
-        if (Mathf.Abs(moveInput) < 0.001f && Mathf.Abs(turnInput) < 0.001f)
+        if (Mathf.Abs(driveInput) < 0.001f && Mathf.Abs(turnInput) < 0.001f)
         {
             return;
         }
 
-        if (!TryGetGroundHit(out RaycastHit groundHit))
+        Vector3 groundNormal = Vector3.up;
+        float slopeDriveScale = 1f;
+        if (TryGetGroundHit(out RaycastHit groundHit))
         {
-            DriveOnFlatGround(moveInput, turnInput);
-            return;
+            groundNormal = groundHit.normal.normalized;
+            float slopeAngle = Vector3.Angle(groundNormal, Vector3.up);
+            slopeDriveScale = Mathf.Clamp01(1f - Mathf.Max(0f, slopeAngle - maxClimbSlope) / Mathf.Max(1f, stallSlope - maxClimbSlope));
+            ApplySlopeStabilization(groundNormal, slopeAngle, 0f);
         }
 
-        Vector3 groundNormal = groundHit.normal.normalized;
-        Vector3 forwardOnPlane = Vector3.ProjectOnPlane(transform.forward, groundNormal);
-        Vector3 rightOnPlane = Vector3.ProjectOnPlane(transform.right, groundNormal);
-
-        if (forwardOnPlane.sqrMagnitude < 0.0001f)
+        Vector3 forward = Vector3.ProjectOnPlane(transform.forward, groundNormal);
+        if (forward.sqrMagnitude < 0.0001f)
         {
-            forwardOnPlane = Vector3.ProjectOnPlane(transform.forward, Vector3.up);
+            forward = Vector3.ProjectOnPlane(transform.forward, Vector3.up);
         }
-        if (rightOnPlane.sqrMagnitude < 0.0001f)
-        {
-            rightOnPlane = Vector3.ProjectOnPlane(transform.right, Vector3.up);
-        }
+        forward.Normalize();
 
-        forwardOnPlane.Normalize();
-        rightOnPlane.Normalize();
+        float leftTrack = Mathf.Clamp(driveInput + turnInput * trackTurnInputScale, -1f, 1f);
+        float rightTrack = Mathf.Clamp(driveInput - turnInput * trackTurnInputScale, -1f, 1f);
+        float averageTrack = (leftTrack + rightTrack) * 0.5f;
+        float differentialTrack = (leftTrack - rightTrack) * 0.5f;
 
-        Vector3 downhill = Vector3.ProjectOnPlane(Vector3.down, groundNormal);
-        if (downhill.sqrMagnitude > 0.0001f)
-        {
-            downhill.Normalize();
-        }
-        else
-        {
-            downhill = Vector3.zero;
-        }
+        Vector3 velocity = GetTankVelocity();
+        Vector3 verticalVelocity = Vector3.Project(velocity, Vector3.up);
+        Vector3 desiredPlanarVelocity = forward * (averageTrack * trackMaxVelocity * slopeDriveScale);
+        Vector3 currentPlanarVelocity = Vector3.ProjectOnPlane(velocity, Vector3.up);
+        Vector3 planarVelocity = Vector3.MoveTowards(currentPlanarVelocity, desiredPlanarVelocity, trackDriveForce * Time.fixedDeltaTime);
+        SetTankVelocity(planarVelocity + verticalVelocity);
 
-        float slopeAngle = Vector3.Angle(groundNormal, Vector3.up);
-        float uphillFacing = downhill == Vector3.zero ? 0f : Vector3.Dot(forwardOnPlane, -downhill);
-        float sideSlope = downhill == Vector3.zero ? 0f : Mathf.Abs(Vector3.Dot(rightOnPlane, downhill));
-
-        float climbFactor = 1f;
-        if (moveInput > 0f && slopeAngle > maxClimbSlope)
+        if (Mathf.Abs(differentialTrack) > 0.001f)
         {
-            climbFactor = Mathf.Clamp01(1f - (slopeAngle - maxClimbSlope) / Mathf.Max(0.001f, stallSlope - maxClimbSlope));
+            float yawDegrees = differentialTrack * turnSpeed * Time.fixedDeltaTime;
+            Quaternion yaw = Quaternion.AngleAxis(yawDegrees, groundNormal);
+            _rb.MoveRotation(yaw * _rb.rotation);
         }
 
-        if (moveInput > 0f && slopeAngle >= stallSlope && uphillFacing > 0.2f)
-        {
-            climbFactor = 0f;
-        }
-
-        if (moveInput < 0f)
-        {
-            climbFactor = Mathf.Max(climbFactor, 0.75f);
-        }
-
-        float tractionLoss = Mathf.Clamp01((slopeAngle / Mathf.Max(1f, maxClimbSlope)) * 0.35f + sideSlope * 0.35f);
-        float driveScale = Mathf.Clamp01(1f - tractionLoss);
-
-        float leftTrack = moveInput + turnInput * trackTurnInputScale;
-        float rightTrack = moveInput - turnInput * trackTurnInputScale;
-        float trackOffset = GetTrackOffset();
-
-        Vector3 leftTrackPoint = _rb.worldCenterOfMass - rightOnPlane * trackOffset;
-        Vector3 rightTrackPoint = _rb.worldCenterOfMass + rightOnPlane * trackOffset;
-
-        Vector3 appliedForward = forwardOnPlane;
-        if (moveInput < 0f)
-        {
-            appliedForward = -forwardOnPlane;
-        }
-
-        float driveForce = trackDriveForce * driveScale * climbFactor;
-        if (Mathf.Abs(moveInput) > 0.001f)
-        {
-            _rb.AddForceAtPosition(forwardOnPlane * (leftTrack * driveForce), leftTrackPoint, ForceMode.Force);
-            _rb.AddForceAtPosition(forwardOnPlane * (rightTrack * driveForce), rightTrackPoint, ForceMode.Force);
-        }
-
-        if (Mathf.Abs(turnInput) > 0.001f && Mathf.Abs(moveInput) < 0.2f)
-        {
-            _rb.AddTorque(groundNormal * (turnInput * turnSpeed * 0.02f), ForceMode.Force);
-        }
-
-        ApplySlopeStabilization(groundNormal, slopeAngle, sideSlope);
         ClampHorizontalVelocity();
     }
 
     private void DriveOnFlatGround(float moveInput, float turnInput)
     {
         Vector3 forward = Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
-        Vector3 right = Vector3.ProjectOnPlane(transform.right, Vector3.up).normalized;
-        float trackOffset = GetTrackOffset();
+        float leftTrack = Mathf.Clamp(moveInput + turnInput * trackTurnInputScale, -1f, 1f);
+        float rightTrack = Mathf.Clamp(moveInput - turnInput * trackTurnInputScale, -1f, 1f);
+        float averageTrack = (leftTrack + rightTrack) * 0.5f;
+        float differentialTrack = (leftTrack - rightTrack) * 0.5f;
 
-        float leftTrack = moveInput + turnInput * trackTurnInputScale;
-        float rightTrack = moveInput - turnInput * trackTurnInputScale;
-        Vector3 leftTrackPoint = _rb.worldCenterOfMass - right * trackOffset;
-        Vector3 rightTrackPoint = _rb.worldCenterOfMass + right * trackOffset;
+        Vector3 velocity = GetTankVelocity();
+        Vector3 desiredPlanarVelocity = forward * (averageTrack * trackMaxVelocity);
+        Vector3 planarVelocity = Vector3.MoveTowards(new Vector3(velocity.x, 0f, velocity.z), desiredPlanarVelocity, trackDriveForce * Time.fixedDeltaTime);
+        SetTankVelocity(new Vector3(planarVelocity.x, velocity.y, planarVelocity.z));
 
-        if (Mathf.Abs(moveInput) > 0.001f)
+        if (Mathf.Abs(differentialTrack) > 0.001f)
         {
-            _rb.AddForceAtPosition(forward * (leftTrack * trackDriveForce), leftTrackPoint, ForceMode.Force);
-            _rb.AddForceAtPosition(forward * (rightTrack * trackDriveForce), rightTrackPoint, ForceMode.Force);
-        }
-
-        if (Mathf.Abs(turnInput) > 0.001f)
-        {
-            _rb.AddTorque(Vector3.up * (turnInput * turnSpeed * 0.02f), ForceMode.Force);
+            _rb.MoveRotation(Quaternion.AngleAxis(differentialTrack * turnSpeed * Time.fixedDeltaTime, Vector3.up) * _rb.rotation);
         }
 
         ClampHorizontalVelocity();
@@ -898,7 +919,7 @@ public class TankController : MonoBehaviour
 
     private void SetTankVelocity(Vector3 velocity)
     {
-        if (_rb == null)
+        if (_rb == null || _rb.isKinematic)
         {
             return;
         }

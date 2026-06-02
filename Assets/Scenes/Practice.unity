@@ -5352,19 +5352,6 @@ Rigidbody:
   m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 2
---- !u!134 &61084284
-PhysicsMaterial:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: ' (Instance) (Instance) (Instance) (Instance)'
-  serializedVersion: 2
-  m_DynamicFriction: 0.6
-  m_StaticFriction: 0.6
-  m_Bounciness: 0
-  m_FrictionCombine: 0
-  m_BounceCombine: 0
 --- !u!1 &61249918
 GameObject:
   m_ObjectHideFlags: 0
@@ -10088,6 +10075,19 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 134250954}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!134 &135303678
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ' (Instance) (Instance) (Instance) (Instance) (Instance)'
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!1 &136277433
 GameObject:
   m_ObjectHideFlags: 0
@@ -32411,10 +32411,10 @@ MonoBehaviour:
   firstPersonCameraFov: 62
   sniperCameraLocalPosition: {x: 0, y: 4, z: 24}
   sniperCameraLocalEuler: {x: 8, y: 0, z: 0}
-  sniperCameraFov: 46
-  overviewCameraLocalPosition: {x: 0, y: 4, z: 24}
-  overviewCameraLocalEuler: {x: 8, y: 0, z: 0}
-  overviewCameraFov: 52
+  sniperCameraFov: 15
+  overviewCameraLocalPosition: {x: 0, y: 8, z: 55}
+  overviewCameraLocalEuler: {x: 10, y: 0, z: 0}
+  overviewCameraFov: 60
   maxPower: 75
   powerPercentage: 50
   mass: 1
@@ -33011,7 +33011,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 396673827}
-  m_Material: {fileID: 1687852474}
+  m_Material: {fileID: 857630592}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -58677,7 +58677,7 @@ MeshCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 776996506}
-  m_Material: {fileID: 61084284}
+  m_Material: {fileID: 135303678}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -63444,6 +63444,19 @@ Rigidbody:
   m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 2
+--- !u!134 &857630592
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ' (Instance) (Instance) (Instance) (Instance) (Instance)'
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!1 &860533790
 GameObject:
   m_ObjectHideFlags: 0
@@ -130249,19 +130262,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1686912916}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
---- !u!134 &1687852474
-PhysicsMaterial:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: ' (Instance) (Instance) (Instance) (Instance)'
-  serializedVersion: 2
-  m_DynamicFriction: 0.6
-  m_StaticFriction: 0.6
-  m_Bounciness: 0
-  m_FrictionCombine: 0
-  m_BounceCombine: 0
 --- !u!1 &1688023847
 GameObject:
   m_ObjectHideFlags: 0

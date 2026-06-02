@@ -251,9 +251,39 @@ public class EnemyTankSpawner : MonoBehaviour
 
     private Vector3 SampleGround(Vector3 origin)
     {
-        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, spawnHeight * 3f, ~0, QueryTriggerInteraction.Ignore))
+        CraterTerrain terrain = Object.FindFirstObjectByType<CraterTerrain>();
+        Collider terrainCollider = terrain != null ? terrain.GetComponent<Collider>() : null;
+        Renderer terrainRenderer = terrain != null ? terrain.GetComponent<Renderer>() : null;
+
+        if (terrainCollider != null || terrainRenderer != null)
         {
-            return hit.point;
+            Bounds bounds = terrainCollider != null ? terrainCollider.bounds : terrainRenderer.bounds;
+            Vector3 rayOrigin = new Vector3(origin.x, bounds.max.y + Mathf.Max(20f, bounds.size.y), origin.z);
+            float rayDistance = bounds.size.y + Mathf.Max(80f, spawnHeight * 3f);
+
+            if (terrainCollider != null)
+            {
+                Ray ray = new Ray(rayOrigin, Vector3.down);
+                if (terrainCollider.Raycast(ray, out RaycastHit terrainHit, rayDistance))
+                {
+                    return terrainHit.point;
+                }
+            }
+
+            if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, rayDistance, ~0, QueryTriggerInteraction.Ignore))
+            {
+                if (terrainCollider == null || hit.collider == terrainCollider || hit.collider.transform.IsChildOf(terrain.transform))
+                {
+                    return hit.point;
+                }
+            }
+
+            return Vector3.zero;
+        }
+
+        if (Physics.Raycast(origin, Vector3.down, out RaycastHit fallbackHit, spawnHeight * 3f, ~0, QueryTriggerInteraction.Ignore))
+        {
+            return fallbackHit.point;
         }
 
         return Vector3.zero;
