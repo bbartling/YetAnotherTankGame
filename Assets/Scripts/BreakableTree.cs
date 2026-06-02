@@ -18,6 +18,8 @@ public class BreakableTree : MonoBehaviour
     public float tankPushForce = 12f;
     public float shellPushForce = 24f;
     public float upwardsModifier = 0.35f;
+    public int crumblePieceCount = 7;
+    public float crumbleForce = 18f;
 
     private Rigidbody _rb;
     private AudioSource _audio;
@@ -33,6 +35,9 @@ public class BreakableTree : MonoBehaviour
         _rb.mass = Mathf.Max(0.5f, maxHealth * 0.06f);
         _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
         _rb.interpolation = RigidbodyInterpolation.Interpolate;
+        _rb.useGravity = false;
+        _rb.isKinematic = true;
+        _rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
 
         if (_audio != null)
         {
@@ -93,11 +98,11 @@ public class BreakableTree : MonoBehaviour
         _health -= force;
         if (_health <= 0f || !fromTank && force >= shellCollisionDamage * 0.9f)
         {
-            BreakTree();
+            BreakTree(worldPoint, worldNormal, force);
         }
     }
 
-    private void BreakTree()
+    private void BreakTree(Vector3 worldPoint, Vector3 worldNormal, float force)
     {
         if (_broken)
         {
@@ -106,9 +111,12 @@ public class BreakableTree : MonoBehaviour
 
         _broken = true;
 
+        SpawnCrumblePieces(worldPoint, worldNormal, force);
+
         if (_rb != null)
         {
-            _rb.useGravity = true;
+            _rb.isKinematic = true;
+            _rb.useGravity = false;
         }
 
         Collider col = GetComponent<Collider>();
@@ -117,6 +125,51 @@ public class BreakableTree : MonoBehaviour
             col.enabled = false;
         }
 
+        Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            renderers[i].enabled = false;
+        }
+
         Destroy(gameObject, destroyDelay);
+    }
+
+    private void SpawnCrumblePieces(Vector3 worldPoint, Vector3 worldNormal, float force)
+    {
+        Vector3 baseCenter = transform.position;
+        for (int i = 0; i < crumblePieceCount; i++)
+        {
+            GameObject piece = GameObject.CreatePrimitive(Random.value > 0.5f ? PrimitiveType.Cube : PrimitiveType.Sphere);
+            piece.name = name + "_Shard";
+            piece.transform.position = baseCenter + Random.insideUnitSphere * 0.45f;
+            piece.transform.localScale = Vector3.one * Random.Range(0.12f, 0.32f);
+
+            Collider collider = piece.GetComponent<Collider>();
+            if (collider != null)
+            {
+                Destroy(collider);
+            }
+
+            Renderer renderer = piece.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                Material material = new Material(Shader.Find("Standard"));
+                material.color = new Color(0.31f, 0.19f, 0.08f, 1f);
+                renderer.material = material;
+            }
+
+            Rigidbody rb = piece.AddComponent<Rigidbody>();
+            rb.mass = 0.04f;
+            rb.linearDamping = 0.15f;
+            rb.angularDamping = 0.15f;
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
+
+            Vector3 toss = (piece.transform.position - worldPoint).normalized + worldNormal * 0.9f + Random.insideUnitSphere * 0.3f;
+            rb.AddForce(toss.normalized * Mathf.Max(crumbleForce, force * 0.7f), ForceMode.Impulse);
+            rb.AddTorque(Random.insideUnitSphere * force * 0.1f, ForceMode.Impulse);
+
+            Destroy(piece, Random.Range(1.2f, 3.5f));
+        }
     }
 }

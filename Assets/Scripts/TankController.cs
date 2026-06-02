@@ -1,8 +1,9 @@
-using UnityEngine;
-using UnityEngine.UI;
+using System.Collections;
 using TMPro;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
-// Require a Rigidbody so physics works correctly and a BoxCollider so the tank can collide with the terrain
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(AudioSource))]
 [RequireComponent(typeof(BoxCollider))]
@@ -19,31 +20,33 @@ public class TankController : MonoBehaviour
     public float moveSpeed = 100f;
     public float turnSpeed = 500f;
 
-    // Advanced movement options for a more arcadey, Hill‑Climb‑style feel.
-    [Header("Advanced Movement Settings")]
-[Tooltip("Offset applied to the rigidbody centre of mass for stability")] public Vector3 centerOfMassOffset = new Vector3(0f, -0.2f, 0f);
-[Tooltip("Torque applied when rotating the tank")]
-    public float turnTorque = 20f;
-[Tooltip("Force applied when accelerating forward/backward")] public float accelerationForce = 130f;
-
     [Header("Track Drive")]
+    [Tooltip("Offset applied to the rigidbody centre of mass for stability")]
+    public Vector3 centerOfMassOffset = new Vector3(0f, -0.45f, 0f);
     [Tooltip("Force applied to each track when moving")]
     public float trackDriveForce = 36f;
     [Tooltip("How much A/D biases the left and right tracks")]
     public float trackTurnInputScale = 1.05f;
     [Tooltip("Maximum horizontal speed for the hull")]
-    public float trackMaxVelocity = 7.5f;
-    [Tooltip("Higher values make the hull resist oversteer")]
-    public float trackAngularDamping = 4.8f;
+    public float trackMaxVelocity = 8.5f;
     [Tooltip("How long a turn tap remains active while moving")]
     public float trackTurnTapDuration = 0.18f;
     [Tooltip("How strongly one track slows or reverses during a tap")]
     public float trackTurnTapStrength = 1.15f;
-
-
-
-    [Tooltip("Maximum linear speed for the tank (prevents runaway acceleration)")]
-    public float maxVelocity = 15f;
+    [Tooltip("How strongly the hull tries to sit upright on reasonable slopes")]
+    public float slopeStabilization = 12f;
+    [Tooltip("Maximum slope angle the tank can reliably climb")]
+    public float maxClimbSlope = 36f;
+    [Tooltip("Slope angle where forward motion begins to stall")]
+    public float stallSlope = 48f;
+    [Tooltip("Side slope angle where rollovers become fatal")]
+    public float rolloverKillAngle = 63f;
+    [Tooltip("How long the tank must remain overturned before dying")]
+    public float rolloverGraceSeconds = 0.35f;
+    [Tooltip("Layer mask used when probing ground under the tank")]
+    public LayerMask groundMask = ~0;
+    [Tooltip("Height above the tank used for the ground probe ray")]
+    public float groundProbeHeight = 2.5f;
 
     [Header("Turret Settings")]
     public float turretTurnSpeed = 40f;
@@ -59,33 +62,32 @@ public class TankController : MonoBehaviour
     [Header("Camera View")]
     public Camera gameplayCamera;
     public KeyCode viewToggleKey = KeyCode.Escape;
-    public Vector3 firstPersonCameraLocalPosition = new Vector3(0f, 5.2f, -14f);
-    public Vector3 firstPersonCameraLocalEuler = new Vector3(18f, 0f, 0f);
-    public float firstPersonCameraFov = 58f;
+    public Vector3 firstPersonCameraLocalPosition = new Vector3(0f, 1.55f, 0.35f);
+    public Vector3 firstPersonCameraLocalEuler = new Vector3(8f, 0f, 0f);
+    public float firstPersonCameraFov = 62f;
     [Tooltip("Temporary right-click sniper view positioned well in front of the turret")]
     public Vector3 sniperCameraLocalPosition = new Vector3(0f, 4f, 24f);
     public Vector3 sniperCameraLocalEuler = new Vector3(8f, 0f, 0f);
     public float sniperCameraFov = 46f;
-    // Sniper/overview view sits well in front of the tank and looks back at it.
-    public Vector3 overviewCameraLocalPosition = new Vector3(0f, 7.5f, -18f);
-    public Vector3 overviewCameraLocalEuler = new Vector3(22f, 0f, 0f);
+    public Vector3 overviewCameraLocalPosition = new Vector3(0f, 4f, 24f);
+    public Vector3 overviewCameraLocalEuler = new Vector3(8f, 0f, 0f);
     public float overviewCameraFov = 52f;
 
     [Header("Firing Settings")]
-    public float maxPower = 75f; // Cannon shells should arc, not laser-beam forward
+    public float maxPower = 75f;
     public float powerPercentage = 50f;
     public float mass = 1f;
     public AudioClip playerFireSound;
     public AudioClip treeSmashSound;
-    
+
     [Header("Trajectory Settings")]
-    public int trajectoryPointCount = 30;
-    public float trajectoryTimeStep = 0.1f;
+    public int trajectoryPointCount = 40;
+    public float trajectoryTimeStep = 0.15f;
 
     [Header("UI (Optional/Legacy)")]
     public TextMeshProUGUI elevationText;
     public TextMeshProUGUI angleText;
-    public TextMeshProUGUI powerText; 
+    public TextMeshProUGUI powerText;
 
     [Header("Audio Sources")]
     public AudioSource engineAudioSource;
@@ -100,7 +102,29 @@ public class TankController : MonoBehaviour
     public AudioClip adjustElevationClip;
 
     [Header("Audio Settings")]
-    public float engineStopDelay = 1.0f; 
+    public float engineStopDelay = 1.0f;
+
+    [Header("Health")]
+    public float maxHealth = 100f;
+    public float projectileDirectDamage = 55f;
+    public float projectileBlastDamage = 42f;
+    public float tankCollisionDamage = 24f;
+    public float enemyTankCollisionKillSpeed = 9f;
+    public float selfBlastDamageMultiplier = 1.35f;
+    public float fatalImpactThreshold = 0.55f;
+
+    [Header("Death UI")]
+    public Canvas hudCanvas;
+    public Vector2 healthBarAnchor = new Vector2(20f, 20f);
+    public Vector2 healthBarSize = new Vector2(280f, 22f);
+    public float deathRestartDelay = 2.2f;
+    public float deathFlashFrequency = 7.5f;
+
+    [Header("Wind UI")]
+    public BattlefieldWind windSource;
+    public Vector2 windWidgetAnchor = new Vector2(20f, 58f);
+    public Vector2 windWidgetSize = new Vector2(280f, 60f);
+    public float windProjectileDrift = 0.12f;
 
     [Header("Spawn")]
     public string spawnGroundName = "Ground";
@@ -109,102 +133,141 @@ public class TankController : MonoBehaviour
 
     private Rigidbody _rb;
     private AudioSource _audio;
-    private float _currentElevation = 0f;
-    private float _currentRotation = 0f;
+    private float _currentElevation;
+    private float _currentRotation;
     private Transform _turretYawPivot;
+    private float _health;
+    private float _toppleTimer;
 
-    private bool _isEngineStarting = false;
-    private bool _isEngineRunning = false;
-    private bool _isOverviewView = false;
-    private bool _isSniperViewActive = false;
-    private float _stopTimer = 0f;
-    private bool _wasDriveInput = false;
-    private bool _wasRotatingInput = false;
-    private bool _wasElevatingInput = false;
-    private bool _isElevationAtLimit = false;
-    private bool _engineMutedForProjectileView = false;
-    private float _nextTreeSmashTime = 0f;
-    private float _nextElevationSoundTime = 0f;
-    private float _trackTurnTapTimer = 0f;
-    private float _trackTurnTapDirection = 0f;
+    private bool _isEngineStarting;
+    private bool _isEngineRunning;
+    private bool _isOverviewView;
+    private bool _isSniperViewActive;
+    private bool _isDead;
+    private bool _restartQueued;
+    private bool _engineMutedForProjectileView;
+    private bool _isElevationAtLimit;
+    private float _stopTimer;
+    private bool _wasDriveInput;
+    private bool _wasRotatingInput;
+    private bool _wasElevatingInput;
+    private float _nextElevationSoundTime;
+    private float _nextTreeSmashTime;
+    private float _trackTurnTapTimer;
+    private float _trackTurnTapDirection;
+    private bool _spawnPlacementComplete;
 
-    void Awake()
+    private RectTransform _hudRoot;
+    private Image _healthBarFill;
+    private TextMeshProUGUI _healthLabel;
+    private RectTransform _windRoot;
+    private TextMeshProUGUI _windLabel;
+    private TextMeshProUGUI _windValueLabel;
+    private CanvasGroup _deathGroup;
+    private TextMeshProUGUI _deathLabel;
+    private TextMeshProUGUI _deathSubtitle;
+
+    private void Awake()
     {
         _rb = GetComponent<Rigidbody>();
         _audio = GetComponent<AudioSource>();
+        _health = maxHealth;
 
-        // Keep the hull stable and prevent turret input from tipping the chassis.
         if (_rb != null)
         {
             _rb.centerOfMass += centerOfMassOffset;
-            _rb.linearDamping = 0.75f;
-            _rb.angularDamping = trackAngularDamping;
-            _rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+            _rb.linearDamping = 0.78f;
+            _rb.angularDamping = 2.2f;
+            _rb.constraints = RigidbodyConstraints.None;
             _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            _rb.maxAngularVelocity = 10f;
         }
 
         EnsureAudioSources();
         EnsureTurretYawPivot();
         EnsureGameplayCamera();
+        if (windSource == null)
+        {
+            windSource = Object.FindFirstObjectByType<BattlefieldWind>();
+        }
+        EnsureHUD();
         ApplyCameraView();
-        
-        // Ensure LineRenderer is set up but hidden
+
         if (lineRenderer != null)
         {
             lineRenderer.positionCount = trajectoryPointCount;
             lineRenderer.enabled = false;
         }
+
+        if (_rb != null)
+        {
+            _rb.isKinematic = true;
+        }
     }
 
     private void Start()
     {
-        PlaceOnGround();
+        StartCoroutine(InitializeSpawnPlacement());
     }
 
-    void Update()
+    private IEnumerator InitializeSpawnPlacement()
     {
+        yield return null;
+        yield return new WaitForFixedUpdate();
+
+        PlaceOnGround();
+        Physics.SyncTransforms();
+
+        if (_rb != null)
+        {
+            _rb.isKinematic = false;
+            _rb.angularVelocity = Vector3.zero;
+        }
+
+        _spawnPlacementComplete = true;
+        UpdateHUD();
+    }
+
+    private void Update()
+    {
+        if (!_spawnPlacementComplete)
+        {
+            return;
+        }
+
+        if (_isDead)
+        {
+            UpdateDeathState();
+            return;
+        }
+
         HandleViewToggle();
         HandleInput();
         HandleSniperViewOverride();
         SyncEngineAudioForProjectileView();
         HandleAudio();
         UpdateTrajectory();
+        UpdateHUD();
     }
 
-private void UpdateTrajectory()
+    private void FixedUpdate()
     {
-        if (lineRenderer == null || firePoint == null)
+        if (!_spawnPlacementComplete)
         {
             return;
         }
 
-        bool isSniperMode = Input.GetMouseButton(1);
-        lineRenderer.enabled = isSniperMode;
-
-        if (!isSniperMode)
+        if (_isDead)
         {
             return;
         }
 
-        Vector3 startPos = firePoint.position;
-        float muzzleSpeed = Mathf.Lerp(maxPower * 0.45f, maxPower, powerPercentage / 100f);
-        Vector3 startVelocity = firePoint.forward * muzzleSpeed + GetTankVelocity();
-
-        for (int i = 0; i < trajectoryPointCount; i++)
-        {
-            float t = i * trajectoryTimeStep;
-            Vector3 point = startPos + startVelocity * t + 0.5f * Physics.gravity * t * t;
-            lineRenderer.SetPosition(i, point);
-        }
-    }
-    void FixedUpdate()
-    {
         HandleMovement();
+        CheckRollover();
     }
 
     private void HandleInput()
     {
-        // Mouse drives the turret now: horizontal for yaw, vertical for elevation.
         float mouseX = Input.GetAxis("Mouse X");
         float mouseWheel = Input.GetAxis("Mouse ScrollWheel");
         float keyboardElevation = 0f;
@@ -225,25 +288,18 @@ private void UpdateTrajectory()
 
         if (barrel != null)
         {
-            barrel.localRotation = Quaternion.Euler(-_currentElevation, 0, 0);
+            barrel.localRotation = Quaternion.Euler(-_currentElevation, 0f, 0f);
         }
 
-        // Power Adjustment (Q/E)
         if (Input.GetKey(KeyCode.E)) powerPercentage += 20f * Time.deltaTime;
         if (Input.GetKey(KeyCode.Q)) powerPercentage -= 20f * Time.deltaTime;
         powerPercentage = Mathf.Clamp(powerPercentage, 0f, 100f);
 
-        // Firing
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
+        if ((Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0)) && ProjectileCameraController.ActivePlayerProjectile == null)
         {
-            // Check if a player projectile already exists
-            if (ProjectileCameraController.ActivePlayerProjectile == null)
-            {
-                Fire();
-            }
+            Fire();
         }
 
-        // Update UI if connected
         if (elevationText != null) elevationText.text = "Elev: " + _currentElevation.ToString("F0") + "°";
         if (angleText != null) angleText.text = "Angle: " + _currentRotation.ToString("F0") + "°";
         if (powerText != null) powerText.text = "Power: " + powerPercentage.ToString("F0") + "%";
@@ -252,6 +308,16 @@ private void UpdateTrajectory()
     public float TurretYawDegrees
     {
         get { return Mathf.Repeat(_currentRotation, 360f); }
+    }
+
+    public Rigidbody RigidbodyComponent
+    {
+        get { return _rb; }
+    }
+
+    public Vector3 CurrentVelocity
+    {
+        get { return GetTankVelocity(); }
     }
 
     private void HandleViewToggle()
@@ -359,10 +425,9 @@ private void UpdateTrajectory()
 
     private void HandleAudio()
     {
-        // Engine sound logic: True if any movement key is held
         bool driveInput = Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.A) ||
                           Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.D);
-        
+
         if (driveInput && !_wasDriveInput)
         {
             _stopTimer = engineStopDelay;
@@ -379,13 +444,12 @@ private void UpdateTrajectory()
         else if (_isEngineStarting || _isEngineRunning)
         {
             _stopTimer -= Time.deltaTime;
-            if (_stopTimer <= 0)
+            if (_stopTimer <= 0f)
             {
                 StopEngine();
             }
         }
 
-        // Turret sound logic
         bool isRotating = Mathf.Abs(Input.GetAxis("Mouse X")) > 0.01f;
         if (isRotating && !_wasRotatingInput)
         {
@@ -396,7 +460,6 @@ private void UpdateTrajectory()
             StopLoopAudio(turretAudioSource, rotateTurretClip);
         }
 
-        // Elevation sound logic: short one-shot ticks with a small repeat gap.
         bool isElevating = Mathf.Abs(Input.GetAxis("Mouse ScrollWheel")) > 0.01f || Input.GetKey(KeyCode.PageUp) || Input.GetKey(KeyCode.PageDown);
         if (_isElevationAtLimit)
         {
@@ -425,7 +488,7 @@ private void UpdateTrajectory()
     {
         _isEngineStarting = true;
         _isEngineRunning = false;
-        
+
         if (engineAudioSource != null && engineStartClip != null)
         {
             engineAudioSource.clip = engineStartClip;
@@ -441,11 +504,14 @@ private void UpdateTrajectory()
 
     private void TransitionToRunning()
     {
-        if (!_isEngineStarting) return; // Stopped before finished starting
-        
+        if (!_isEngineStarting)
+        {
+            return;
+        }
+
         _isEngineStarting = false;
         _isEngineRunning = true;
-        
+
         if (engineAudioSource != null && engineRunningClip != null)
         {
             engineAudioSource.clip = engineRunningClip;
@@ -459,7 +525,7 @@ private void UpdateTrajectory()
         CancelInvoke(nameof(TransitionToRunning));
         _isEngineStarting = false;
         _isEngineRunning = false;
-        
+
         if (engineAudioSource != null)
         {
             engineAudioSource.Stop();
@@ -496,7 +562,7 @@ private void UpdateTrajectory()
         {
             return;
         }
-        
+
         if (!source.isPlaying || source.clip != clip)
         {
             source.clip = clip;
@@ -646,78 +712,179 @@ private void UpdateTrajectory()
 
         transform.position = groundedPosition;
         _rb.position = groundedPosition;
-        _rb.linearVelocity = Vector3.zero;
+        SetTankVelocity(Vector3.zero);
         _rb.angularVelocity = Vector3.zero;
     }
 
     private void HandleMovement()
     {
-        // Tank movement uses differential tracks: W/S drive both tracks, A/D biases one track slower or reversed.
         float moveInput = 0f;
         if (Input.GetKey(KeyCode.W)) moveInput = 1f;
         if (Input.GetKey(KeyCode.S)) moveInput = -1f;
 
         float turnInput = 0f;
-        if (Mathf.Abs(moveInput) > 0.001f)
-        {
-            if (Input.GetKeyDown(KeyCode.D) || Input.GetKey(KeyCode.D))
-            {
-                _trackTurnTapDirection = 1f;
-                _trackTurnTapTimer = trackTurnTapDuration;
-            }
-            else if (Input.GetKeyDown(KeyCode.A) || Input.GetKey(KeyCode.A))
-            {
-                _trackTurnTapDirection = -1f;
-                _trackTurnTapTimer = trackTurnTapDuration;
-            }
-        }
-        else
-        {
-            _trackTurnTapTimer = 0f;
-            _trackTurnTapDirection = 0f;
-        }
-
-        if (_trackTurnTapTimer > 0f)
-        {
-            _trackTurnTapTimer -= Time.fixedDeltaTime;
-            float tapBlend = trackTurnTapDuration > 0f ? Mathf.Clamp01(_trackTurnTapTimer / trackTurnTapDuration) : 1f;
-            turnInput = _trackTurnTapDirection * trackTurnInputScale * trackTurnTapStrength * Mathf.Max(0.35f, tapBlend);
-        }
+        if (Input.GetKey(KeyCode.D)) turnInput += 1f;
+        if (Input.GetKey(KeyCode.A)) turnInput -= 1f;
 
         if (Mathf.Abs(moveInput) < 0.001f && Mathf.Abs(turnInput) < 0.001f)
         {
             return;
         }
 
-        Vector3 forward = transform.forward;
-        forward.y = 0f;
-        forward.Normalize();
+        if (!TryGetGroundHit(out RaycastHit groundHit))
+        {
+            DriveOnFlatGround(moveInput, turnInput);
+            return;
+        }
 
-        Vector3 right = transform.right;
-        right.y = 0f;
-        right.Normalize();
+        Vector3 groundNormal = groundHit.normal.normalized;
+        Vector3 forwardOnPlane = Vector3.ProjectOnPlane(transform.forward, groundNormal);
+        Vector3 rightOnPlane = Vector3.ProjectOnPlane(transform.right, groundNormal);
 
-        float leftTrack = moveInput + turnInput;
-        float rightTrack = moveInput - turnInput;
+        if (forwardOnPlane.sqrMagnitude < 0.0001f)
+        {
+            forwardOnPlane = Vector3.ProjectOnPlane(transform.forward, Vector3.up);
+        }
+        if (rightOnPlane.sqrMagnitude < 0.0001f)
+        {
+            rightOnPlane = Vector3.ProjectOnPlane(transform.right, Vector3.up);
+        }
 
-        Collider bodyCollider = GetComponent<Collider>();
-        float trackOffset = bodyCollider != null ? Mathf.Max(0.45f, bodyCollider.bounds.extents.x * 0.65f) : 1.2f;
+        forwardOnPlane.Normalize();
+        rightOnPlane.Normalize();
+
+        Vector3 downhill = Vector3.ProjectOnPlane(Vector3.down, groundNormal);
+        if (downhill.sqrMagnitude > 0.0001f)
+        {
+            downhill.Normalize();
+        }
+        else
+        {
+            downhill = Vector3.zero;
+        }
+
+        float slopeAngle = Vector3.Angle(groundNormal, Vector3.up);
+        float uphillFacing = downhill == Vector3.zero ? 0f : Vector3.Dot(forwardOnPlane, -downhill);
+        float sideSlope = downhill == Vector3.zero ? 0f : Mathf.Abs(Vector3.Dot(rightOnPlane, downhill));
+
+        float climbFactor = 1f;
+        if (moveInput > 0f && slopeAngle > maxClimbSlope)
+        {
+            climbFactor = Mathf.Clamp01(1f - (slopeAngle - maxClimbSlope) / Mathf.Max(0.001f, stallSlope - maxClimbSlope));
+        }
+
+        if (moveInput > 0f && slopeAngle >= stallSlope && uphillFacing > 0.2f)
+        {
+            climbFactor = 0f;
+        }
+
+        if (moveInput < 0f)
+        {
+            climbFactor = Mathf.Max(climbFactor, 0.75f);
+        }
+
+        float tractionLoss = Mathf.Clamp01((slopeAngle / Mathf.Max(1f, maxClimbSlope)) * 0.35f + sideSlope * 0.35f);
+        float driveScale = Mathf.Clamp01(1f - tractionLoss);
+
+        float leftTrack = moveInput + turnInput * trackTurnInputScale;
+        float rightTrack = moveInput - turnInput * trackTurnInputScale;
+        float trackOffset = GetTrackOffset();
+
+        Vector3 leftTrackPoint = _rb.worldCenterOfMass - rightOnPlane * trackOffset;
+        Vector3 rightTrackPoint = _rb.worldCenterOfMass + rightOnPlane * trackOffset;
+
+        Vector3 appliedForward = forwardOnPlane;
+        if (moveInput < 0f)
+        {
+            appliedForward = -forwardOnPlane;
+        }
+
+        float driveForce = trackDriveForce * driveScale * climbFactor;
+        if (Mathf.Abs(moveInput) > 0.001f)
+        {
+            _rb.AddForceAtPosition(forwardOnPlane * (leftTrack * driveForce), leftTrackPoint, ForceMode.Force);
+            _rb.AddForceAtPosition(forwardOnPlane * (rightTrack * driveForce), rightTrackPoint, ForceMode.Force);
+        }
+
+        if (Mathf.Abs(turnInput) > 0.001f && Mathf.Abs(moveInput) < 0.2f)
+        {
+            _rb.AddTorque(groundNormal * (turnInput * turnSpeed * 0.02f), ForceMode.Force);
+        }
+
+        ApplySlopeStabilization(groundNormal, slopeAngle, sideSlope);
+        ClampHorizontalVelocity();
+    }
+
+    private void DriveOnFlatGround(float moveInput, float turnInput)
+    {
+        Vector3 forward = Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
+        Vector3 right = Vector3.ProjectOnPlane(transform.right, Vector3.up).normalized;
+        float trackOffset = GetTrackOffset();
+
+        float leftTrack = moveInput + turnInput * trackTurnInputScale;
+        float rightTrack = moveInput - turnInput * trackTurnInputScale;
         Vector3 leftTrackPoint = _rb.worldCenterOfMass - right * trackOffset;
         Vector3 rightTrackPoint = _rb.worldCenterOfMass + right * trackOffset;
 
-        Vector3 flatVelocity = GetTankVelocity();
-        flatVelocity.y = 0f;
-        bool overSpeed = flatVelocity.magnitude > trackMaxVelocity;
-        bool movingWithCurrentVelocity = Vector3.Dot(flatVelocity, forward) > 0f && moveInput > 0f;
-        bool reversingWithCurrentVelocity = Vector3.Dot(flatVelocity, forward) < 0f && moveInput < 0f;
-
-        if (!overSpeed || !movingWithCurrentVelocity && !reversingWithCurrentVelocity)
+        if (Mathf.Abs(moveInput) > 0.001f)
         {
             _rb.AddForceAtPosition(forward * (leftTrack * trackDriveForce), leftTrackPoint, ForceMode.Force);
             _rb.AddForceAtPosition(forward * (rightTrack * trackDriveForce), rightTrackPoint, ForceMode.Force);
         }
 
+        if (Mathf.Abs(turnInput) > 0.001f)
+        {
+            _rb.AddTorque(Vector3.up * (turnInput * turnSpeed * 0.02f), ForceMode.Force);
+        }
+
         ClampHorizontalVelocity();
+    }
+
+    private float GetTrackOffset()
+    {
+        Collider bodyCollider = GetComponent<Collider>();
+        return bodyCollider != null ? Mathf.Max(0.45f, bodyCollider.bounds.extents.x * 0.65f) : 1.2f;
+    }
+
+    private void ApplySlopeStabilization(Vector3 groundNormal, float slopeAngle, float sideSlope)
+    {
+        if (slopeAngle > rolloverKillAngle * 0.78f)
+        {
+            return;
+        }
+
+        float stability = Mathf.Clamp01(1f - slopeAngle / Mathf.Max(1f, maxClimbSlope));
+        stability *= Mathf.Clamp01(1f - sideSlope * 0.65f);
+
+        Vector3 axis = Vector3.Cross(transform.up, groundNormal);
+        if (axis.sqrMagnitude > 0.0001f)
+        {
+            _rb.AddTorque(axis.normalized * (slopeStabilization * stability), ForceMode.Force);
+        }
+    }
+
+    private bool TryGetGroundHit(out RaycastHit hit)
+    {
+        Vector3 origin = _rb.worldCenterOfMass + Vector3.up * groundProbeHeight;
+        return Physics.Raycast(origin, Vector3.down, out hit, groundProbeHeight * 2f, groundMask, QueryTriggerInteraction.Ignore);
+    }
+
+    private void ClampHorizontalVelocity()
+    {
+        if (_rb == null)
+        {
+            return;
+        }
+
+        Vector3 velocity = GetTankVelocity();
+        Vector3 flatVelocity = new Vector3(velocity.x, 0f, velocity.z);
+        if (flatVelocity.magnitude <= trackMaxVelocity)
+        {
+            return;
+        }
+
+        Vector3 clampedFlat = flatVelocity.normalized * trackMaxVelocity;
+        SetTankVelocity(new Vector3(clampedFlat.x, velocity.y, clampedFlat.z));
     }
 
     private Vector3 GetTankVelocity()
@@ -743,47 +910,532 @@ private void UpdateTrajectory()
 #endif
     }
 
-    private void ClampHorizontalVelocity()
+    private void UpdateTrajectory()
     {
-        if (_rb == null)
+        if (lineRenderer == null || firePoint == null)
         {
             return;
         }
 
-        Vector3 velocity = GetTankVelocity();
-        Vector3 flatVelocity = new Vector3(velocity.x, 0f, velocity.z);
-        if (flatVelocity.magnitude <= trackMaxVelocity)
+        bool isSniperMode = Input.GetMouseButton(1) && !_isDead;
+        lineRenderer.enabled = isSniperMode;
+
+        if (!isSniperMode)
         {
             return;
         }
 
-        Vector3 clampedFlat = flatVelocity.normalized * trackMaxVelocity;
-        SetTankVelocity(new Vector3(clampedFlat.x, velocity.y, clampedFlat.z));
+        Vector3 startPos = firePoint.position;
+        float muzzleSpeed = Mathf.Lerp(maxPower * 0.45f, maxPower, powerPercentage / 100f);
+        Vector3 startVelocity = firePoint.forward * muzzleSpeed + GetTankVelocity();
+
+        for (int i = 0; i < trajectoryPointCount; i++)
+        {
+            float t = i * trajectoryTimeStep;
+            Vector3 point = startPos + startVelocity * t + 0.5f * Physics.gravity * t * t;
+            lineRenderer.SetPosition(i, point);
+        }
+    }
+
+    private void CheckRollover()
+    {
+        float tiltAngle = Vector3.Angle(transform.up, Vector3.up);
+        if (tiltAngle >= rolloverKillAngle)
+        {
+            _toppleTimer += Time.fixedDeltaTime;
+            if (_toppleTimer >= rolloverGraceSeconds)
+            {
+                Die("Rolled over");
+            }
+        }
+        else
+        {
+            _toppleTimer = 0f;
+        }
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (treeSmashSound == null || Time.time < _nextTreeSmashTime || collision.collider == null)
+        if (_isDead || collision == null || collision.contactCount == 0)
         {
             return;
         }
 
-        if (!collision.collider.CompareTag("Tree"))
+        ContactPoint contact = collision.GetContact(0);
+        float impactSpeed = collision.relativeVelocity.magnitude;
+
+        ProjectileCameraController projectile = collision.collider.GetComponentInParent<ProjectileCameraController>();
+        if (projectile != null)
         {
+            ApplyProjectileDamage(Mathf.Max(projectileDirectDamage, impactSpeed * projectileDirectDamage * 0.8f), contact.point, contact.normal);
             return;
         }
 
-        _nextTreeSmashTime = Time.time + 0.22f;
-        if (_audio != null)
+        TankController otherTank = collision.collider.GetComponentInParent<TankController>();
+        if (otherTank != null && otherTank != this)
         {
+            float damage = Mathf.Max(tankCollisionDamage, impactSpeed * tankCollisionDamage);
+            ApplyCollisionDamage(damage, contact.point, contact.normal);
+            if (impactSpeed >= enemyTankCollisionKillSpeed)
+            {
+                Die("Crushed by tank");
+            }
+
+            return;
+        }
+
+        EnemyTankAI enemyTank = collision.collider.GetComponentInParent<EnemyTankAI>();
+        if (enemyTank != null)
+        {
+            float damage = Mathf.Max(tankCollisionDamage, impactSpeed * tankCollisionDamage);
+            ApplyCollisionDamage(damage, contact.point, contact.normal);
+            if (impactSpeed >= enemyTankCollisionKillSpeed)
+            {
+                Die("Crushed by enemy tank");
+            }
+        }
+
+        if (collision.collider.CompareTag("Tree") && treeSmashSound != null && Time.time >= _nextTreeSmashTime && _audio != null)
+        {
+            _nextTreeSmashTime = Time.time + 0.22f;
             _audio.PlayOneShot(treeSmashSound);
         }
     }
 
-
-public void Fire()
+    public void ApplyProjectileDamage(float impactForce, Vector3 worldPoint, Vector3 worldNormal)
     {
-        if (shellPrefab == null || firePoint == null)
+        if (_isDead)
+        {
+            return;
+        }
+
+        float damage = Mathf.Max(projectileDirectDamage, impactForce * 1.25f);
+        ApplyDamage(damage, worldPoint, worldNormal, true);
+    }
+
+    public void ApplyExplosionDamage(float explosionForce, Vector3 explosionPoint, Vector3 worldNormal, float distanceFactor = 1f)
+    {
+        if (_isDead)
+        {
+            return;
+        }
+
+        float damage = Mathf.Max(projectileBlastDamage * 0.5f, explosionForce * selfBlastDamageMultiplier * Mathf.Clamp01(distanceFactor));
+        ApplyDamage(damage, explosionPoint, worldNormal, true);
+    }
+
+    public void ApplyCollisionDamage(float impactForce, Vector3 worldPoint, Vector3 worldNormal)
+    {
+        if (_isDead)
+        {
+            return;
+        }
+
+        float damage = Mathf.Max(tankCollisionDamage, impactForce);
+        ApplyDamage(damage, worldPoint, worldNormal, false);
+    }
+
+    private void ApplyDamage(float amount, Vector3 worldPoint, Vector3 worldNormal, bool canTriggerFatalImpact)
+    {
+        if (_isDead)
+        {
+            return;
+        }
+
+        _health -= Mathf.Max(0.1f, amount);
+        UpdateHUD();
+
+        if (canTriggerFatalImpact && amount >= maxHealth * fatalImpactThreshold)
+        {
+            Die("Fatal hit");
+            return;
+        }
+
+        if (_health <= 0f)
+        {
+            Die("Destroyed");
+        }
+    }
+
+    private void Die(string reason)
+    {
+        if (_isDead)
+        {
+            return;
+        }
+
+        _isDead = true;
+        _restartQueued = false;
+        _toppleTimer = 0f;
+        _health = 0f;
+
+        StopEngine();
+        StopLoopAudio(turretAudioSource, rotateTurretClip);
+        if (elevationAudioSource != null)
+        {
+            elevationAudioSource.Stop();
+        }
+
+        SetTankVelocity(Vector3.zero);
+        if (_rb != null)
+        {
+            _rb.angularVelocity = Vector3.zero;
+            _rb.isKinematic = true;
+        }
+
+        DisableTankColliders();
+        SpawnDeathBurst();
+        ShowDeathUI(reason);
+        UpdateHUD();
+    }
+
+    private void DisableTankColliders()
+    {
+        Collider[] colliders = GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            colliders[i].enabled = false;
+        }
+    }
+
+    private void SpawnDeathBurst()
+    {
+        GameObject burst = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        burst.name = "TankDeathBurst";
+        burst.transform.position = transform.position + Vector3.up * 1.2f;
+        burst.transform.localScale = Vector3.one * 2.4f;
+
+        Collider collider = burst.GetComponent<Collider>();
+        if (collider != null)
+        {
+            Destroy(collider);
+        }
+
+        Renderer renderer = burst.GetComponent<Renderer>();
+        if (renderer != null)
+        {
+            Material material = new Material(Shader.Find("Standard"));
+            material.color = new Color(1f, 0.35f, 0.08f, 0.85f);
+            renderer.material = material;
+        }
+
+        Destroy(burst, 0.35f);
+
+        Collider[] nearby = Physics.OverlapSphere(transform.position, 6f, ~0, QueryTriggerInteraction.Ignore);
+        for (int i = 0; i < nearby.Length; i++)
+        {
+            Rigidbody body = nearby[i].attachedRigidbody;
+            if (body != null && body != _rb)
+            {
+                body.AddExplosionForce(180f, transform.position, 6f, 0.6f, ForceMode.Impulse);
+            }
+        }
+    }
+
+    private void ShowDeathUI(string reason)
+    {
+        if (_deathGroup == null)
+        {
+            return;
+        }
+
+        _deathGroup.gameObject.SetActive(true);
+        _deathGroup.alpha = 1f;
+        if (_deathLabel != null)
+        {
+            _deathLabel.text = "YOU DIED";
+            _deathLabel.color = new Color(1f, 0.08f, 0.08f, 1f);
+        }
+
+        if (_deathSubtitle != null)
+        {
+            _deathSubtitle.text = reason;
+            _deathSubtitle.color = new Color(1f, 0.65f, 0.65f, 0.95f);
+        }
+    }
+
+    private void UpdateDeathState()
+    {
+        if (_deathGroup != null)
+        {
+            _deathGroup.gameObject.SetActive(true);
+            _deathGroup.alpha = 1f;
+        }
+
+        if (_deathLabel != null)
+        {
+            float flash = Mathf.PingPong(Time.time * deathFlashFrequency, 1f);
+            _deathLabel.alpha = Mathf.Lerp(0.25f, 1f, flash);
+            _deathLabel.transform.localScale = Vector3.one * Mathf.Lerp(0.96f, 1.08f, flash);
+        }
+
+        if (_deathSubtitle != null)
+        {
+            _deathSubtitle.alpha = Mathf.Lerp(0.2f, 0.9f, Mathf.PingPong(Time.time * (deathFlashFrequency * 0.55f), 1f));
+        }
+
+        if (!_restartQueued && Time.timeSinceLevelLoad >= deathRestartDelay)
+        {
+            _restartQueued = true;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+    }
+
+    private void EnsureHUD()
+    {
+        if (hudCanvas == null)
+        {
+            GameObject canvasGo = GameObject.Find("TankHUDCanvas");
+            if (canvasGo != null)
+            {
+                hudCanvas = canvasGo.GetComponent<Canvas>();
+            }
+        }
+
+        if (hudCanvas == null)
+        {
+            GameObject canvasGo = new GameObject("TankHUDCanvas");
+            hudCanvas = canvasGo.AddComponent<Canvas>();
+            hudCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvasGo.AddComponent<CanvasScaler>();
+            canvasGo.AddComponent<GraphicRaycaster>();
+        }
+
+        BuildHealthBar();
+        BuildWindWidget();
+        BuildDeathOverlay();
+    }
+
+    private void BuildHealthBar()
+    {
+        GameObject root = new GameObject("TankHealthBar", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        root.transform.SetParent(hudCanvas.transform, false);
+
+        _hudRoot = root.GetComponent<RectTransform>();
+        _hudRoot.anchorMin = new Vector2(0f, 1f);
+        _hudRoot.anchorMax = new Vector2(0f, 1f);
+        _hudRoot.pivot = new Vector2(0f, 1f);
+        _hudRoot.sizeDelta = healthBarSize;
+        _hudRoot.anchoredPosition = healthBarAnchor;
+
+        Image bg = root.GetComponent<Image>();
+        bg.color = new Color(0f, 0f, 0f, 0.45f);
+
+        GameObject fill = new GameObject("Fill", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        fill.transform.SetParent(root.transform, false);
+        RectTransform fillRt = fill.GetComponent<RectTransform>();
+        fillRt.anchorMin = Vector2.zero;
+        fillRt.anchorMax = Vector2.one;
+        fillRt.offsetMin = new Vector2(3f, 3f);
+        fillRt.offsetMax = new Vector2(-3f, -3f);
+
+        _healthBarFill = fill.GetComponent<Image>();
+        _healthBarFill.type = Image.Type.Filled;
+        _healthBarFill.fillMethod = Image.FillMethod.Horizontal;
+        _healthBarFill.fillOrigin = 0;
+        _healthBarFill.fillAmount = 1f;
+        _healthBarFill.color = new Color(0.2f, 0.95f, 0.35f, 0.95f);
+
+        _healthLabel = CreateHudText(root.transform, "HealthLabel", new Vector2(8f, -11f), TextAlignmentOptions.Left, 16f);
+        _healthLabel.text = "TANK 100%";
+        _healthLabel.color = Color.white;
+    }
+
+    private void BuildDeathOverlay()
+    {
+        GameObject overlay = new GameObject("DeathOverlay", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(CanvasGroup));
+        overlay.transform.SetParent(hudCanvas.transform, false);
+        RectTransform rt = overlay.GetComponent<RectTransform>();
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+
+        Image bg = overlay.GetComponent<Image>();
+        bg.color = new Color(0f, 0f, 0f, 0.35f);
+
+        _deathGroup = overlay.GetComponent<CanvasGroup>();
+        _deathGroup.alpha = 0f;
+        _deathGroup.gameObject.SetActive(false);
+
+        _deathLabel = CreateHudText(overlay.transform, "DeathText", Vector2.zero, TextAlignmentOptions.Center, 72f);
+        _deathLabel.rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+        _deathLabel.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        _deathLabel.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        _deathLabel.rectTransform.sizeDelta = new Vector2(900f, 120f);
+        _deathLabel.rectTransform.anchoredPosition = new Vector2(0f, 40f);
+        _deathLabel.text = "YOU DIED";
+        _deathLabel.color = new Color(1f, 0.08f, 0.08f, 1f);
+
+        _deathSubtitle = CreateHudText(overlay.transform, "DeathSubText", Vector2.zero, TextAlignmentOptions.Center, 24f);
+        _deathSubtitle.rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+        _deathSubtitle.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        _deathSubtitle.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        _deathSubtitle.rectTransform.sizeDelta = new Vector2(700f, 48f);
+        _deathSubtitle.rectTransform.anchoredPosition = new Vector2(0f, -20f);
+        _deathSubtitle.text = "Restarting...";
+        _deathSubtitle.color = new Color(1f, 0.65f, 0.65f, 0.95f);
+    }
+
+private void BuildWindWidget()
+    {
+        if (hudCanvas == null)
+        {
+            return;
+        }
+
+        GameObject root = new GameObject("WindWidget", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        root.transform.SetParent(hudCanvas.transform, false);
+
+        _windRoot = root.GetComponent<RectTransform>();
+        _windRoot.anchorMin = new Vector2(0f, 0f);
+        _windRoot.anchorMax = new Vector2(0f, 0f);
+        _windRoot.pivot = new Vector2(0f, 0f);
+        _windRoot.sizeDelta = windWidgetSize;
+        _windRoot.anchoredPosition = windWidgetAnchor;
+
+        Image background = root.GetComponent<Image>();
+        background.color = new Color(0.06f, 0.08f, 0.12f, 0.84f);
+
+        GameObject frame = new GameObject("WindFrame", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        frame.transform.SetParent(root.transform, false);
+        RectTransform frameRect = frame.GetComponent<RectTransform>();
+        frameRect.anchorMin = Vector2.zero;
+        frameRect.anchorMax = Vector2.one;
+        frameRect.offsetMin = Vector2.zero;
+        frameRect.offsetMax = Vector2.zero;
+        frame.GetComponent<Image>().color = new Color(1f, 0.72f, 0.18f, 0.18f);
+
+        _windLabel = CreateHudText(root.transform, "WindLabel", new Vector2(10f, -8f), TextAlignmentOptions.Left, 18f);
+        _windLabel.rectTransform.sizeDelta = new Vector2(windWidgetSize.x - 20f, 24f);
+        _windLabel.text = "WIND";
+        _windLabel.color = new Color(1f, 0.88f, 0.55f, 1f);
+        _windLabel.fontStyle = FontStyles.Bold;
+
+        _windValueLabel = CreateHudText(root.transform, "WindValue", new Vector2(10f, -32f), TextAlignmentOptions.Left, 22f);
+        _windValueLabel.rectTransform.sizeDelta = new Vector2(windWidgetSize.x - 20f, 30f);
+        _windValueLabel.text = "CALM";
+        _windValueLabel.color = new Color(0.78f, 0.92f, 1f, 1f);
+        _windValueLabel.fontStyle = FontStyles.Bold;
+    }
+
+    private TextMeshProUGUI CreateHudText(Transform parent, string name, Vector2 anchoredPosition, TextAlignmentOptions alignment, float fontSize)
+    {
+        GameObject go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+        go.transform.SetParent(parent, false);
+
+        RectTransform rt = go.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0f, 1f);
+        rt.anchorMax = new Vector2(0f, 1f);
+        rt.pivot = new Vector2(0f, 1f);
+        rt.sizeDelta = new Vector2(220f, 32f);
+        rt.anchoredPosition = anchoredPosition;
+
+        TextMeshProUGUI text = go.GetComponent<TextMeshProUGUI>();
+        text.alignment = alignment;
+        text.fontSize = fontSize;
+        text.color = Color.white;
+        text.textWrappingMode = TextWrappingModes.NoWrap;
+        text.raycastTarget = false;
+        return text;
+    }
+
+    private void UpdateHUD()
+    {
+        if (_healthBarFill != null)
+        {
+            float normalized = maxHealth > 0f ? Mathf.Clamp01(_health / maxHealth) : 0f;
+            _healthBarFill.fillAmount = normalized;
+            _healthBarFill.color = Color.Lerp(new Color(1f, 0.18f, 0.12f, 0.95f), new Color(0.2f, 0.95f, 0.35f, 0.95f), normalized);
+        }
+
+        if (_healthLabel != null)
+        {
+            float pct = maxHealth > 0f ? Mathf.Clamp01(_health / maxHealth) * 100f : 0f;
+            _healthLabel.text = $"TANK {pct:0}%";
+        }
+
+        UpdateWindWidget();
+    }
+
+private void UpdateWindWidget()
+    {
+        if (_windValueLabel == null)
+        {
+            return;
+        }
+
+        BattlefieldWind source = windSource;
+        if (source == null)
+        {
+            source = BattlefieldWind.Instance;
+        }
+
+        if (source == null)
+        {
+            source = Object.FindFirstObjectByType<BattlefieldWind>();
+        }
+
+        if (source == null)
+        {
+            _windLabel.text = "WIND";
+            _windValueLabel.text = "CALM";
+            _windLabel.color = new Color(1f, 0.88f, 0.55f, 1f);
+            _windValueLabel.color = new Color(0.78f, 0.92f, 1f, 1f);
+            return;
+        }
+
+        string readout = source.GetWindReadout();
+        string arrow = source.GetArrowLabel();
+        _windLabel.text = "WIND  " + arrow;
+        _windValueLabel.text = readout;
+
+        float normalizedSpeed = Mathf.InverseLerp(0f, Mathf.Max(0.01f, source.maxSpeed), source.GetDisplaySpeed());
+        Color labelColor = Color.Lerp(new Color(1f, 0.88f, 0.55f, 1f), new Color(1f, 0.38f, 0.16f, 1f), normalizedSpeed);
+        Color valueColor = Color.Lerp(new Color(0.78f, 0.92f, 1f, 1f), new Color(1f, 0.96f, 0.76f, 1f), normalizedSpeed);
+        _windLabel.color = labelColor;
+        _windValueLabel.color = valueColor;
+    }
+
+    private void PlaceDeathOverlay()
+    {
+        if (_deathGroup == null)
+        {
+            return;
+        }
+
+        _deathGroup.gameObject.SetActive(true);
+    }
+
+    private void OnDisable()
+    {
+        if (lineRenderer != null)
+        {
+            lineRenderer.enabled = false;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (_deathGroup != null && _deathGroup.gameObject != null)
+        {
+            Destroy(_deathGroup.gameObject);
+        }
+
+        if (_hudRoot != null && _hudRoot.gameObject != null)
+        {
+            Destroy(_hudRoot.gameObject);
+        }
+
+        if (_windRoot != null && _windRoot.gameObject != null)
+        {
+            Destroy(_windRoot.gameObject);
+        }
+    }
+
+    public void Fire()
+    {
+        if (_isDead || shellPrefab == null || firePoint == null)
         {
             return;
         }
@@ -799,29 +1451,31 @@ public void Fire()
         Collider shellCollider = shell.GetComponent<Collider>();
         if (shellCollider != null)
         {
-            foreach (var c in tankColliders)
+            foreach (Collider c in tankColliders)
             {
                 Physics.IgnoreCollision(c, shellCollider);
             }
         }
 
-        ProjectileCameraController pcc = shell.GetComponent<ProjectileCameraController>();
-        if (pcc != null)
+        ProjectileCameraController projectile = shell.GetComponent<ProjectileCameraController>();
+        if (projectile != null)
         {
-            pcc.trackingBase = transform;
-            pcc.launchPowerPercentage = powerPercentage;
+            projectile.trackingBase = transform;
+            projectile.launchPowerPercentage = powerPercentage;
+            projectile.applyWindDrift = true;
+            projectile.windDriftMultiplier = windProjectileDrift;
         }
 
-        Rigidbody rb = shell.GetComponent<Rigidbody>();
-        if (rb != null)
+        Rigidbody shellRb = shell.GetComponent<Rigidbody>();
+        if (shellRb != null)
         {
-            rb.mass = mass;
+            shellRb.mass = mass;
             float muzzleSpeed = Mathf.Lerp(maxPower * 0.45f, maxPower, powerPercentage / 100f);
             Vector3 launchVelocity = firePoint.forward * muzzleSpeed + GetTankVelocity();
 #if UNITY_6000_0_OR_NEWER
-            rb.linearVelocity = launchVelocity;
+            shellRb.linearVelocity = launchVelocity;
 #else
-            rb.velocity = launchVelocity;
+            shellRb.velocity = launchVelocity;
 #endif
         }
     }

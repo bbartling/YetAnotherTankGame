@@ -46,7 +46,12 @@ public class ProjectileCameraController : MonoBehaviour
     [Header("Impact")]
     public float groundImpactMultiplier = 4.5f;
     public float castleImpactMultiplier = 3.5f;
-public float upwardsModifier = 1.0f;
+    public float upwardsModifier = 1.0f;
+
+    [Header("Wind")]
+    public bool applyWindDrift = false;
+    public float windDriftMultiplier = 0.12f;
+    public float windStabilization = 0.08f;
 
     private AudioSource _audio;
     private TrailRenderer _trailRenderer;
@@ -146,6 +151,11 @@ public float upwardsModifier = 1.0f;
         UpdateProjectileCamera();
         HandleProximitySound();
         UpdateTrailColor();
+    }
+
+    void FixedUpdate()
+    {
+        ApplyWindDrift();
     }
 
     private void UpdateProjectileCamera()
@@ -253,6 +263,36 @@ public float upwardsModifier = 1.0f;
         }
     }
 
+    private void ApplyWindDrift()
+    {
+        if (_isDestroying || !applyWindDrift || _rb == null)
+        {
+            return;
+        }
+
+        BattlefieldWind wind = BattlefieldWind.Instance;
+        if (wind == null)
+        {
+            wind = Object.FindFirstObjectByType<BattlefieldWind>();
+        }
+
+        if (wind == null)
+        {
+            return;
+        }
+
+        Vector3 windVector = wind.GetWindVector();
+        if (windVector.sqrMagnitude < 0.0001f)
+        {
+            return;
+        }
+
+        Vector3 horizontalWind = Vector3.ProjectOnPlane(windVector, Vector3.up);
+        Vector3 driftForce = horizontalWind.normalized * (windVector.magnitude * windDriftMultiplier);
+        driftForce += horizontalWind * windStabilization;
+        _rb.AddForce(driftForce, ForceMode.Acceleration);
+    }
+
     private void ApplyImpactEffects(Collision collision)
     {
         if (collision == null || collision.contactCount == 0)
@@ -281,6 +321,19 @@ public float upwardsModifier = 1.0f;
         if (castle != null)
         {
             castle.ApplyImpact(contact.point, contact.normal, impactForce * castleImpactMultiplier);
+        }
+
+        TankController tank = collision.collider.GetComponentInParent<TankController>();
+        if (tank != null)
+        {
+            tank.ApplyProjectileDamage(Mathf.Max(15f, impactForce * 1.4f), contact.point, contact.normal);
+            return;
+        }
+
+        EnemyTankAI enemyTank = collision.collider.GetComponentInParent<EnemyTankAI>();
+        if (enemyTank != null)
+        {
+            enemyTank.ApplyProjectileDamage(Mathf.Max(15f, impactForce * 1.4f), contact.point, contact.normal);
         }
 
         if (collision.collider.CompareTag("Tree"))
@@ -357,6 +410,25 @@ public float upwardsModifier = 1.0f;
                         upwardsModifier,
                         ForceMode.Impulse
                     );
+                }
+
+                TankController tank = h.GetComponentInParent<TankController>();
+                if (tank != null)
+                {
+                    float distance = Vector3.Distance(transform.position, tank.transform.position);
+                    float falloff = 1f - Mathf.Clamp01(distance / Mathf.Max(0.01f, explosionRadius));
+                    float damage = Mathf.Max(10f, explosionForce * 70f * falloff + GetRigidbodyVelocity().magnitude * 0.6f);
+                    tank.ApplyExplosionDamage(damage, transform.position, Vector3.up, falloff);
+                    continue;
+                }
+
+                EnemyTankAI enemyTank = h.GetComponentInParent<EnemyTankAI>();
+                if (enemyTank != null)
+                {
+                    float distance = Vector3.Distance(transform.position, enemyTank.transform.position);
+                    float falloff = 1f - Mathf.Clamp01(distance / Mathf.Max(0.01f, explosionRadius));
+                    float damage = Mathf.Max(10f, explosionForce * 70f * falloff + GetRigidbodyVelocity().magnitude * 0.6f);
+                    enemyTank.ApplyExplosionDamage(damage, transform.position, Vector3.up, falloff);
                 }
             }
         }

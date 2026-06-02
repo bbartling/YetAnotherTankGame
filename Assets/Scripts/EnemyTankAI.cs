@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -13,31 +14,47 @@ public class EnemyTankAI : MonoBehaviour
     public AudioClip enemyFireSound;
 
     [Header("Engagement")]
-    public float detectionRange = 160f;
-    public float preferredDistance = 78f;
-    public float retreatDistance = 44f;
-    public float moveForce = 85f;
-    public float turnTorque = 75f;
-    public float strafeForce = 20f;
-    public float shellPower = 55f;
-    public float fireCooldown = 2.4f;
-    public float aimSpeed = 3.25f;
+    public float detectionRange = 190f;
+    public float preferredDistance = 84f;
+    public float retreatDistance = 42f;
+    public float moveForce = 92f;
+    public float turnTorque = 82f;
+    public float strafeForce = 28f;
+    public float shellPower = 92f;
+    public float fireCooldown = 2.1f;
+    public float aimSpeed = 3.75f;
     public float accuracy = 0.72f;
+    public float visibilityHeight = 0.55f;
+    public float lastKnownMemorySeconds = 5.5f;
+    public float searchOrbitSpeed = 0.8f;
+    public float searchMoveForce = 72f;
+    public float searchTurnTorque = 68f;
+    public float ambushRadius = 18f;
 
     [Header("Patrol")]
     public Transform patrolCenter;
-    public float patrolRadius = 44f;
-    public float patrolOrbitSpeed = 0.35f;
-    public float patrolMoveForce = 55f;
-    public float patrolTurnTorque = 55f;
+    public float patrolRadius = 56f;
+    public float patrolOrbitSpeed = 0.3f;
+    public float patrolMoveForce = 58f;
+    public float patrolTurnTorque = 58f;
     public float patrolStartAngle = 0f;
     public bool patrolClockwise = true;
+    public float patrolJitter = 0.25f;
 
     [Header("Barrel")]
     public float minElevation = -8f;
     public float maxElevation = 48f;
     public float barrelElevationSpeed = 25f;
-    public float visibilityHeight = 0.6f;
+
+    [Header("Health")]
+    public float maxHealth = 100f;
+    public float projectileDirectDamage = 120f;
+    public float projectileBlastDamage = 100f;
+    public float collisionDamage = 60f;
+    public float fatalImpactThreshold = 0.35f;
+    public float deathDelay = 0.35f;
+    public int crumblePieceCount = 12;
+    public float crumbleForce = 20f;
 
     [Header("Audio")]
     public AudioClip engineRunningClip;
@@ -54,6 +71,20 @@ public class EnemyTankAI : MonoBehaviour
     private bool _engineRunning;
     private bool _engineStarting;
     private float _patrolAngle;
+    private float _health;
+    private bool _isDead;
+    private Vector3 _spawnPosition;
+    private Vector3 _lastKnownPlayerPosition;
+    private float _lastSeenTime;
+    private float _searchOrbitAngle;
+
+    private enum EnemyState
+    {
+        Patrol,
+        Hunt,
+        Search,
+        Dead
+    }
 
     private void Awake()
     {
@@ -66,11 +97,14 @@ public class EnemyTankAI : MonoBehaviour
 
         AutoWireReferences();
         _patrolAngle = patrolStartAngle;
+        _spawnPosition = transform.position;
+        _health = maxHealth;
     }
 
     private void Start()
     {
-        FindPlayer();
+        FindPlayerAndPatrolCenter();
+
         if (gameObject.tag == "Untagged")
         {
             gameObject.tag = "EnemyTank";
@@ -79,41 +113,53 @@ public class EnemyTankAI : MonoBehaviour
 
     private void Update()
     {
+        if (_isDead)
+        {
+            return;
+        }
+
         if (_player == null)
         {
-            FindPlayer();
-            return;
+            FindPlayerAndPatrolCenter();
         }
 
-        float distance = Vector3.Distance(transform.position, _player.position);
-        bool shouldEngage = distance <= detectionRange;
-        HandleAudio(shouldEngage, distance);
+        EnemyState state = GetState();
+        float distance = GetCurrentDistance();
 
-        if (!shouldEngage)
+        HandleAudio(state, distance);
+
+        if (state == EnemyState.Patrol)
         {
-            Patrol();
             return;
         }
 
-        AimTurret();
-        TryFire(distance);
+        Vector3 targetPoint = GetCurrentTargetPoint(state);
+        AimTurret(targetPoint);
+        TryFire(targetPoint, distance, state);
     }
 
     private void FixedUpdate()
     {
-        if (_player == null)
+        if (_isDead)
         {
             return;
         }
 
-        float distance = Vector3.Distance(transform.position, _player.position);
-        if (distance > detectionRange)
-        {
-            Patrol();
-            return;
-        }
+        EnemyState state = GetState();
+        Vector3 targetPoint = GetCurrentTargetPoint(state);
 
-        Drive(distance);
+        switch (state)
+        {
+            case EnemyState.Hunt:
+                DriveToward(targetPoint, moveForce, turnTorque, preferredDistance, retreatDistance, true, false);
+                break;
+            case EnemyState.Search:
+                DriveToward(targetPoint, searchMoveForce, searchTurnTorque, Mathf.Max(10f, ambushRadius), retreatDistance, true, true);
+                break;
+            default:
+                DrivePatrol();
+                break;
+        }
     }
 
     private void AutoWireReferences()
@@ -138,16 +184,26 @@ public class EnemyTankAI : MonoBehaviour
         }
     }
 
-    private void FindPlayer()
+    private void FindPlayerAndPatrolCenter()
     {
-        GameObject player = GameObject.Find("PlayerTank");
-        if (player != null)
+        if (_player == null)
         {
-            _player = player.transform;
+            GameObject player = GameObject.Find("PlayerTank");
+            if (player != null)
+            {
+                _player = player.transform;
+            }
         }
 
         if (patrolCenter == null)
         {
+            GameObject mapRoot = GameObject.Find("MapRoot");
+            if (mapRoot != null)
+            {
+                patrolCenter = mapRoot.transform;
+                return;
+            }
+
             GameObject castle = GameObject.Find("Castle");
             if (castle == null)
             {
@@ -157,15 +213,69 @@ public class EnemyTankAI : MonoBehaviour
             if (castle != null)
             {
                 patrolCenter = castle.transform;
+                return;
             }
+
+            patrolCenter = transform;
         }
     }
 
-    private void Patrol()
+private EnemyState GetState()
+    {
+        if (_player == null)
+        {
+            return EnemyState.Patrol;
+        }
+
+        float distance = Vector3.Distance(transform.position, _player.position);
+        bool hasSight = HasLineOfSight();
+        if (distance <= detectionRange && hasSight)
+        {
+            _lastKnownPlayerPosition = _player.position;
+            _lastSeenTime = Time.time;
+            return EnemyState.Hunt;
+        }
+
+        if (distance <= detectionRange && Time.time - _lastSeenTime <= lastKnownMemorySeconds)
+        {
+            return EnemyState.Search;
+        }
+
+        return EnemyState.Patrol;
+    }
+
+    private float GetCurrentDistance()
+    {
+        if (_player == null)
+        {
+            return float.PositiveInfinity;
+        }
+
+        return Vector3.Distance(transform.position, _player.position);
+    }
+
+    private Vector3 GetCurrentTargetPoint(EnemyState state)
+    {
+        switch (state)
+        {
+            case EnemyState.Hunt:
+                if (_player != null)
+                {
+                    return _player.position;
+                }
+                break;
+            case EnemyState.Search:
+                return BuildSearchPoint();
+        }
+
+        return BuildPatrolPoint();
+    }
+
+    private Vector3 BuildPatrolPoint()
     {
         if (patrolCenter == null)
         {
-            return;
+            return _spawnPosition;
         }
 
         float direction = patrolClockwise ? -1f : 1f;
@@ -173,11 +283,32 @@ public class EnemyTankAI : MonoBehaviour
 
         Vector3 center = patrolCenter.position;
         Vector3 orbitOffset = new Vector3(Mathf.Cos(_patrolAngle), 0f, Mathf.Sin(_patrolAngle)) * patrolRadius;
-        Vector3 targetPoint = center + orbitOffset;
-        targetPoint.y = transform.position.y;
+        Vector3 jitter = new Vector3(Mathf.Sin(Time.time * 0.7f + transform.position.x * 0.05f), 0f, Mathf.Cos(Time.time * 0.45f + transform.position.z * 0.05f)) * patrolJitter;
+        return center + orbitOffset + jitter;
+    }
 
+    private Vector3 BuildSearchPoint()
+    {
+        _searchOrbitAngle += searchOrbitSpeed * Time.deltaTime;
+        Vector3 orbit = new Vector3(Mathf.Cos(_searchOrbitAngle), 0f, Mathf.Sin(_searchOrbitAngle)) * ambushRadius;
+        return _lastKnownPlayerPosition + orbit;
+    }
+
+    private void Patrol()
+    {
+        DriveToward(BuildPatrolPoint(), patrolMoveForce, patrolTurnTorque, patrolRadius, 8f, false, false);
+    }
+
+    private void DrivePatrol()
+    {
+        Patrol();
+    }
+
+    private void DriveToward(Vector3 targetPoint, float driveForce, float torque, float preferredRadius, float reverseRadius, bool allowReverse, bool useOrbitPressure)
+    {
         Vector3 toTarget = targetPoint - transform.position;
         toTarget.y = 0f;
+
         if (toTarget.sqrMagnitude < 0.01f)
         {
             return;
@@ -186,18 +317,43 @@ public class EnemyTankAI : MonoBehaviour
         Vector3 desiredDir = toTarget.normalized;
         Vector3 forward = transform.forward;
         forward.y = 0f;
+        if (forward.sqrMagnitude < 0.001f)
+        {
+            forward = Vector3.forward;
+        }
         forward.Normalize();
 
         float signedAngle = Vector3.SignedAngle(forward, desiredDir, Vector3.up);
         float turnInput = Mathf.Clamp(signedAngle / 45f, -1f, 1f);
-        _rb.AddTorque(Vector3.up * (turnInput * patrolTurnTorque), ForceMode.Force);
+        _rb.AddTorque(Vector3.up * (turnInput * torque), ForceMode.Force);
 
-        _rb.AddForce(transform.forward * patrolMoveForce, ForceMode.Force);
+        float distance = toTarget.magnitude;
+        float moveInput = 0f;
+        if (distance > preferredRadius)
+        {
+            moveInput = 1f;
+        }
+        else if (allowReverse && distance < reverseRadius)
+        {
+            moveInput = -1f;
+        }
+
+        if (moveInput != 0f)
+        {
+            _rb.AddForce(transform.forward * (moveInput * driveForce), ForceMode.Force);
+        }
+
+        if (useOrbitPressure)
+        {
+            Vector3 lateral = Vector3.Cross(Vector3.up, desiredDir).normalized;
+            float pressure = Mathf.Sin(Time.time * 1.05f + transform.position.x * 0.03f + transform.position.z * 0.02f) * 0.65f;
+            _rb.AddForce(lateral * (pressure * strafeForce), ForceMode.Force);
+        }
     }
 
-    private void HandleAudio(bool shouldEngage, float distance)
+    private void HandleAudio(EnemyState state, float distance)
     {
-        bool driving = shouldEngage && distance > retreatDistance * 0.8f;
+        bool driving = state != EnemyState.Patrol && distance > retreatDistance * 0.8f;
         if (driving)
         {
             _stopTimer = engineStopDelay;
@@ -214,7 +370,6 @@ public class EnemyTankAI : MonoBehaviour
                 StopEngine();
             }
         }
-
     }
 
     private void StartEngine()
@@ -269,104 +424,76 @@ public class EnemyTankAI : MonoBehaviour
         }
     }
 
-    private void Drive(float distance)
-    {
-        Vector3 toPlayer = _player.position - transform.position;
-        toPlayer.y = 0f;
-
-        if (toPlayer.sqrMagnitude < 0.01f)
-        {
-            return;
-        }
-
-        Vector3 desiredDir = toPlayer.normalized;
-        Vector3 forward = transform.forward;
-        forward.y = 0f;
-        forward.Normalize();
-
-        float signedAngle = Vector3.SignedAngle(forward, desiredDir, Vector3.up);
-        float turnInput = Mathf.Clamp(signedAngle / 45f, -1f, 1f);
-        _rb.AddTorque(Vector3.up * (turnInput * turnTorque), ForceMode.Force);
-
-        float moveInput = 0f;
-        if (distance > preferredDistance)
-        {
-            moveInput = 1f;
-        }
-        else if (distance < retreatDistance)
-        {
-            moveInput = -1f;
-        }
-
-        Vector3 lateral = Vector3.Cross(Vector3.up, desiredDir).normalized;
-        float strafeDirection = Mathf.Sin(Time.time * 0.9f) * 0.5f;
-
-        if (moveInput != 0f)
-        {
-            _rb.AddForce(transform.forward * (moveInput * moveForce), ForceMode.Force);
-        }
-
-        if (Mathf.Abs(strafeForce) > 0.01f)
-        {
-            _rb.AddForce(lateral * (strafeDirection * strafeForce), ForceMode.Force);
-        }
-    }
-
-    private void AimTurret()
+    private void AimTurret(Vector3 targetPoint)
     {
         if (turret == null || barrelPivot == null || firePoint == null)
         {
             return;
         }
 
-        Vector3 toPlayer = _player.position - turret.position;
-        Vector3 flatToPlayer = new Vector3(toPlayer.x, 0f, toPlayer.z);
-        if (flatToPlayer.sqrMagnitude > 0.001f)
+        Vector3 toTarget = targetPoint - turret.position;
+        Vector3 flatToTarget = new Vector3(toTarget.x, 0f, toTarget.z);
+        if (flatToTarget.sqrMagnitude > 0.001f)
         {
-            Quaternion targetYaw = Quaternion.LookRotation(flatToPlayer.normalized, Vector3.up);
+            Quaternion targetYaw = Quaternion.LookRotation(flatToTarget.normalized, Vector3.up);
             turret.rotation = Quaternion.Slerp(turret.rotation, targetYaw, Time.deltaTime * aimSpeed);
         }
 
-        Vector3 barrelToPlayer = _player.position - barrelPivot.position;
-        float horizontalDistance = new Vector2(barrelToPlayer.x, barrelToPlayer.z).magnitude;
-        float targetElevation = Mathf.Atan2(barrelToPlayer.y, Mathf.Max(0.01f, horizontalDistance)) * Mathf.Rad2Deg;
+        Vector3 barrelToTarget = targetPoint - barrelPivot.position;
+        float horizontalDistance = new Vector2(barrelToTarget.x, barrelToTarget.z).magnitude;
+        float targetElevation = Mathf.Atan2(barrelToTarget.y, Mathf.Max(0.01f, horizontalDistance)) * Mathf.Rad2Deg;
         targetElevation = Mathf.Clamp(targetElevation, minElevation, maxElevation);
         _currentElevation = Mathf.MoveTowards(_currentElevation, targetElevation, barrelElevationSpeed * Time.deltaTime);
         barrelPivot.localRotation = Quaternion.Euler(-_currentElevation, 0f, 0f);
     }
 
-    private void TryFire(float distance)
+    private void TryFire(Vector3 targetPoint, float distance, EnemyState state)
     {
         if (Time.time < _nextFireTime || shellPrefab == null || firePoint == null)
         {
             return;
         }
 
-        Vector3 toPlayer = (_player.position + Vector3.up * visibilityHeight) - firePoint.position;
-        float facingDot = Vector3.Dot(firePoint.forward, toPlayer.normalized);
-        if (distance > detectionRange || facingDot < 0.82f)
+        if (state == EnemyState.Patrol)
         {
             return;
         }
 
-        if (!HasLineOfSight())
+        Vector3 target = targetPoint + Vector3.up * visibilityHeight;
+        Vector3 toTarget = target - firePoint.position;
+        float facingDot = Vector3.Dot(firePoint.forward, toTarget.normalized);
+        if (distance > detectionRange || facingDot < 0.72f)
         {
             return;
         }
 
-        Fire();
+        if (!HasLineOfSight(target))
+        {
+            return;
+        }
+
+        Fire(target);
         _nextFireTime = Time.time + fireCooldown;
     }
 
     private bool HasLineOfSight()
     {
-        if (_player == null || firePoint == null)
+        if (_player == null)
+        {
+            return false;
+        }
+
+        return HasLineOfSight(_player.position + Vector3.up * visibilityHeight);
+    }
+
+    private bool HasLineOfSight(Vector3 target)
+    {
+        if (firePoint == null)
         {
             return false;
         }
 
         Vector3 origin = firePoint.position;
-        Vector3 target = _player.position + Vector3.up * visibilityHeight;
         Vector3 direction = target - origin;
         float distance = direction.magnitude;
         if (distance <= 0.01f)
@@ -376,13 +503,13 @@ public class EnemyTankAI : MonoBehaviour
 
         if (Physics.Raycast(origin, direction.normalized, out RaycastHit hit, distance))
         {
-            return hit.transform == _player || hit.transform.IsChildOf(_player);
+            return hit.transform == _player || (_player != null && hit.transform.IsChildOf(_player));
         }
 
         return true;
     }
 
-    private void Fire()
+    private void Fire(Vector3 target)
     {
         if (_audio != null && enemyFireSound != null)
         {
@@ -394,27 +521,26 @@ public class EnemyTankAI : MonoBehaviour
         if (cameraController != null)
         {
             cameraController.enableCameraSwitching = false;
+            cameraController.applyWindDrift = false;
+            cameraController.launchPowerPercentage = 100f;
         }
 
         Rigidbody rb = shell.GetComponent<Rigidbody>();
-        if (rb != null)
+        if (rb == null)
         {
-            float spread = Mathf.Clamp01(1f - accuracy) * 0.02f;
-            Vector3 target = _player.position + Vector3.up * 1.1f;
-            Vector3 aimOrigin = firePoint.position;
-            Vector3 aimVelocity;
+            return;
+        }
 
-            if (TryGetBallisticVelocity(aimOrigin, target, shellPower, Physics.gravity, true, out aimVelocity))
-            {
-                Vector3 scatter = Random.insideUnitSphere * spread;
-                aimVelocity += scatter;
-                SetVelocity(rb, aimVelocity);
-            }
-            else
-            {
-                Vector3 fallback = firePoint.forward * shellPower;
-                SetVelocity(rb, fallback);
-            }
+        float spread = Mathf.Clamp01(1f - accuracy) * 0.02f;
+        Vector3 aimVelocity;
+        if (TryGetBallisticVelocity(firePoint.position, target, shellPower, Physics.gravity, true, out aimVelocity))
+        {
+            aimVelocity += Random.insideUnitSphere * spread;
+            SetVelocity(rb, aimVelocity);
+        }
+        else
+        {
+            SetVelocity(rb, firePoint.forward * shellPower);
         }
     }
 
@@ -450,6 +576,154 @@ public class EnemyTankAI : MonoBehaviour
         Vector3 xzDir = toTargetXZ.normalized;
         velocity = xzDir * (speed * cos) + Vector3.up * (speed * sin);
         return true;
+    }
+
+    public void ApplyProjectileDamage(float impactForce, Vector3 worldPoint, Vector3 worldNormal)
+    {
+        if (_isDead)
+        {
+            return;
+        }
+
+        float damage = Mathf.Max(projectileDirectDamage, impactForce * 1.25f);
+        ApplyDamage(damage, worldPoint, worldNormal, true);
+    }
+
+    public void ApplyExplosionDamage(float explosionForce, Vector3 explosionPoint, Vector3 worldNormal, float distanceFactor = 1f)
+    {
+        if (_isDead)
+        {
+            return;
+        }
+
+        float damage = Mathf.Max(projectileBlastDamage, explosionForce * Mathf.Clamp01(distanceFactor) * 1.15f);
+        ApplyDamage(damage, explosionPoint, worldNormal, true);
+    }
+
+    public void ApplyCollisionDamage(float impactForce, Vector3 worldPoint, Vector3 worldNormal)
+    {
+        if (_isDead)
+        {
+            return;
+        }
+
+        float damage = Mathf.Max(collisionDamage, impactForce);
+        ApplyDamage(damage, worldPoint, worldNormal, false);
+    }
+
+    private void ApplyDamage(float amount, Vector3 worldPoint, Vector3 worldNormal, bool canTriggerFatalImpact)
+    {
+        if (_isDead)
+        {
+            return;
+        }
+
+        _health -= Mathf.Max(0.1f, amount);
+        if (canTriggerFatalImpact && amount >= maxHealth * fatalImpactThreshold)
+        {
+            _health = 0f;
+        }
+
+        if (_health <= 0f)
+        {
+            Die(worldPoint, worldNormal, amount);
+        }
+    }
+
+    private void Die(Vector3 worldPoint, Vector3 worldNormal, float force)
+    {
+        if (_isDead)
+        {
+            return;
+        }
+
+        _isDead = true;
+        CancelInvoke();
+        StopAllCoroutines();
+        StartCoroutine(DeathSequence(worldPoint, worldNormal, force));
+    }
+
+    private IEnumerator DeathSequence(Vector3 worldPoint, Vector3 worldNormal, float force)
+    {
+        if (_audio != null)
+        {
+            _audio.Stop();
+        }
+
+        if (_rb != null)
+        {
+            _rb.linearVelocity = Vector3.zero;
+            _rb.angularVelocity = Vector3.zero;
+            _rb.AddExplosionForce(Mathf.Max(400f, force * 10f), worldPoint, 12f, 1.5f, ForceMode.Impulse);
+            _rb.isKinematic = true;
+        }
+
+        Collider[] colliders = GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            colliders[i].enabled = false;
+        }
+
+        Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            renderers[i].enabled = false;
+        }
+
+        SpawnCrumblePieces(worldPoint, worldNormal, force);
+
+        if (worldNormal.sqrMagnitude > 0.001f && _rb != null)
+        {
+            _rb.AddForce(worldNormal.normalized * Mathf.Max(20f, force * 0.5f), ForceMode.Impulse);
+        }
+
+        yield return new WaitForSeconds(deathDelay);
+        Destroy(gameObject);
+    }
+
+    private void SpawnCrumblePieces(Vector3 worldPoint, Vector3 worldNormal, float force)
+    {
+        Color baseColor = new Color(0.42f, 0.41f, 0.4f, 1f);
+        Renderer renderer = GetComponentInChildren<Renderer>(true);
+        if (renderer != null && renderer.material != null)
+        {
+            baseColor = renderer.material.color;
+        }
+
+        for (int i = 0; i < crumblePieceCount; i++)
+        {
+            GameObject piece = GameObject.CreatePrimitive(Random.value > 0.5f ? PrimitiveType.Cube : PrimitiveType.Sphere);
+            piece.name = name + "_Piece";
+            piece.transform.position = transform.position + Random.insideUnitSphere * 0.8f;
+            piece.transform.localScale = Vector3.one * Random.Range(0.16f, 0.45f);
+
+            Collider collider = piece.GetComponent<Collider>();
+            if (collider != null)
+            {
+                Destroy(collider);
+            }
+
+            Renderer pieceRenderer = piece.GetComponent<Renderer>();
+            if (pieceRenderer != null)
+            {
+                Material material = new Material(Shader.Find("Standard"));
+                material.color = Color.Lerp(baseColor, new Color(0.18f, 0.18f, 0.18f, 1f), Random.Range(0.1f, 0.55f));
+                pieceRenderer.material = material;
+            }
+
+            Rigidbody rb = piece.AddComponent<Rigidbody>();
+            rb.mass = Random.Range(0.03f, 0.12f);
+            rb.linearDamping = 0.12f;
+            rb.angularDamping = 0.08f;
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
+
+            Vector3 toss = (piece.transform.position - worldPoint).normalized + worldNormal * 0.8f + Random.insideUnitSphere * 0.45f;
+            rb.AddForce(toss.normalized * Random.Range(crumbleForce * 0.55f, crumbleForce), ForceMode.Impulse);
+            rb.AddTorque(Random.insideUnitSphere * force * 0.12f, ForceMode.Impulse);
+
+            Destroy(piece, Random.Range(1.5f, 4.5f));
+        }
     }
 
     private void SetVelocity(Rigidbody body, Vector3 value)

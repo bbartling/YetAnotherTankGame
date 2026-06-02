@@ -235,9 +235,9 @@ public class TreeFieldSpawner : MonoBehaviour
         if (trunkRenderer != null)
         {
             float tint = Mathf.Clamp01(trunkTint + trunkHueJitter * 0.06f);
-            trunkRenderer.material.color = new Color(0.26f + tint * 0.25f, 0.17f + tint * 0.16f, 0.08f + tint * 0.10f, 1f);
+            ApplyRendererColor(trunkRenderer, new Color(0.26f + tint * 0.25f, 0.17f + tint * 0.16f, 0.08f + tint * 0.10f, 1f));
         }
-        Object.Destroy(trunk.GetComponent<Collider>());
+        DestroyComponentSafe(trunk.GetComponent<Collider>());
 
         GameObject canopy = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         canopy.name = "Canopy";
@@ -249,13 +249,53 @@ public class TreeFieldSpawner : MonoBehaviour
         {
             Color canopyColor = Color.HSVToRGB(canopyHue, canopySaturation, canopyValue);
             canopyColor.a = 1f;
-            canopyRenderer.material.color = canopyColor;
+            ApplyRendererColor(canopyRenderer, canopyColor);
         }
-        Object.Destroy(canopy.GetComponent<Collider>());
+        DestroyComponentSafe(canopy.GetComponent<Collider>());
     }
 
     private float RandomRange(System.Random rng, float min, float max)
     {
         return min + (float)rng.NextDouble() * (max - min);
+    }
+
+    private void ApplyRendererColor(Renderer renderer, Color color)
+    {
+        if (renderer == null)
+        {
+            return;
+        }
+
+        if (Application.isPlaying)
+        {
+            renderer.material.color = color;
+            return;
+        }
+
+        Material material = renderer.sharedMaterial;
+        if (material == null)
+        {
+            material = new Material(Shader.Find("Standard"));
+            renderer.sharedMaterial = material;
+        }
+
+        material.color = color;
+    }
+
+    private void DestroyComponentSafe(Object target)
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        if (Application.isPlaying)
+        {
+            Destroy(target);
+        }
+        else
+        {
+            DestroyImmediate(target);
+        }
     }
 }

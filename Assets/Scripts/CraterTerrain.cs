@@ -16,6 +16,7 @@ public class CraterTerrain : MonoBehaviour
 
     [Header("Generation")]
     public bool generateOnAwake = true;
+    public bool randomizeSeedEachRun = true;
 
     [Header("Crater Settings")]
     public float baseRadius = 6.5f;
@@ -25,6 +26,11 @@ public class CraterTerrain : MonoBehaviour
     public float rimLift = 0.05f;
     public float roughness = 0.06f;
     public float chunkThreshold = 16f;
+    public float craterCoreShape = 1.7f;
+    public float craterRimWidth = 0.32f;
+    public float craterCorePunchScale = 0.85f;
+    public float craterNoiseFrequency = 0.018f;
+    public float craterNoiseScale = 0.45f;
 
     [Header("Random Battlefield")]
     public bool seedRandomCraters = true;
@@ -39,6 +45,11 @@ public class CraterTerrain : MonoBehaviour
     public float hillHeightMax = 12f;
     public float hillRadiusMin = 12f;
     public float hillRadiusMax = 34f;
+    public float hillRadiusHeightScale = 2.75f;
+    public float hillBaseShape = 1.4f;
+    public float hillPeakFlattening = 0.65f;
+    public float hillNoiseFrequency = 0.0075f;
+    public float hillNoiseScale = 0.22f;
 
     private MeshFilter _meshFilter;
     private MeshCollider _meshCollider;
@@ -47,6 +58,10 @@ public class CraterTerrain : MonoBehaviour
     private Vector3[] _baseVertices;
     private Vector2[] _uvs;
     private int[] _triangles;
+    private int _vertexCountX;
+    private int _vertexCountZ;
+    private float _halfWidth;
+    private float _halfLength;
 
     private void Awake()
     {
@@ -58,6 +73,7 @@ public class CraterTerrain : MonoBehaviour
 
         if (generateOnAwake)
         {
+            RandomizeFeatureSeedIfNeeded();
             RegenerateTerrain();
         }
     }
@@ -65,6 +81,8 @@ public class CraterTerrain : MonoBehaviour
     [ContextMenu("Regenerate Terrain")]
     public void RegenerateTerrain()
     {
+        EnsureRuntimeReferences();
+        RandomizeFeatureSeedIfNeeded();
         BuildTerrainMesh();
         SeedBattlefieldNoise();
     }
@@ -72,11 +90,13 @@ public class CraterTerrain : MonoBehaviour
     [ContextMenu("Clear Craters And Hills")]
     public void ClearTerrainDamage()
     {
+        EnsureRuntimeReferences();
         BuildTerrainMesh();
     }
 
     private void SeedBattlefieldNoise()
     {
+        EnsureRuntimeReferences();
         if (_runtimeMesh == null)
         {
             return;
@@ -123,6 +143,7 @@ public class CraterTerrain : MonoBehaviour
 
     private void BuildTerrainMesh()
     {
+        EnsureRuntimeReferences();
         if (_meshFilter == null)
         {
             return;
@@ -134,26 +155,26 @@ public class CraterTerrain : MonoBehaviour
         };
         _runtimeMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
 
-        int vertCountX = Mathf.Max(2, xSegments + 1);
-        int vertCountZ = Mathf.Max(2, zSegments + 1);
-        _vertices = new Vector3[vertCountX * vertCountZ * 2];
+        _vertexCountX = Mathf.Max(2, xSegments + 1);
+        _vertexCountZ = Mathf.Max(2, zSegments + 1);
+        _vertices = new Vector3[_vertexCountX * _vertexCountZ * 2];
         _baseVertices = new Vector3[_vertices.Length];
         _uvs = new Vector2[_vertices.Length];
         _triangles = new int[xSegments * zSegments * 12];
 
-        float halfWidth = terrainWidth * 0.5f;
-        float halfLength = terrainLength * 0.5f;
+        _halfWidth = terrainWidth * 0.5f;
+        _halfLength = terrainLength * 0.5f;
 
         int v = 0;
-        for (int z = 0; z < vertCountZ; z++)
+        for (int z = 0; z < _vertexCountZ; z++)
         {
-            float zT = z / (float)(vertCountZ - 1);
-            float zPos = Mathf.Lerp(-halfLength, halfLength, zT);
+            float zT = z / (float)(_vertexCountZ - 1);
+            float zPos = Mathf.Lerp(-_halfLength, _halfLength, zT);
 
-            for (int x = 0; x < vertCountX; x++)
+            for (int x = 0; x < _vertexCountX; x++)
             {
-                float xT = x / (float)(vertCountX - 1);
-                float xPos = Mathf.Lerp(-halfWidth, halfWidth, xT);
+                float xT = x / (float)(_vertexCountX - 1);
+                float xPos = Mathf.Lerp(-_halfWidth, _halfWidth, xT);
 
                 Vector3 top = new Vector3(xPos, 0f, zPos);
                 Vector3 bottom = new Vector3(xPos, -terrainThickness, zPos);
@@ -171,7 +192,7 @@ public class CraterTerrain : MonoBehaviour
         }
 
         int t = 0;
-        int stride = vertCountX * 2;
+        int stride = _vertexCountX * 2;
         for (int z = 0; z < zSegments; z++)
         {
             for (int x = 0; x < xSegments; x++)
@@ -213,16 +234,30 @@ public class CraterTerrain : MonoBehaviour
         }
     }
 
+    private void RandomizeFeatureSeedIfNeeded()
+    {
+        if (!randomizeSeedEachRun)
+        {
+            return;
+        }
+
+        randomFeatureSeed = unchecked((int)System.DateTime.UtcNow.Ticks) ^ System.Environment.TickCount;
+    }
+
     private void RaiseTerrain(Vector3 worldPoint, float radius, float height)
     {
+        EnsureRuntimeReferences();
         if (_runtimeMesh == null || _vertices == null || _vertices.Length == 0)
         {
             return;
         }
 
         Vector3 localPoint = transform.InverseTransformPoint(worldPoint);
-        radius = Mathf.Max(0.5f, radius);
+        radius = Mathf.Max(0.75f, radius + height * hillRadiusHeightScale);
         height = Mathf.Max(0.1f, height);
+        float noiseFrequency = hillNoiseFrequency / Mathf.Max(1f, radius * 0.25f);
+        float noiseScale = hillNoiseScale * Mathf.Clamp01(height / 16f);
+        float sigma = Mathf.Max(0.5f, radius * Mathf.Lerp(0.42f, 0.62f, Mathf.Clamp01(height / 18f)));
 
         for (int i = 0; i < _vertices.Length; i += 2)
         {
@@ -237,7 +272,12 @@ public class CraterTerrain : MonoBehaviour
             }
 
             float falloff = 1f - (dist / radius);
-            float lift = height * falloff * falloff;
+            float dome = Mathf.Exp(-(dist * dist) / (2f * sigma * sigma));
+            float shape = Mathf.Pow(Mathf.Clamp01(dome), hillBaseShape);
+            float plateau = Mathf.SmoothStep(0.35f, 1f, falloff);
+            float noise = (Mathf.PerlinNoise(vertex.x * noiseFrequency + height * 0.031f, vertex.z * noiseFrequency - height * 0.031f) - 0.5f) * 2f;
+            float lift = height * (shape * 0.78f + plateau * 0.22f);
+            lift += noise * noiseScale * shape;
             vertex.y += lift;
 
             _vertices[i] = vertex;
@@ -257,16 +297,20 @@ public class CraterTerrain : MonoBehaviour
 
     public void ApplyImpact(Vector3 worldPoint, Vector3 worldNormal, float force)
     {
+        EnsureRuntimeReferences();
         if (_runtimeMesh == null || _vertices == null || _vertices.Length == 0)
         {
             return;
         }
 
         Vector3 localPoint = transform.InverseTransformPoint(worldPoint);
-        float radius = Mathf.Max(0.4f, baseRadius + force * forceRadiusScale);
+        float radius = Mathf.Max(0.75f, baseRadius + force * forceRadiusScale);
         float depth = Mathf.Max(0.1f, baseDepth + force * forceDepthScale);
-        float noiseAmount = roughness * Mathf.Clamp01(force / 60f);
-        bool punchHole = force >= chunkThreshold;
+        float noiseAmount = roughness * Mathf.Clamp01(force / 100f);
+        float corePunch = Mathf.SmoothStep(chunkThreshold, chunkThreshold * 1.9f, force);
+        float rimStart = Mathf.Clamp01(1f - craterRimWidth);
+        float coreShape = Mathf.Max(0.5f, craterCoreShape);
+        float noiseFrequency = craterNoiseFrequency / Mathf.Max(1f, radius * 0.25f);
 
         for (int i = 0; i < _vertices.Length; i += 2)
         {
@@ -281,37 +325,17 @@ public class CraterTerrain : MonoBehaviour
             }
 
             float falloff = 1f - (dist / radius);
-            float centerBias = falloff * falloff;
-            float noise = (Mathf.PerlinNoise(vertex.x * 17f + force * 0.03f, vertex.z * 17f - force * 0.03f) - 0.5f) * 2f;
-            float lift = 0f;
+            float centerBias = Mathf.Pow(Mathf.Clamp01(falloff), coreShape);
+            float bowl = Mathf.SmoothStep(0f, 1f, centerBias);
+            float rim = Mathf.SmoothStep(rimStart, 1f, falloff);
+            float noise = (Mathf.PerlinNoise(vertex.x * noiseFrequency + force * 0.031f, vertex.z * noiseFrequency - force * 0.031f) - 0.5f) * 2f;
 
-            if (dist > radius * 0.68f)
-            {
-                float rimT = Mathf.InverseLerp(radius, radius * 0.68f, dist);
-                lift = depth * rimLift * rimT;
-            }
-
-            float sink = depth * centerBias;
-            sink += noise * noiseAmount * centerBias;
-
-            if (punchHole && dist < radius * 0.34f)
-            {
-                sink += depth * 4.5f;
-            }
+            float sink = depth * (0.72f * bowl + 0.28f * bowl * bowl);
+            sink += depth * corePunch * craterCorePunchScale * bowl * bowl * 0.6f;
+            sink += noise * noiseAmount * craterNoiseScale * centerBias;
+            sink -= depth * rimLift * rim * 0.8f;
 
             vertex.y -= sink;
-            vertex.y += lift;
-
-            if (punchHole && dist < radius * 0.48f)
-            {
-                Vector2 away2D = new Vector2(dx, dz);
-                if (away2D.sqrMagnitude > 0.0001f)
-                {
-                    away2D.Normalize();
-                    vertex.x += away2D.x * 0.01f * centerBias;
-                    vertex.z += away2D.y * 0.01f * centerBias;
-                }
-            }
 
             _vertices[i] = vertex;
             _vertices[i + 1] = new Vector3(vertex.x, vertex.y - terrainThickness, vertex.z);
@@ -325,6 +349,19 @@ public class CraterTerrain : MonoBehaviour
         {
             _meshCollider.sharedMesh = null;
             _meshCollider.sharedMesh = _runtimeMesh;
+        }
+    }
+
+    private void EnsureRuntimeReferences()
+    {
+        if (_meshFilter == null)
+        {
+            _meshFilter = GetComponent<MeshFilter>();
+        }
+
+        if (_meshCollider == null)
+        {
+            _meshCollider = GetComponent<MeshCollider>();
         }
     }
 }

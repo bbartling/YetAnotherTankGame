@@ -8,6 +8,8 @@ public class CastleDamageReceiver : MonoBehaviour
     public float damageScale = 1.0f;
     public float collapseThreshold = 0.35f;
     public float pieceBreakThreshold = 0.60f;
+    public int crumblePieceCount = 28;
+    public float crumbleForce = 24f;
 
     [Header("Impact Mark")]
     public float markLifetime = 30f;
@@ -96,6 +98,7 @@ public class CastleDamageReceiver : MonoBehaviour
 
         if (bestChild != null)
         {
+            SpawnCrumblePieces(bestChild.position, worldPoint, 4);
             Destroy(bestChild.gameObject);
         }
     }
@@ -103,6 +106,8 @@ public class CastleDamageReceiver : MonoBehaviour
     private void CollapseCastle()
     {
         _collapsed = true;
+
+        SpawnCrumblePieces(transform.position, transform.position, crumblePieceCount);
 
         Collider[] colliders = GetComponentsInChildren<Collider>(true);
         for (int i = 0; i < colliders.Length; i++)
@@ -114,6 +119,51 @@ public class CastleDamageReceiver : MonoBehaviour
         for (int i = 0; i < renderers.Length; i++)
         {
             renderers[i].enabled = false;
+        }
+    }
+
+    private void SpawnCrumblePieces(Vector3 origin, Vector3 impactPoint, int count)
+    {
+        Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
+        Color baseColor = new Color(0.55f, 0.48f, 0.38f, 1f);
+        if (renderers != null && renderers.Length > 0 && renderers[0] != null)
+        {
+            baseColor = renderers[0].material != null ? renderers[0].material.color : baseColor;
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            GameObject piece = GameObject.CreatePrimitive(Random.value > 0.4f ? PrimitiveType.Cube : PrimitiveType.Sphere);
+            piece.name = name + "_Debris";
+            piece.transform.position = origin + Random.insideUnitSphere * 1.25f;
+            piece.transform.localScale = Vector3.one * Random.Range(0.18f, 0.7f);
+
+            Collider collider = piece.GetComponent<Collider>();
+            if (collider != null)
+            {
+                Destroy(collider);
+            }
+
+            Renderer pieceRenderer = piece.GetComponent<Renderer>();
+            if (pieceRenderer != null)
+            {
+                Material material = new Material(Shader.Find("Standard"));
+                material.color = Color.Lerp(baseColor, new Color(0.26f, 0.21f, 0.18f, 1f), Random.Range(0.15f, 0.55f));
+                pieceRenderer.material = material;
+            }
+
+            Rigidbody rb = piece.AddComponent<Rigidbody>();
+            rb.mass = Random.Range(0.12f, 0.55f);
+            rb.linearDamping = 0.08f;
+            rb.angularDamping = 0.08f;
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
+
+            Vector3 toss = (piece.transform.position - impactPoint).normalized + Vector3.up * 0.85f + Random.insideUnitSphere * 0.4f;
+            rb.AddForce(toss.normalized * Random.Range(crumbleForce * 0.6f, crumbleForce), ForceMode.Impulse);
+            rb.AddTorque(Random.insideUnitSphere * crumbleForce * 0.15f, ForceMode.Impulse);
+
+            Destroy(piece, Random.Range(2f, 5f));
         }
     }
 }
