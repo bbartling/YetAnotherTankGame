@@ -15,6 +15,7 @@ public class EnemyTankSpawner : MonoBehaviour
     [Header("Spawn Area")]
     public float spawnMargin = 90f;
     public float spawnHeight = 45f;
+    public float groundLift = 0.35f;
     public float minDistanceFromPlayer = 135f;
     public float minDistanceFromCastle = 80f;
     public int maxAttemptsPerTank = 40;
@@ -25,6 +26,7 @@ public class EnemyTankSpawner : MonoBehaviour
     public BattlefieldDirector battlefieldDirector;
 
     private readonly List<GameObject> _spawnedEnemies = new List<GameObject>();
+    private int _spawnSequence;
 
     private void Awake()
     {
@@ -37,12 +39,12 @@ public class EnemyTankSpawner : MonoBehaviour
         ResolveReferences();
         if (battlefieldDirector != null)
         {
-            battlefieldDirector.SetEnemyCount(enemyCount);
+            battlefieldDirector.BeginBattle(enemyCount);
         }
 
         if (clearExistingEnemies)
         {
-            ClearExistingEnemies();
+            ClearExistingEnemies(true);
         }
 
         _spawnedEnemies.Clear();
@@ -55,18 +57,181 @@ public class EnemyTankSpawner : MonoBehaviour
 
         for (int i = 0; i < enemyCount; i++)
         {
-            Vector3 spawnPosition = FindSpawnPosition(i);
-            Quaternion rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
-            GameObject enemy = Instantiate(enemyTankPrefab, spawnPosition, rotation, spawnParent);
-            enemy.name = $"EnemyTank_{i + 1}";
-            _spawnedEnemies.Add(enemy);
+            SpawnEnemyAt(FindSpawnPosition(i), Quaternion.Euler(0f, Random.Range(0f, 360f), 0f), i, enemyCount);
+        }
+    }
 
-            EnemyTankAI ai = enemy.GetComponent<EnemyTankAI>();
-            if (ai != null)
+    public void SpawnCloseEnemyTanks(int desiredCount, float distanceFromPlayer)
+    {
+        enemyCount = Mathf.Max(0, desiredCount);
+        ResolveReferences();
+        if (battlefieldDirector != null)
+        {
+            battlefieldDirector.BeginBattle(enemyCount);
+        }
+
+        ClearExistingEnemies(true);
+        _spawnedEnemies.Clear();
+
+        if (enemyTankPrefab == null || playerTank == null)
+        {
+            Debug.LogWarning("[EnemyTankSpawner] Cannot close-spawn without an enemy prefab and player tank.");
+            return;
+        }
+
+        for (int i = 0; i < enemyCount; i++)
+        {
+            float angle = i * Mathf.PI * 2f / Mathf.Max(1, enemyCount);
+            Vector3 offset = new Vector3(Mathf.Sin(angle), 0f, Mathf.Cos(angle)) * Mathf.Max(20f, distanceFromPlayer);
+            Vector3 raw = playerTank.position + offset;
+            raw.y = spawnHeight;
+            Vector3 ground = SampleGround(raw);
+            if (ground == Vector3.zero)
             {
-                ApplySpawnProfile(ai, i, enemyCount);
+                ground = new Vector3(raw.x, playerTank.position.y, raw.z);
+            }
+
+            Vector3 spawnPosition = ground + Vector3.up * groundLift;
+            Quaternion rotation = Quaternion.LookRotation((playerTank.position - spawnPosition).normalized, Vector3.up);
+            SpawnEnemyAt(spawnPosition, rotation, i, enemyCount);
+        }
+
+        Physics.SyncTransforms();
+    }
+
+    public void ClearExistingEnemies(bool immediate)
+    {
+        EnemyTankAI[] existing = Object.FindObjectsByType<EnemyTankAI>(FindObjectsSortMode.None);
+        foreach (EnemyTankAI tank in existing)
+        {
+            if (tank == null)
+            {
+                continue;
+            }
+
+            if (Application.isPlaying && !immediate)
+            {
+                Destroy(tank.gameObject);
+            }
+            else
+            {
+                DestroyImmediate(tank.gameObject);
             }
         }
+
+        _spawnedEnemies.Clear();
+    }
+
+    public void ClearTransientBattleObjects(bool immediate)
+    {
+        string[] prefixes =
+        {
+            "MachineGunBullet",
+            "MachineGunBullet_Test",
+            "TankDeathBurst",
+            "CastleImpactMark"
+        };
+
+        GameObject[] allObjects = Object.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+        for (int i = 0; i < allObjects.Length; i++)
+        {
+            GameObject go = allObjects[i];
+            if (go == null)
+            {
+                continue;
+            }
+
+            bool shouldDestroy = false;
+            for (int p = 0; p < prefixes.Length; p++)
+            {
+                if (go.name.StartsWith(prefixes[p]))
+                {
+                    shouldDestroy = true;
+                    break;
+                }
+            }
+
+            if (!shouldDestroy && go.GetComponent<ProjectileCameraController>() == null)
+            {
+                continue;
+            }
+
+            if (Application.isPlaying && !immediate)
+            {
+                Destroy(go);
+            }
+            else
+            {
+                DestroyImmediate(go);
+            }
+        }
+    }
+
+    public Vector3 SampleGround(Vector3 origin)
+    {
+        CraterTerrain terrain = Object.FindFirstObjectByType<CraterTerrain>();
+        Collider terrainCollider = terrain != null ? terrain.GetComponent<Collider>() : null;
+        Renderer terrainRenderer = terrain != null ? terrain.GetComponent<Renderer>() : null;
+
+        if (terrainCollider != null || terrainRenderer != null)
+        {
+            Bounds bounds = terrainCollider != null ? terrainCollider.bounds : terrainRenderer.bounds;
+            Vector3 rayOrigin = new Vector3(origin.x, bounds.max.y + Mathf.Max(20f, bounds.size.y), origin.z);
+            float rayDistance = bounds.size.y + Mathf.Max(120f, spawnHeight * 4f);
+
+            if (terrainCollider != null)
+            {
+                Ray ray = new Ray(rayOrigin, Vector3.down);
+                if (terrainCollider.Raycast(ray, out RaycastHit terrainHit, rayDistance))
+                {
+                    return terrainHit.point;
+                }
+            }
+
+            if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, rayDistance, ~0, QueryTriggerInteraction.Ignore))
+            {
+                if (terrain == null || hit.collider == terrainCollider || hit.collider.transform.IsChildOf(terrain.transform))
+                {
+                    return hit.point;
+                }
+            }
+
+            return Vector3.zero;
+        }
+
+        if (Physics.Raycast(origin + Vector3.up * spawnHeight, Vector3.down, out RaycastHit fallbackHit, spawnHeight * 5f, ~0, QueryTriggerInteraction.Ignore))
+        {
+            return fallbackHit.point;
+        }
+
+        return Vector3.zero;
+    }
+
+    private GameObject SpawnEnemyAt(Vector3 spawnPosition, Quaternion rotation, int index, int totalCount)
+    {
+        _spawnSequence++;
+        GameObject enemy = Instantiate(enemyTankPrefab, spawnPosition, rotation, spawnParent);
+        enemy.name = "EnemyTank_" + _spawnSequence.ToString("000");
+        _spawnedEnemies.Add(enemy);
+
+        Rigidbody body = enemy.GetComponent<Rigidbody>();
+        if (body != null)
+        {
+            body.linearVelocity = Vector3.zero;
+            body.angularVelocity = Vector3.zero;
+        }
+
+        EnemyTankAI ai = enemy.GetComponent<EnemyTankAI>();
+        if (ai != null)
+        {
+            ApplySpawnProfile(ai, index, totalCount);
+            if (battlefieldDirector != null)
+            {
+                battlefieldDirector.RegisterEnemySpawned(ai);
+            }
+        }
+
+        return enemy;
     }
 
     private void ResolveReferences()
@@ -109,18 +274,6 @@ public class EnemyTankSpawner : MonoBehaviour
         }
     }
 
-    private void ClearExistingEnemies()
-    {
-        EnemyTankAI[] existing = Object.FindObjectsByType<EnemyTankAI>(FindObjectsSortMode.None);
-        foreach (EnemyTankAI tank in existing)
-        {
-            if (tank != null)
-            {
-                Destroy(tank.gameObject);
-            }
-        }
-    }
-
     private Vector3 FindSpawnPosition(int index)
     {
         CraterTerrain terrain = Object.FindFirstObjectByType<CraterTerrain>();
@@ -135,8 +288,7 @@ public class EnemyTankSpawner : MonoBehaviour
 
         for (int attempt = 0; attempt < maxAttemptsPerTank; attempt++)
         {
-            float ringT = Random.value;
-            float distance = Mathf.Lerp(ambushRingMin(), ambushRingMax(), ringT);
+            float distance = Mathf.Lerp(ambushRingMin(), ambushRingMax(), Random.value);
             float angleJitter = Random.Range(-35f, 35f);
             float arcJitter = Random.Range(-12f, 12f);
             float sideShift = Random.Range(-ambushSideSpread(), ambushSideSpread());
@@ -174,24 +326,17 @@ public class EnemyTankSpawner : MonoBehaviour
             bool tooCloseToSpawn = false;
             for (int i = 0; i < _spawnedEnemies.Count; i++)
             {
-                if (_spawnedEnemies[i] == null)
-                {
-                    continue;
-                }
-
-                if (Vector3.Distance(groundPoint, _spawnedEnemies[i].transform.position) < 28f)
+                if (_spawnedEnemies[i] != null && Vector3.Distance(groundPoint, _spawnedEnemies[i].transform.position) < 28f)
                 {
                     tooCloseToSpawn = true;
                     break;
                 }
             }
 
-            if (tooCloseToSpawn)
+            if (!tooCloseToSpawn)
             {
-                continue;
+                return groundPoint + Vector3.up * groundLift;
             }
-
-            return groundPoint + Vector3.up * 0.18f;
         }
 
         Vector3 fallback = playerPosition + travelAxis * (ambushRingMin() + index * 10f);
@@ -199,7 +344,7 @@ public class EnemyTankSpawner : MonoBehaviour
         Vector3 fallbackGround = SampleGround(fallback);
         if (fallbackGround != Vector3.zero)
         {
-            return fallbackGround + Vector3.up * 0.18f;
+            return fallbackGround + Vector3.up * groundLift;
         }
 
         return fallback;
@@ -223,7 +368,6 @@ public class EnemyTankSpawner : MonoBehaviour
         ai.patrolClockwise = (index % 2) == 0;
         ai.patrolStartAngle = Random.Range(0f, 360f);
         ai.patrolJitter = Mathf.Lerp(0.2f, 0.55f, normalizedCount);
-
         ai.detectionRange = Mathf.Min(300f, ai.detectionRange * Mathf.Lerp(1f, 1.18f, difficulty - 1f));
         ai.preferredDistance = Mathf.Clamp(ai.preferredDistance * Mathf.Lerp(1f, 0.92f, normalizedCount), 62f, 104f);
         ai.retreatDistance = Mathf.Clamp(ai.retreatDistance * Mathf.Lerp(1f, 0.88f, normalizedCount), 32f, ai.preferredDistance - 12f);
@@ -248,47 +392,6 @@ public class EnemyTankSpawner : MonoBehaviour
         ai.fatalImpactThreshold = Mathf.Clamp(ai.fatalImpactThreshold, 0.3f, 0.45f);
         ai.deathDelay = Mathf.Clamp(ai.deathDelay, 0.2f, 0.45f);
     }
-
-    private Vector3 SampleGround(Vector3 origin)
-    {
-        CraterTerrain terrain = Object.FindFirstObjectByType<CraterTerrain>();
-        Collider terrainCollider = terrain != null ? terrain.GetComponent<Collider>() : null;
-        Renderer terrainRenderer = terrain != null ? terrain.GetComponent<Renderer>() : null;
-
-        if (terrainCollider != null || terrainRenderer != null)
-        {
-            Bounds bounds = terrainCollider != null ? terrainCollider.bounds : terrainRenderer.bounds;
-            Vector3 rayOrigin = new Vector3(origin.x, bounds.max.y + Mathf.Max(20f, bounds.size.y), origin.z);
-            float rayDistance = bounds.size.y + Mathf.Max(80f, spawnHeight * 3f);
-
-            if (terrainCollider != null)
-            {
-                Ray ray = new Ray(rayOrigin, Vector3.down);
-                if (terrainCollider.Raycast(ray, out RaycastHit terrainHit, rayDistance))
-                {
-                    return terrainHit.point;
-                }
-            }
-
-            if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, rayDistance, ~0, QueryTriggerInteraction.Ignore))
-            {
-                if (terrainCollider == null || hit.collider == terrainCollider || hit.collider.transform.IsChildOf(terrain.transform))
-                {
-                    return hit.point;
-                }
-            }
-
-            return Vector3.zero;
-        }
-
-        if (Physics.Raycast(origin, Vector3.down, out RaycastHit fallbackHit, spawnHeight * 3f, ~0, QueryTriggerInteraction.Ignore))
-        {
-            return fallbackHit.point;
-        }
-
-        return Vector3.zero;
-    }
-
 
     private Vector3 GetPlayerTravelAxis()
     {

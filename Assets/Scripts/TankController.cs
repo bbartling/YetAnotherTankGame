@@ -1045,6 +1045,16 @@ public class TankController : MonoBehaviour
         ApplyDamage(damage, explosionPoint, worldNormal, true);
     }
 
+    public void ApplyBulletDamage(float damage, Vector3 worldPoint, Vector3 worldNormal)
+    {
+        if (_isDead)
+        {
+            return;
+        }
+
+        ApplyDamage(Mathf.Max(0.1f, damage), worldPoint, worldNormal, false);
+    }
+
     public void ApplyCollisionDamage(float impactForce, Vector3 worldPoint, Vector3 worldNormal)
     {
         if (_isDead)
@@ -1063,7 +1073,12 @@ public class TankController : MonoBehaviour
             return;
         }
 
-        _health -= Mathf.Max(0.1f, amount);
+        
+        if (BattlefieldDirector.Instance != null)
+        {
+            BattlefieldDirector.Instance.RegisterDamageTaken(amount);
+        }
+_health -= Mathf.Max(0.1f, amount);
         UpdateHUD();
 
         if (canTriggerFatalImpact && amount >= maxHealth * fatalImpactThreshold)
@@ -1195,7 +1210,13 @@ public class TankController : MonoBehaviour
             _deathSubtitle.alpha = Mathf.Lerp(0.2f, 0.9f, Mathf.PingPong(Time.time * (deathFlashFrequency * 0.55f), 1f));
         }
 
-        if (!_restartQueued && Time.timeSinceLevelLoad >= deathRestartDelay)
+        if (BattlefieldDirector.Instance != null)
+        {
+            return;
+        }
+
+        
+if (!_restartQueued && Time.timeSinceLevelLoad >= deathRestartDelay)
         {
             _restartQueued = true;
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
@@ -1454,11 +1475,16 @@ private void UpdateWindWidget()
         }
     }
 
-    public void Fire()
+public void Fire()
     {
         if (_isDead || shellPrefab == null || firePoint == null)
         {
             return;
+        }
+
+        if (BattlefieldDirector.Instance != null)
+        {
+            BattlefieldDirector.Instance.RegisterShotFired(true);
         }
 
         if (_audio != null && playerFireSound != null)
@@ -1499,5 +1525,158 @@ private void UpdateWindWidget()
             shellRb.velocity = launchVelocity;
 #endif
         }
+    }
+
+
+public bool IsDestroyed
+    {
+        get { return _isDead; }
+    }
+
+    public float CurrentHealth
+    {
+        get { return Mathf.Max(0f, _health); }
+    }
+
+    public float HealthPercent
+    {
+        get { return maxHealth > 0f ? Mathf.Clamp01(_health / maxHealth) * 100f : 0f; }
+    }
+
+public void FireAtPointForTest(Vector3 targetPoint, float launchPower = 100f)
+    {
+        if (_isDead || shellPrefab == null || firePoint == null)
+        {
+            return;
+        }
+
+        if (BattlefieldDirector.Instance != null)
+        {
+            BattlefieldDirector.Instance.RegisterShotFired(true);
+        }
+
+        if (_audio != null && playerFireSound != null)
+        {
+            _audio.PlayOneShot(playerFireSound);
+        }
+
+        GameObject shell = Instantiate(shellPrefab, firePoint.position, Quaternion.LookRotation((targetPoint - firePoint.position).normalized, Vector3.up));
+        Collider[] tankColliders = GetComponentsInChildren<Collider>();
+        Collider shellCollider = shell.GetComponent<Collider>();
+        if (shellCollider != null)
+        {
+            foreach (Collider c in tankColliders)
+            {
+                if (c != null)
+                {
+                    Physics.IgnoreCollision(c, shellCollider);
+                }
+            }
+        }
+
+        ProjectileCameraController projectile = shell.GetComponent<ProjectileCameraController>();
+        if (projectile != null)
+        {
+            projectile.trackingBase = transform;
+            projectile.launchPowerPercentage = Mathf.Clamp(launchPower, 0f, 100f);
+            projectile.applyWindDrift = false;
+        }
+
+        Rigidbody shellRb = shell.GetComponent<Rigidbody>();
+        if (shellRb == null)
+        {
+            return;
+        }
+
+        shellRb.mass = mass;
+        float muzzleSpeed = Mathf.Lerp(maxPower * 0.45f, maxPower, Mathf.Clamp01(launchPower / 100f));
+        Vector3 launchVelocity;
+        if (!TryGetBallisticVelocityForTest(firePoint.position, targetPoint, muzzleSpeed, out launchVelocity))
+        {
+            launchVelocity = (targetPoint - firePoint.position).normalized * muzzleSpeed;
+        }
+
+#if UNITY_6000_0_OR_NEWER
+        shellRb.linearVelocity = launchVelocity + GetTankVelocity();
+#else
+        shellRb.velocity = launchVelocity + GetTankVelocity();
+#endif
+    }
+
+    private bool TryGetBallisticVelocityForTest(Vector3 origin, Vector3 target, float speed, out Vector3 velocity)
+    {
+        velocity = Vector3.zero;
+        Vector3 toTarget = target - origin;
+        Vector3 toTargetXZ = new Vector3(toTarget.x, 0f, toTarget.z);
+        float horizontalDistance = toTargetXZ.magnitude;
+        float verticalDistance = toTarget.y;
+        float gravity = Mathf.Abs(Physics.gravity.y);
+        if (horizontalDistance < 0.01f || speed <= 0.01f)
+        {
+            return false;
+        }
+
+        float speedSqr = speed * speed;
+        float discriminant = speedSqr * speedSqr - gravity * (gravity * horizontalDistance * horizontalDistance + 2f * verticalDistance * speedSqr);
+        if (discriminant < 0f)
+        {
+            return false;
+        }
+
+        float sqrt = Mathf.Sqrt(discriminant);
+        float tanTheta = (speedSqr - sqrt) / (gravity * horizontalDistance);
+        float cos = 1f / Mathf.Sqrt(1f + tanTheta * tanTheta);
+        float sin = tanTheta * cos;
+        velocity = toTargetXZ.normalized * (speed * cos) + Vector3.up * (speed * sin);
+        return true;
+    }
+
+
+public void ResetForBattle(Vector3 position, Quaternion rotation)
+    {
+        _isDead = false;
+        _restartQueued = false;
+        _toppleTimer = 0f;
+        _health = maxHealth;
+        _spawnPlacementComplete = true;
+        transform.position = position;
+        transform.rotation = rotation;
+
+        Collider[] colliders = GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            colliders[i].enabled = true;
+        }
+
+        if (_rb != null)
+        {
+            if (!_rb.isKinematic)
+            {
+                _rb.angularVelocity = Vector3.zero;
+            }
+
+            SetTankVelocity(Vector3.zero);
+            _rb.isKinematic = true;
+            _rb.position = transform.position;
+            _rb.rotation = transform.rotation;
+        }
+
+        PlaceOnGround();
+        Physics.SyncTransforms();
+
+        if (_rb != null)
+        {
+            _rb.isKinematic = false;
+            _rb.angularVelocity = Vector3.zero;
+            SetTankVelocity(Vector3.zero);
+        }
+
+        if (_deathGroup != null)
+        {
+            _deathGroup.alpha = 0f;
+            _deathGroup.gameObject.SetActive(false);
+        }
+
+        UpdateHUD();
     }
 }

@@ -4,8 +4,10 @@ using UnityEngine;
 public class CastleDamageReceiver : MonoBehaviour
 {
     [Header("Damage")]
-    public float maxHealth = 260f;
+    public float maxHealth = 500f;
     public float damageScale = 1.0f;
+    public float cannonImpactThreshold = 80f;
+    public int directCannonHitsToCollapse = 5;
     public float collapseThreshold = 0.35f;
     public float pieceBreakThreshold = 0.60f;
     public int crumblePieceCount = 28;
@@ -31,7 +33,9 @@ public class CastleDamageReceiver : MonoBehaviour
             return;
         }
 
-        float damage = Mathf.Max(8f, force * damageScale);
+        float damage = force >= cannonImpactThreshold
+            ? maxHealth / Mathf.Max(1, directCannonHitsToCollapse)
+            : Mathf.Max(1f, force * damageScale);
         _health -= damage;
 
         SpawnImpactMark(worldPoint, worldNormal, force);
@@ -164,6 +168,41 @@ public class CastleDamageReceiver : MonoBehaviour
             rb.AddTorque(Random.insideUnitSphere * crumbleForce * 0.15f, ForceMode.Impulse);
 
             Destroy(piece, Random.Range(2f, 5f));
+        }
+    }
+
+
+public bool IsCollapsed
+    {
+        get { return _collapsed; }
+    }
+
+    public float CurrentHealth
+    {
+        get { return Mathf.Max(0f, _health); }
+    }
+
+    public float HealthPercent
+    {
+        get { return maxHealth > 0f ? Mathf.Clamp01(_health / maxHealth) * 100f : 0f; }
+    }
+
+
+public void ResetForBattle()
+    {
+        _health = maxHealth;
+        _collapsed = false;
+
+        Collider[] colliders = GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            colliders[i].enabled = true;
+        }
+
+        Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            renderers[i].enabled = true;
         }
     }
 }

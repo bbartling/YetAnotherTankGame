@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -21,7 +22,11 @@ public class MiniMapHUD : MonoBehaviour
     public Color panelColor = new Color(0f, 0f, 0f, 0.55f);
     public Color playerColor = new Color(0.35f, 0.85f, 1f, 1f);
     public Color castleColor = new Color(1f, 0.84f, 0.25f, 1f);
-    public Color turretColor = new Color(1f, 0.55f, 0.2f, 1f);
+    
+    public Color enemyColor = new Color(1f, 0.18f, 0.12f, 1f);
+    public Color enemyDamagedColor = new Color(1f, 0.72f, 0.12f, 1f);
+    public Vector2 enemyMarkerSize = new Vector2(12f, 16f);
+public Color turretColor = new Color(1f, 0.55f, 0.2f, 1f);
     public Color borderColor = new Color(1f, 1f, 1f, 0f);
 
     private RectTransform _root;
@@ -31,7 +36,10 @@ public class MiniMapHUD : MonoBehaviour
     private TextMeshProUGUI _compassDegreeLabel;
     private RectTransform _playerMarker;
     private RectTransform _castleMarker;
-    private TextMeshProUGUI _titleLabel;
+    
+    private readonly List<RectTransform> _enemyMarkers = new List<RectTransform>();
+    private readonly List<Image> _enemyHealthFills = new List<Image>();
+private TextMeshProUGUI _titleLabel;
 
     private void Awake()
     {
@@ -259,6 +267,7 @@ public class MiniMapHUD : MonoBehaviour
         _root.gameObject.SetActive(true);
         UpdateMarker(_playerMarker, playerTarget.position);
         UpdateMarker(_castleMarker, castleTarget.position);
+        UpdateEnemyMarkers();
         UpdateCompass();
     }
 
@@ -336,5 +345,86 @@ public class MiniMapHUD : MonoBehaviour
         float px = x * (width * 0.5f);
         float py = z * (height * 0.5f);
         marker.anchoredPosition = new Vector2(px, py);
+    }
+
+
+private void UpdateEnemyMarkers()
+    {
+        EnemyTankAI[] enemies = Object.FindObjectsByType<EnemyTankAI>(FindObjectsSortMode.None);
+        int liveIndex = 0;
+
+        for (int i = 0; i < enemies.Length; i++)
+        {
+            EnemyTankAI enemy = enemies[i];
+            if (enemy == null || enemy.IsDestroyed)
+            {
+                continue;
+            }
+
+            RectTransform marker = GetEnemyMarker(liveIndex);
+            Image fill = _enemyHealthFills[liveIndex];
+            marker.gameObject.SetActive(true);
+            UpdateMarker(marker, enemy.transform.position);
+
+            float normalized = Mathf.Clamp01(enemy.HealthPercent / 100f);
+            if (fill != null)
+            {
+                fill.fillAmount = normalized;
+                fill.color = Color.Lerp(enemyDamagedColor, enemyColor, normalized);
+            }
+
+            liveIndex++;
+        }
+
+        for (int i = liveIndex; i < _enemyMarkers.Count; i++)
+        {
+            if (_enemyMarkers[i] != null)
+            {
+                _enemyMarkers[i].gameObject.SetActive(false);
+            }
+        }
+    }
+
+    private RectTransform GetEnemyMarker(int index)
+    {
+        while (_enemyMarkers.Count <= index)
+        {
+            GameObject root = new GameObject("EnemyMarker", typeof(RectTransform), typeof(CanvasRenderer));
+            root.transform.SetParent(_mapRect, false);
+            RectTransform rootRt = root.GetComponent<RectTransform>();
+            rootRt.anchorMin = new Vector2(0.5f, 0.5f);
+            rootRt.anchorMax = new Vector2(0.5f, 0.5f);
+            rootRt.pivot = new Vector2(0.5f, 0.5f);
+            rootRt.sizeDelta = enemyMarkerSize;
+
+            GameObject dot = new GameObject("Dot", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            dot.transform.SetParent(root.transform, false);
+            RectTransform dotRt = dot.GetComponent<RectTransform>();
+            dotRt.anchorMin = new Vector2(0.5f, 1f);
+            dotRt.anchorMax = new Vector2(0.5f, 1f);
+            dotRt.pivot = new Vector2(0.5f, 1f);
+            dotRt.sizeDelta = new Vector2(enemyMarkerSize.x, enemyMarkerSize.x);
+            dotRt.anchoredPosition = Vector2.zero;
+            dot.GetComponent<Image>().color = enemyColor;
+
+            GameObject health = new GameObject("Health", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            health.transform.SetParent(root.transform, false);
+            RectTransform healthRt = health.GetComponent<RectTransform>();
+            healthRt.anchorMin = new Vector2(0f, 0f);
+            healthRt.anchorMax = new Vector2(1f, 0f);
+            healthRt.pivot = new Vector2(0f, 0f);
+            healthRt.sizeDelta = new Vector2(0f, 3f);
+            healthRt.anchoredPosition = Vector2.zero;
+            Image healthImage = health.GetComponent<Image>();
+            healthImage.type = Image.Type.Filled;
+            healthImage.fillMethod = Image.FillMethod.Horizontal;
+            healthImage.fillOrigin = 0;
+            healthImage.color = enemyColor;
+
+            _enemyMarkers.Add(rootRt);
+            _enemyHealthFills.Add(healthImage);
+        }
+
+        return _enemyMarkers[index];
     }
 }

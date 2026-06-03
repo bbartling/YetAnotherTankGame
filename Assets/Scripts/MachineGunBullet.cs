@@ -60,7 +60,7 @@ public class MachineGunBullet : MonoBehaviour
         EnemyTankAI enemyTank = collision.collider.GetComponentInParent<EnemyTankAI>();
         if (enemyTank != null)
         {
-            enemyTank.ApplyProjectileDamage(damage, contact.point, contact.normal);
+            enemyTank.ApplyMachineGunDamage(damage, contact.point, contact.normal);
             PopImpact(contact.point, contact.normal, new Color(1f, 0.72f, 0.18f, 1f), 0.65f);
             Finish();
             return;
@@ -80,7 +80,7 @@ public class MachineGunBullet : MonoBehaviour
         {
             if (otherTank != ownerTank)
             {
-                otherTank.ApplyProjectileDamage(damage, contact.point, contact.normal);
+                otherTank.ApplyBulletDamage(damage, contact.point, contact.normal);
             }
 
             PopImpact(contact.point, contact.normal, new Color(1f, 0.74f, 0.22f, 1f), 0.5f);

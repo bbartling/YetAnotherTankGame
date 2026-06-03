@@ -31,6 +31,8 @@ public class CraterTerrain : MonoBehaviour
     public float craterCorePunchScale = 0.85f;
     public float craterNoiseFrequency = 0.018f;
     public float craterNoiseScale = 0.45f;
+    public float maxImpactVerticalOffset = 45f;
+    public float maxImpactForce = 260f;
 
     [Header("Random Battlefield")]
     public bool seedRandomCraters = true;
@@ -304,6 +306,12 @@ public class CraterTerrain : MonoBehaviour
         }
 
         Vector3 localPoint = transform.InverseTransformPoint(worldPoint);
+        if (Mathf.Abs(localPoint.y) > maxImpactVerticalOffset)
+        {
+            return;
+        }
+
+        force = Mathf.Clamp(force, 0f, maxImpactForce);
         float radius = Mathf.Max(0.75f, baseRadius + force * forceRadiusScale);
         float depth = Mathf.Max(0.1f, baseDepth + force * forceDepthScale);
         float noiseAmount = roughness * Mathf.Clamp01(force / 100f);

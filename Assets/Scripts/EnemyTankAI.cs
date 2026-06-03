@@ -53,8 +53,12 @@ public class EnemyTankAI : MonoBehaviour
     public float collisionDamage = 60f;
     public float fatalImpactThreshold = 0.35f;
     public float deathDelay = 0.35f;
-    public int crumblePieceCount = 12;
-    public float crumbleForce = 20f;
+    public int crumblePieceCount = 24;
+    public float crumbleForce = 38f;
+    public float machineGunDamageScale = 1f;
+    public float tankKillCraterForce = 165f;
+    public float tankKillBlastRadius = 12f;
+    public float tankKillBlastForce = 520f;
 
     [Header("Audio")]
     public AudioClip engineRunningClip;
@@ -102,7 +106,7 @@ public class EnemyTankAI : MonoBehaviour
         _health = maxHealth;
     }
 
-    private void Start()
+private void Start()
     {
         FindPlayerAndPatrolCenter();
 
@@ -110,11 +114,16 @@ public class EnemyTankAI : MonoBehaviour
         {
             gameObject.tag = "EnemyTank";
         }
+
+        if (GetComponent<EnemyHealthBar>() == null)
+        {
+            gameObject.AddComponent<EnemyHealthBar>();
+        }
     }
 
-    private void Update()
+private void Update()
     {
-        if (_isDead)
+        if (_isDead || (BattlefieldDirector.Instance != null && BattlefieldDirector.Instance.IsResolved))
         {
             return;
         }
@@ -139,9 +148,9 @@ public class EnemyTankAI : MonoBehaviour
         TryFire(targetPoint, distance, state);
     }
 
-    private void FixedUpdate()
+private void FixedUpdate()
     {
-        if (_isDead)
+        if (_isDead || (BattlefieldDirector.Instance != null && BattlefieldDirector.Instance.IsResolved))
         {
             return;
         }
@@ -595,7 +604,7 @@ private EnemyState GetState()
         return true;
     }
 
-    public void ApplyProjectileDamage(float impactForce, Vector3 worldPoint, Vector3 worldNormal)
+public void ApplyProjectileDamage(float impactForce, Vector3 worldPoint, Vector3 worldNormal)
     {
         if (_isDead)
         {
@@ -603,10 +612,15 @@ private EnemyState GetState()
         }
 
         float damage = Mathf.Max(projectileDirectDamage, impactForce * 1.25f);
+        if (BattlefieldDirector.Instance != null)
+        {
+            BattlefieldDirector.Instance.RegisterDamageDealt(damage);
+        }
+
         ApplyDamage(damage, worldPoint, worldNormal, true);
     }
 
-    public void ApplyExplosionDamage(float explosionForce, Vector3 explosionPoint, Vector3 worldNormal, float distanceFactor = 1f)
+public void ApplyExplosionDamage(float explosionForce, Vector3 explosionPoint, Vector3 worldNormal, float distanceFactor = 1f)
     {
         if (_isDead)
         {
@@ -614,7 +628,34 @@ private EnemyState GetState()
         }
 
         float damage = Mathf.Max(projectileBlastDamage, explosionForce * Mathf.Clamp01(distanceFactor) * 1.15f);
+        if (BattlefieldDirector.Instance != null)
+        {
+            BattlefieldDirector.Instance.RegisterDamageDealt(damage);
+        }
+
         ApplyDamage(damage, explosionPoint, worldNormal, true);
+    }
+
+    public void ApplyMachineGunDamage(float damage, Vector3 worldPoint, Vector3 worldNormal)
+    {
+        if (_isDead)
+        {
+            return;
+        }
+
+        float scaledDamage = Mathf.Max(0.05f, damage * machineGunDamageScale);
+        BattlefieldDirector director = BattlefieldDirector.Instance;
+        if (director == null)
+        {
+            director = Object.FindFirstObjectByType<BattlefieldDirector>();
+        }
+
+        if (director != null)
+        {
+            director.RegisterDamageDealt(scaledDamage);
+        }
+
+        ApplyDamage(scaledDamage, worldPoint, worldNormal, false);
     }
 
     public void ApplyCollisionDamage(float impactForce, Vector3 worldPoint, Vector3 worldNormal)
@@ -654,7 +695,12 @@ private EnemyState GetState()
             return;
         }
 
-        _isDead = true;
+        
+        if (BattlefieldDirector.Instance != null)
+        {
+            BattlefieldDirector.Instance.RegisterEnemyDestroyed(this);
+        }
+_isDead = true;
         CancelInvoke();
         StopAllCoroutines();
         StartCoroutine(DeathSequence(worldPoint, worldNormal, force));
@@ -687,6 +733,9 @@ private EnemyState GetState()
             renderers[i].enabled = false;
         }
 
+        SpawnKillCrater(worldPoint, worldNormal, force);
+        SpawnKillBlast(worldPoint, worldNormal, force);
+        PlayKillSound(worldPoint);
         SpawnCrumblePieces(worldPoint, worldNormal, force);
 
         if (worldNormal.sqrMagnitude > 0.001f && _rb != null)
@@ -696,6 +745,66 @@ private EnemyState GetState()
 
         yield return new WaitForSeconds(deathDelay);
         Destroy(gameObject);
+    }
+
+    private void SpawnKillCrater(Vector3 worldPoint, Vector3 worldNormal, float force)
+    {
+        float craterForce = Mathf.Clamp(Mathf.Max(tankKillCraterForce, force * 1.4f), 0f, 260f);
+        CraterTerrain craterTerrain = Object.FindFirstObjectByType<CraterTerrain>();
+        if (craterTerrain != null)
+        {
+            craterTerrain.ApplyImpact(worldPoint, worldNormal.sqrMagnitude > 0.001f ? worldNormal : Vector3.up, craterForce);
+            return;
+        }
+
+        DestructibleGround ground = Object.FindFirstObjectByType<DestructibleGround>();
+        if (ground != null)
+        {
+            ground.ApplyImpact(worldPoint, worldNormal.sqrMagnitude > 0.001f ? worldNormal : Vector3.up, craterForce);
+        }
+    }
+
+    private void SpawnKillBlast(Vector3 worldPoint, Vector3 worldNormal, float force)
+    {
+        GameObject flash = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        flash.name = name + "_KillFlash";
+        flash.transform.position = transform.position + Vector3.up * 1.2f;
+        flash.transform.localScale = Vector3.one * 4.5f;
+
+        Collider flashCollider = flash.GetComponent<Collider>();
+        if (flashCollider != null)
+        {
+            Destroy(flashCollider);
+        }
+
+        Renderer flashRenderer = flash.GetComponent<Renderer>();
+        if (flashRenderer != null)
+        {
+            Material material = new Material(Shader.Find("Standard"));
+            material.color = new Color(1f, 0.38f, 0.06f, 0.92f);
+            flashRenderer.material = material;
+        }
+
+        Collider[] nearby = Physics.OverlapSphere(transform.position, tankKillBlastRadius, ~0, QueryTriggerInteraction.Ignore);
+        for (int i = 0; i < nearby.Length; i++)
+        {
+            Rigidbody body = nearby[i].attachedRigidbody;
+            if (body != null && body != _rb)
+            {
+                body.AddExplosionForce(Mathf.Max(tankKillBlastForce, force * 7.5f), transform.position, tankKillBlastRadius, 1.2f, ForceMode.Impulse);
+            }
+        }
+
+        Destroy(flash, 0.28f);
+    }
+
+    private void PlayKillSound(Vector3 worldPoint)
+    {
+        CombatSoundSlots slots = Object.FindFirstObjectByType<CombatSoundSlots>();
+        if (slots != null && slots.enemyTankKill != null)
+        {
+            AudioSource.PlayClipAtPoint(slots.enemyTankKill, worldPoint);
+        }
     }
 
     private void SpawnCrumblePieces(Vector3 worldPoint, Vector3 worldNormal, float force)
@@ -750,5 +859,21 @@ private EnemyState GetState()
 #else
         body.velocity = value;
 #endif
+    }
+
+
+public bool IsDestroyed
+    {
+        get { return _isDead; }
+    }
+
+    public float CurrentHealth
+    {
+        get { return Mathf.Max(0f, _health); }
+    }
+
+    public float HealthPercent
+    {
+        get { return maxHealth > 0f ? Mathf.Clamp01(_health / maxHealth) * 100f : 0f; }
     }
 }

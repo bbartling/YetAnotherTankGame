@@ -8,12 +8,15 @@ public class EnemyTurret : MonoBehaviour
     public GameObject shellPrefab;
     
     public float detectRange = 200f;
-    public float fireRate = 3f;
-    public float shellPower = 50f;
+    public float fireRate = 0.65f;
+    public float shellPower = 62f;
     public AudioClip fireSound;
     public float accuracy = 0.5f; // 1.0 is perfect, 0.0 is very bad
     public float targetLeadSeconds = 0.35f;
     public float fireJitter = 0.14f;
+    public float bulletDamage = 5f;
+    public float bulletRadius = 0.1f;
+    public float bulletLifetime = 5f;
 
     private Transform _player;
     private float _nextFireTime;
@@ -92,21 +95,64 @@ public class EnemyTurret : MonoBehaviour
 
     void Fire()
     {
-        if (fireSound != null) _audio.PlayOneShot(fireSound);
+        AudioClip shot = fireSound;
+        if (shot == null)
+        {
+            CombatSoundSlots slots = Object.FindFirstObjectByType<CombatSoundSlots>();
+            if (slots != null)
+            {
+                shot = slots.turretShot;
+            }
+        }
 
-        GameObject shell = Instantiate(shellPrefab, firePoint.position, firePoint.rotation);
+        if (shot != null) _audio.PlayOneShot(shot);
 
-        var pcc = shell.GetComponent<ProjectileCameraController>();
-        if (pcc != null) pcc.enableCameraSwitching = false;
+        GameObject shell = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        shell.name = "CastleTurretBullet";
+        shell.transform.position = firePoint.position;
+        shell.transform.rotation = firePoint.rotation;
+        shell.transform.localScale = Vector3.one * bulletRadius * 2f;
 
-        var rb = shell.GetComponent<Rigidbody>();
+        Collider bulletCollider = shell.GetComponent<Collider>();
+        Collider[] turretColliders = GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < turretColliders.Length; i++)
+        {
+            if (bulletCollider != null && turretColliders[i] != null)
+            {
+                Physics.IgnoreCollision(turretColliders[i], bulletCollider);
+            }
+        }
+
+        Renderer renderer = shell.GetComponent<Renderer>();
+        if (renderer != null)
+        {
+            Material material = new Material(Shader.Find("Standard"));
+            material.color = new Color(1f, 0.78f, 0.24f, 1f);
+            renderer.material = material;
+        }
+
+        var rb = shell.AddComponent<Rigidbody>();
         if (rb != null)
         {
+            rb.mass = 0.08f;
+            rb.useGravity = true;
+            rb.linearDamping = 0.01f;
+            rb.angularDamping = 0.02f;
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
+
+            MachineGunBullet bullet = shell.AddComponent<MachineGunBullet>();
+            bullet.damage = bulletDamage;
+            bullet.maxDistance = detectRange * 1.15f;
+            bullet.maxLifetime = bulletLifetime;
+            bullet.maxRicochets = 1;
+            bullet.ricochetLoss = 0.55f;
+
             Vector3 target = _director != null
                 ? _director.GetSharedTurretAimPoint(firePoint.position, targetLeadSeconds)
                 : _player.position + Vector3.up * 1.1f;
             Vector3 velocity;
-            if (TryGetBallisticVelocity(firePoint.position, target, shellPower, Physics.gravity, true, out velocity))
+            if (TryGetBallisticVelocity(firePoint.position, target, shellPower, Physics.gravity, false, out velocity))
             {
                 Vector3 scatter = Random.insideUnitSphere * (1f - accuracy) * 0.6f;
                 SetVelocity(rb, velocity + scatter);

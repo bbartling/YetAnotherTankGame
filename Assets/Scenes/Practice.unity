@@ -4149,10 +4149,15 @@ MonoBehaviour:
 
     Esc - toggle camera view
 
-    C - controls
-    during game
+    Right mouse
+    - sniper view
 
-    Left click / Space - fire'
+    Left click / Space - fire cannon
+
+    Left Shift - machine
+    gun
+
+    C - controls during game'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -32406,14 +32411,14 @@ MonoBehaviour:
   elevationSoundRepeatDelay: 0.16
   gameplayCamera: {fileID: 963194227}
   viewToggleKey: 27
-  firstPersonCameraLocalPosition: {x: 0, y: 1.55, z: 0.35}
-  firstPersonCameraLocalEuler: {x: 8, y: 0, z: 0}
-  firstPersonCameraFov: 62
+  firstPersonCameraLocalPosition: {x: 0, y: 3.4, z: 8.5}
+  firstPersonCameraLocalEuler: {x: 5, y: 0, z: 0}
+  firstPersonCameraFov: 68
   sniperCameraLocalPosition: {x: 0, y: 4, z: 24}
   sniperCameraLocalEuler: {x: 8, y: 0, z: 0}
   sniperCameraFov: 15
-  overviewCameraLocalPosition: {x: 0, y: 8, z: 55}
-  overviewCameraLocalEuler: {x: 10, y: 0, z: 0}
+  overviewCameraLocalPosition: {x: 0, y: 8, z: -16}
+  overviewCameraLocalEuler: {x: 14, y: 0, z: 0}
   overviewCameraFov: 60
   maxPower: 75
   powerPercentage: 50
@@ -56528,6 +56533,9 @@ MonoBehaviour:
   panelColor: {r: 0, g: 0, b: 0, a: 0.55}
   playerColor: {r: 0.35, g: 0.85, b: 1, a: 1}
   castleColor: {r: 1, g: 0.84, b: 0.25, a: 1}
+  enemyColor: {r: 1, g: 0.18, b: 0.12, a: 1}
+  enemyDamagedColor: {r: 1, g: 0.72, b: 0.12, a: 1}
+  enemyMarkerSize: {x: 12, y: 16}
   turretColor: {r: 1, g: 0.55, b: 0.2, a: 1}
   borderColor: {r: 1, g: 1, b: 1, a: 0}
 --- !u!1 &753481213
@@ -90148,6 +90156,59 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1191683322}
   m_CullTransparentMesh: 1
+--- !u!1 &1192343670
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1192343671}
+  - component: {fileID: 1192343672}
+  m_Layer: 0
+  m_Name: GameplayTestApi
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1192343671
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1192343670}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1518003850}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1192343672
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1192343670}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38222221b93c38e4ea667682427fac0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameplayTestApi
+  playerTank: {fileID: 396673828}
+  machineGun: {fileID: 396673838}
+  enemySpawner: {fileID: 1506984515}
+  menuManager: {fileID: 1506984513}
+  testEnemyParent: {fileID: 0}
+  defaultEnemyCount: 4
+  closeSpawnDistance: 92
+  weaponTestDamage: 32
+  autoRunOnPlay: 0
 --- !u!1 &1192709802
 GameObject:
   m_ObjectHideFlags: 0
@@ -106391,6 +106452,57 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1396359159}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1397998488
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1397998489}
+  - component: {fileID: 1397998490}
+  m_Layer: 0
+  m_Name: CombatSoundSlots
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1397998489
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1397998488}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1518003850}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1397998490
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1397998488}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87093b991fbe7ea4791ccb0a8bbee5b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSoundSlots
+  machineGun: {fileID: 0}
+  playerCannonShot: {fileID: 0}
+  enemyCannonShot: {fileID: 0}
+  turretShot: {fileID: 0}
+  enemyCannonNearMiss: {fileID: 0}
+  cannonGroundExplosion: {fileID: 0}
+  machineGunMetalRicochet: {fileID: 0}
 --- !u!1 &1400933829
 GameObject:
   m_ObjectHideFlags: 0
@@ -114877,23 +114989,30 @@ MonoBehaviour:
   enemyCountInput: {fileID: 0}
   controlsCopy: 'Controls:
 
-    W/S - drive forward/back
+    W/S - hold drive forward/back
 
-    A/D - turn hull
+    A/D - tap while
+    driving to turn tracks
 
-    Mouse
-    X - rotate turret
+    Mouse X - rotate turret
 
-    Mouse wheel - elevate barrel
+    Mouse wheel - elevate
+    barrel
 
-    PageUp / PageDown -
-    fine barrel elevation
+    PageUp / PageDown - fine barrel elevation
 
-    C - controls during game
+    Esc - toggle camera
+    view
 
-    Left click / Space -
-    fire'
-  defaultEnemyCount: 5
+    Right mouse - sniper view
+
+    Left click / Space - fire cannon
+
+    Left
+    Shift - machine gun
+
+    C - controls during game'
+  defaultEnemyCount: 6
 --- !u!4 &1506984514
 Transform:
   m_ObjectHideFlags: 0
@@ -115713,7 +115832,9 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1192343671}
+  - {fileID: 1397998489}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1518118552
@@ -143279,10 +143400,15 @@ MonoBehaviour:
 
     Esc - toggle camera view
 
-    C - controls
-    during game
+    Right mouse
+    - sniper view
 
-    Left click / Space - fire'
+    Left click / Space - fire cannon
+
+    Left Shift - machine
+    gun
+
+    C - controls during game'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 1017682247}
