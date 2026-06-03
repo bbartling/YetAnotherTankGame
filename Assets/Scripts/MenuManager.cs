@@ -40,6 +40,13 @@ public class MenuManager : MonoBehaviour
     private void PlayGame()
     {
         int enemyCount = GetDesiredEnemyCount();
+        GameplayTestApi gameplayTestApi = Object.FindFirstObjectByType<GameplayTestApi>();
+
+        if (gameplayTestApi != null)
+        {
+            gameplayTestApi.StartBattle(enemyCount);
+            return;
+        }
 
         if (enemyTankSpawner == null)
         {

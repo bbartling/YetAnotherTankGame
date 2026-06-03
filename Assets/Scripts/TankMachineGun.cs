@@ -30,6 +30,11 @@ public class TankMachineGun : MonoBehaviour
 
     private void Awake()
     {
+        AutoWire();
+    }
+
+    private void AutoWire()
+    {
         if (tankController == null)
         {
             tankController = GetComponent<TankController>();
@@ -59,6 +64,7 @@ public class TankMachineGun : MonoBehaviour
 
     private void Update()
     {
+        if (tankController == null || firePoint == null) AutoWire();
         if (tankController == null || firePoint == null) return;
         if (tankController.IsDestroyed) return;
 
@@ -71,13 +77,21 @@ public class TankMachineGun : MonoBehaviour
 
     private void FireOneRound()
     {
+        Vector3 direction = ApplySpread(firePoint.forward, spreadDegrees);
+        FireOneRoundInDirection(direction);
+    }
+
+    private void FireOneRoundInDirection(Vector3 direction)
+    {
+        if (firePoint == null) return;
+
         if (machineGunSound != null && audioSource != null)
         {
             audioSource.PlayOneShot(machineGunSound);
         }
 
         Vector3 origin = firePoint.position;
-        Vector3 direction = ApplySpread(firePoint.forward, spreadDegrees);
+        direction = direction.normalized;
         Vector3 end = origin + direction * range;
 
         RaycastHit hit;
@@ -95,6 +109,37 @@ public class TankMachineGun : MonoBehaviour
         }
     }
 
+    // Compatibility method used by GameplayTestApi.FireMachineGunAtNearestEnemy().
+    public void FireAtPointForTest(Vector3 worldPoint, int rounds)
+    {
+        AutoWire();
+
+        if (firePoint == null)
+        {
+            Debug.LogWarning("[TankMachineGun] FireAtPointForTest failed because firePoint is missing.");
+            return;
+        }
+
+        if (tankController != null)
+        {
+            tankController.AimTurretAndBarrelAtPoint(worldPoint);
+        }
+
+        Vector3 direction = worldPoint - firePoint.position;
+        if (direction.sqrMagnitude <= 0.0001f)
+        {
+            direction = firePoint.forward;
+        }
+
+        int count = Mathf.Clamp(rounds, 1, 80);
+        for (int i = 0; i < count; i++)
+        {
+            FireOneRoundInDirection(direction.normalized);
+        }
+
+        _nextFireTime = Time.time + (1f / Mathf.Max(1f, roundsPerSecond));
+    }
+
     private Vector3 ApplySpread(Vector3 forward, float degrees)
     {
         if (degrees <= 0f) return forward.normalized;
@@ -109,7 +154,6 @@ public class TankMachineGun : MonoBehaviour
     {
         if (hit.collider == null) return;
 
-        // Do not shoot yourself.
         if (tankController != null && hit.transform.IsChildOf(tankController.transform))
         {
             return;

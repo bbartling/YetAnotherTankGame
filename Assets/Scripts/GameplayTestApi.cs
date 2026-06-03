@@ -27,6 +27,7 @@ public class GameplayTestApi : MonoBehaviour
     [Header("Fall Through Detection")]
     public float fallThroughWorldY = -20f;
     public float fallThroughGroundTolerance = 8f;
+    public float playerSpawnGroundClearance = 1.25f;
 
     public event System.Action<string> FallThroughDetected;
 
@@ -106,17 +107,26 @@ public class GameplayTestApi : MonoBehaviour
             enemySpawner.ClearTransientBattleObjects(true);
         }
 
-        CraterTerrain craterTerrain = Object.FindFirstObjectByType<CraterTerrain>();
-        if (craterTerrain != null)
-        {
-            craterTerrain.ClearTerrainDamage();
-        }
-
         if (playerTank != null)
         {
             Vector3 resetPosition = _hasInitialPlayerTransform ? _initialPlayerPosition : playerTank.transform.position;
             Quaternion resetRotation = _hasInitialPlayerTransform ? _initialPlayerRotation : playerTank.transform.rotation;
-            resetPosition.y = Mathf.Max(resetPosition.y, 20f);
+            if (enemySpawner != null)
+            {
+                if (TryGetHighestPlayerFootprintGround(resetPosition, out float highestGroundY))
+                {
+                    float lift = GetPlayerGroundLift();
+                    resetPosition = new Vector3(resetPosition.x, highestGroundY + lift, resetPosition.z);
+                }
+                else
+                {
+                    resetPosition.y = Mathf.Max(resetPosition.y, 20f);
+                }
+            }
+            else
+            {
+                resetPosition.y = Mathf.Max(resetPosition.y, 20f);
+            }
             playerTank.ResetForBattle(resetPosition, resetRotation);
         }
 
@@ -412,6 +422,79 @@ private void MonitorPlayerFallThrough()
         }
 
         return false;
+    }
+
+    private float GetPlayerGroundLift()
+    {
+        if (playerTank == null)
+        {
+            return 1f;
+        }
+
+        Collider[] colliders = playerTank.GetComponentsInChildren<Collider>();
+        float lowestBottom = float.MaxValue;
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider tankCollider = colliders[i];
+            if (tankCollider == null || !tankCollider.enabled || tankCollider.isTrigger)
+            {
+                continue;
+            }
+
+            lowestBottom = Mathf.Min(lowestBottom, tankCollider.bounds.min.y);
+        }
+
+        if (lowestBottom == float.MaxValue)
+        {
+            return 1f;
+        }
+
+        return Mathf.Max(0.35f, playerTank.transform.position.y - lowestBottom + Mathf.Max(0.1f, playerSpawnGroundClearance));
+    }
+
+    private bool TryGetHighestPlayerFootprintGround(Vector3 resetPosition, out float highestGroundY)
+    {
+        highestGroundY = float.MinValue;
+        if (playerTank == null || enemySpawner == null)
+        {
+            return false;
+        }
+
+        Vector3 currentPosition = playerTank.transform.position;
+        Collider[] colliders = playerTank.GetComponentsInChildren<Collider>();
+        bool foundGround = false;
+
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider tankCollider = colliders[i];
+            if (tankCollider == null || !tankCollider.enabled || tankCollider.isTrigger)
+            {
+                continue;
+            }
+
+            Bounds bounds = tankCollider.bounds;
+            SampleFootprintGround(currentPosition, resetPosition, new Vector3(bounds.center.x, 0f, bounds.center.z), ref highestGroundY, ref foundGround);
+            SampleFootprintGround(currentPosition, resetPosition, new Vector3(bounds.min.x, 0f, bounds.min.z), ref highestGroundY, ref foundGround);
+            SampleFootprintGround(currentPosition, resetPosition, new Vector3(bounds.min.x, 0f, bounds.max.z), ref highestGroundY, ref foundGround);
+            SampleFootprintGround(currentPosition, resetPosition, new Vector3(bounds.max.x, 0f, bounds.min.z), ref highestGroundY, ref foundGround);
+            SampleFootprintGround(currentPosition, resetPosition, new Vector3(bounds.max.x, 0f, bounds.max.z), ref highestGroundY, ref foundGround);
+        }
+
+        return foundGround;
+    }
+
+    private void SampleFootprintGround(Vector3 currentPosition, Vector3 resetPosition, Vector3 currentSample, ref float highestGroundY, ref bool foundGround)
+    {
+        Vector3 offset = currentSample - new Vector3(currentPosition.x, 0f, currentPosition.z);
+        Vector3 sampleOrigin = new Vector3(resetPosition.x + offset.x, resetPosition.y + 40f, resetPosition.z + offset.z);
+        Vector3 groundPoint = enemySpawner.SampleGround(sampleOrigin);
+        if (groundPoint == Vector3.zero)
+        {
+            return;
+        }
+
+        highestGroundY = Mathf.Max(highestGroundY, groundPoint.y);
+        foundGround = true;
     }
 
     private string BuildSmokeSummary()

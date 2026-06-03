@@ -28,15 +28,36 @@ public class TankController : MonoBehaviour
     public LineRenderer lineRenderer;
 
     [Header("Track Drive / WASD")]
-    public float forwardAcceleration = 32f;
-    public float reverseAcceleration = 20f;
-    public float maxForwardSpeed = 12f;
-    public float maxReverseSpeed = 7f;
-    public float turnAcceleration = 85f;
-    public float pivotTurnAcceleration = 125f;
-    public float lateralGrip = 8f;
+    public float forwardAcceleration = 55f;
+    public float reverseAcceleration = 38f;
+    public float maxForwardSpeed = 13f;
+    public float maxReverseSpeed = 7.5f;
+    public float trackDriveResponse = 5.5f;
+    public float turnAcceleration = 21f;
+    public float pivotTurnAcceleration = 24f;
+    public float lateralGrip = 36f;
+    public float headingGrip = 14f;
     public float groundCheckDistance = 1.4f;
     public LayerMask groundMask = ~0;
+    public float terrainSurfaceSkin = 0.18f;
+    public float terrainProbeHeight = 35f;
+    public float terrainProbeDistance = 90f;
+    public float startTerrainClearance = 1.5f;
+
+    [Header("Tracked Vehicle Grounding")]
+    public float trackHalfWidth = 0.42f;
+    public float trackHalfLength = 0.72f;
+    public float suspensionProbeHeight = 1.1f;
+    public float suspensionProbeDistance = 2.8f;
+    public float suspensionRideHeight = 0.38f;
+    public float suspensionSpring = 34f;
+    public float suspensionDamper = 7f;
+    public float trackDownforce = 26f;
+    public float slopeAlignmentTorque = 52f;
+    public float slopeAlignmentDamping = 7f;
+    public float maxAssistedSlopeAngle = 62f;
+    public float maxDriveSlopeAngle = 74f;
+    public float brakeDrag = 7f;
 
     [Header("Tank Stability")]
     public Vector3 centerOfMassOffset = new Vector3(0f, -0.55f, 0f);
@@ -46,15 +67,15 @@ public class TankController : MonoBehaviour
 
     [Header("Mouse Turret")]
     [Tooltip("Mouse X yaws the turret left/right. This is intentionally local to turretYawPivot so the turret does not orbit the map.")]
-    public float mouseYawDegreesPerSecond = 210f;
-    public float turretYawSpeed = 720f;
+    public float mouseYawDegreesPerSecond = 42.5f;
+    public float turretYawSpeed = 110f;
 
     [Tooltip("Mouse wheel plus PageUp/PageDown pitch the barrel.")]
-    public float barrelPitchSpeed = 55f;
     public float mouseWheelPitchSensitivity = 18f;
     public float keyboardPitchSpeed = 35f;
     public float minBarrelElevation = -8f;
     public float maxBarrelElevation = 35f;
+    public float defaultBattleElevation = 5f;
 
     [Header("Cannon")]
     public GameObject shellPrefab;
@@ -84,9 +105,27 @@ public class TankController : MonoBehaviour
     private float _nextCannonTime;
     private float _health;
     private bool _dead;
+    private CraterTerrain _terrainSource;
+    private Collider _terrainCollider;
+    private Renderer _terrainRenderer;
+
+    private struct TrackGroundHit
+    {
+        public Vector3 point;
+        public Vector3 normal;
+        public float distanceFromRideHeight;
+    }
+
+    private struct TrackGroundInfo
+    {
+        public bool grounded;
+        public int hitCount;
+        public Vector3 normal;
+        public TrackGroundHit[] hits;
+    }
 
     public Rigidbody RigidbodyComponent => _rb;
-    public Vector3 CurrentVelocity => GetVelocity();
+    public Vector3 CurrentVelocity => ReadVelocity();
     public float TurretYawDegrees => Mathf.Repeat(_turretYaw, 360f);
     public bool IsDestroyed => _dead;
     public float CurrentHealth => Mathf.Max(0f, _health);
@@ -98,19 +137,29 @@ public class TankController : MonoBehaviour
         _audio = GetComponent<AudioSource>();
         _health = maxHealth;
 
-        if (_rb != null)
-        {
-            _rb.centerOfMass += centerOfMassOffset;
-            _rb.interpolation = RigidbodyInterpolation.Interpolate;
-            _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-            _rb.angularDamping = angularDamping;
-            _rb.linearDamping = linearDamping;
-            _rb.maxAngularVelocity = 12f;
-        }
-
+        ConfigureRigidbody();
         AutoWireReferences();
         CacheStartingAngles();
         ValidatePivotSetup();
+    }
+
+    private void Start()
+    {
+        SnapAboveTerrain(startTerrainClearance);
+    }
+
+    private void ConfigureRigidbody()
+    {
+        if (_rb == null) return;
+
+        _rb.centerOfMass = centerOfMassOffset;
+        _rb.constraints = RigidbodyConstraints.None;
+
+        _rb.interpolation = RigidbodyInterpolation.Interpolate;
+        _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+        _rb.angularDamping = angularDamping;
+        _rb.linearDamping = linearDamping;
+        _rb.maxAngularVelocity = 12f;
     }
 
     private void AutoWireReferences()
@@ -198,13 +247,17 @@ public class TankController : MonoBehaviour
     {
         if (_dead || _rb == null) return;
 
-        HandleTrackDrive();
-        ApplyLateralGrip();
-        ApplyUprightAssist();
-        ClampForwardSpeed();
+        PreventTerrainPenetration();
+        TrackGroundInfo groundInfo = ProbeTrackGround();
+        ApplyTrackSuspension(groundInfo);
+        HandleTrackDrive(groundInfo);
+        ApplyTrackedGrip(groundInfo);
+        AlignHullToTrackGrade(groundInfo);
+        ClampGroundSpeed(groundInfo);
+        PreventTerrainPenetration();
     }
 
-    private void HandleTrackDrive()
+    private void HandleTrackDrive(TrackGroundInfo groundInfo)
     {
         float throttle = 0f;
         if (Input.GetKey(KeyCode.W)) throttle += 1f;
@@ -214,56 +267,427 @@ public class TankController : MonoBehaviour
         if (Input.GetKey(KeyCode.D)) steer += 1f;
         if (Input.GetKey(KeyCode.A)) steer -= 1f;
 
-        bool grounded = IsGrounded();
-
-        if (grounded && Mathf.Abs(throttle) > 0.01f)
+        if (!groundInfo.grounded)
         {
-            float accel = throttle > 0f ? forwardAcceleration : reverseAcceleration;
-            _rb.AddForce(transform.forward * (throttle * accel), ForceMode.Acceleration);
+            return;
         }
 
-        if (grounded && Mathf.Abs(steer) > 0.01f)
+        float slopeAngle = Vector3.Angle(groundInfo.normal, Vector3.up);
+        if (slopeAngle > maxDriveSlopeAngle)
         {
-            // A/D alone pivots like tank tracks. A/D while moving gives a smoother moving turn.
+            return;
+        }
+
+        Vector3 groundNormal = groundInfo.normal;
+        Vector3 driveForward = Vector3.ProjectOnPlane(transform.forward, groundNormal);
+        if (driveForward.sqrMagnitude < 0.0001f)
+        {
+            driveForward = Vector3.ProjectOnPlane(Vector3.forward, groundNormal);
+        }
+        driveForward.Normalize();
+
+        if (Mathf.Abs(throttle) > 0.01f)
+        {
+            Vector3 groundVelocity = Vector3.ProjectOnPlane(ReadVelocity(), groundNormal);
+            float currentForwardSpeed = Vector3.Dot(groundVelocity, driveForward);
+            float targetSpeed = throttle > 0f ? maxForwardSpeed : -maxReverseSpeed;
+            float maxAccel = throttle > 0f ? forwardAcceleration : reverseAcceleration;
+            float requestedAccel = Mathf.Clamp((targetSpeed - currentForwardSpeed) * trackDriveResponse, -maxAccel, maxAccel);
+            _rb.AddForce(driveForward * requestedAccel, ForceMode.Acceleration);
+        }
+
+        if (Mathf.Abs(steer) > 0.01f)
+        {
             float torque = Mathf.Abs(throttle) > 0.01f ? turnAcceleration : pivotTurnAcceleration;
-            _rb.AddTorque(Vector3.up * (steer * torque), ForceMode.Acceleration);
+            _rb.AddTorque(groundNormal * (steer * torque), ForceMode.Acceleration);
         }
     }
 
-    private bool IsGrounded()
+    private bool TryGetGroundNormal(out Vector3 groundNormal)
     {
+        groundNormal = Vector3.up;
         Vector3 origin = transform.position + Vector3.up * 0.35f;
-        return Physics.Raycast(origin, Vector3.down, groundCheckDistance, groundMask, QueryTriggerInteraction.Ignore);
-    }
+        RaycastHit[] hits = Physics.RaycastAll(origin, Vector3.down, groundCheckDistance, groundMask, QueryTriggerInteraction.Ignore);
+        float nearestDistance = float.MaxValue;
+        bool foundGround = false;
 
-    private void ApplyLateralGrip()
-    {
-        Vector3 velocity = GetVelocity();
-        Vector3 localVelocity = transform.InverseTransformDirection(velocity);
-        Vector3 lateralVelocity = transform.right * localVelocity.x;
-        _rb.AddForce(-lateralVelocity * lateralGrip, ForceMode.Acceleration);
-    }
-
-    private void ApplyUprightAssist()
-    {
-        Vector3 tiltAxis = Vector3.Cross(transform.up, Vector3.up);
-        if (tiltAxis.sqrMagnitude > 0.0001f)
+        for (int i = 0; i < hits.Length; i++)
         {
-            _rb.AddTorque(tiltAxis * uprightAssist, ForceMode.Acceleration);
+            Collider hitCollider = hits[i].collider;
+            if (hitCollider == null)
+            {
+                continue;
+            }
+
+            if (hitCollider.transform == transform || hitCollider.transform.IsChildOf(transform))
+            {
+                continue;
+            }
+
+            if (hits[i].distance < nearestDistance)
+            {
+                nearestDistance = hits[i].distance;
+                groundNormal = hits[i].normal;
+                foundGround = true;
+            }
+        }
+
+        return foundGround;
+    }
+
+    private TrackGroundInfo ProbeTrackGround()
+    {
+        TrackGroundInfo info = new TrackGroundInfo
+        {
+            normal = Vector3.up,
+            hits = new TrackGroundHit[5],
+            grounded = false,
+            hitCount = 0
+        };
+
+        Vector3[] localProbePoints =
+        {
+            new Vector3(-trackHalfWidth, 0f, trackHalfLength),
+            new Vector3(trackHalfWidth, 0f, trackHalfLength),
+            new Vector3(-trackHalfWidth, 0f, -trackHalfLength),
+            new Vector3(trackHalfWidth, 0f, -trackHalfLength),
+            Vector3.zero
+        };
+
+        Vector3 normalSum = Vector3.zero;
+        for (int i = 0; i < localProbePoints.Length; i++)
+        {
+            Vector3 probeBase = transform.TransformPoint(localProbePoints[i]);
+            Vector3 origin = probeBase + transform.up * suspensionProbeHeight;
+            if (!TryGetNearestNonSelfHit(origin, -transform.up, suspensionProbeHeight + suspensionProbeDistance, out RaycastHit hit))
+            {
+                origin = probeBase + Vector3.up * suspensionProbeHeight;
+                TryGetNearestNonSelfHit(origin, Vector3.down, suspensionProbeHeight + suspensionProbeDistance, out hit);
+            }
+
+            if (hit.collider == null)
+            {
+                continue;
+            }
+
+            float rideDistance = Mathf.Max(0f, hit.distance - suspensionProbeHeight);
+            info.hits[info.hitCount] = new TrackGroundHit
+            {
+                point = hit.point,
+                normal = hit.normal,
+                distanceFromRideHeight = rideDistance
+            };
+            info.hitCount++;
+            normalSum += hit.normal;
+        }
+
+        if (info.hitCount > 0)
+        {
+            info.grounded = true;
+            info.normal = normalSum.normalized;
+            if (info.normal.sqrMagnitude < 0.0001f)
+            {
+                info.normal = Vector3.up;
+            }
+        }
+
+        return info;
+    }
+
+    private bool TryGetNearestNonSelfHit(Vector3 origin, Vector3 direction, float distance, out RaycastHit nearestHit)
+    {
+        nearestHit = default;
+        RaycastHit[] hits = Physics.RaycastAll(origin, direction, distance, groundMask, QueryTriggerInteraction.Ignore);
+        float nearestDistance = float.MaxValue;
+        bool found = false;
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider hitCollider = hits[i].collider;
+            if (hitCollider == null)
+            {
+                continue;
+            }
+
+            if (hitCollider.transform == transform || hitCollider.transform.IsChildOf(transform))
+            {
+                continue;
+            }
+
+            if (hits[i].distance < nearestDistance)
+            {
+                nearestDistance = hits[i].distance;
+                nearestHit = hits[i];
+                found = true;
+            }
+        }
+
+        return found;
+    }
+
+    private void ApplyTrackedGrip(TrackGroundInfo groundInfo)
+    {
+        if (!groundInfo.grounded)
+        {
+            return;
+        }
+
+        Vector3 groundNormal = groundInfo.normal;
+        Vector3 velocity = ReadVelocity();
+        Vector3 groundVelocity = Vector3.ProjectOnPlane(velocity, groundNormal);
+        Vector3 groundRight = Vector3.ProjectOnPlane(transform.right, groundNormal);
+        Vector3 groundForward = Vector3.ProjectOnPlane(transform.forward, groundNormal);
+        if (groundRight.sqrMagnitude < 0.0001f)
+        {
+            return;
+        }
+
+        groundRight.Normalize();
+        if (groundForward.sqrMagnitude > 0.0001f)
+        {
+            groundForward.Normalize();
+        }
+
+        Vector3 lateralVelocity = groundRight * Vector3.Dot(groundVelocity, groundRight);
+        _rb.AddForce(-lateralVelocity * lateralGrip, ForceMode.Acceleration);
+
+        if (groundForward.sqrMagnitude > 0.0001f)
+        {
+            Vector3 desiredHeadingVelocity = groundForward * Vector3.Dot(groundVelocity, groundForward);
+            Vector3 headingError = groundVelocity - desiredHeadingVelocity - lateralVelocity;
+            _rb.AddForce(-headingError * headingGrip, ForceMode.Acceleration);
+        }
+
+        if (!Input.GetKey(KeyCode.W) && !Input.GetKey(KeyCode.S))
+        {
+            Vector3 forwardVelocity = groundForward * Vector3.Dot(groundVelocity, groundForward);
+            _rb.AddForce(-forwardVelocity * brakeDrag, ForceMode.Acceleration);
         }
     }
 
-    private void ClampForwardSpeed()
+    private void ApplyTrackSuspension(TrackGroundInfo groundInfo)
     {
-        Vector3 velocity = GetVelocity();
-        Vector3 localVelocity = transform.InverseTransformDirection(velocity);
+        if (!groundInfo.grounded)
+        {
+            return;
+        }
 
-        localVelocity.z = Mathf.Clamp(localVelocity.z, -maxReverseSpeed, maxForwardSpeed);
+        for (int i = 0; i < groundInfo.hitCount; i++)
+        {
+            TrackGroundHit hit = groundInfo.hits[i];
+            float compression = Mathf.Clamp01((suspensionRideHeight - hit.distanceFromRideHeight) / Mathf.Max(0.01f, suspensionRideHeight));
+            float verticalVelocity = Vector3.Dot(_rb.GetPointVelocity(hit.point), hit.normal);
+            float force = compression * suspensionSpring - verticalVelocity * suspensionDamper;
+            if (force > 0f)
+            {
+                _rb.AddForceAtPosition(hit.normal * force, hit.point, ForceMode.Acceleration);
+            }
+        }
 
-        // Do not hard clamp Y; gravity needs to work.
-        Vector3 clamped = transform.TransformDirection(localVelocity);
-        clamped.y = velocity.y;
-        SetVelocity(clamped);
+        _rb.AddForce(-groundInfo.normal * trackDownforce, ForceMode.Acceleration);
+    }
+
+    private void AlignHullToTrackGrade(TrackGroundInfo groundInfo)
+    {
+        if (!groundInfo.grounded || groundInfo.hitCount < 3)
+        {
+            return;
+        }
+
+        float slopeAngle = Vector3.Angle(groundInfo.normal, Vector3.up);
+        if (slopeAngle > maxAssistedSlopeAngle)
+        {
+            return;
+        }
+
+        Vector3 tiltAxis = Vector3.Cross(transform.up, groundInfo.normal);
+        if (tiltAxis.sqrMagnitude < 0.0001f)
+        {
+            return;
+        }
+
+        Vector3 angularDampingTorque = -Vector3.Project(_rb.angularVelocity, tiltAxis.normalized) * slopeAlignmentDamping;
+        _rb.AddTorque(tiltAxis * slopeAlignmentTorque + angularDampingTorque, ForceMode.Acceleration);
+    }
+
+    private void ClampGroundSpeed(TrackGroundInfo groundInfo)
+    {
+        Vector3 velocity = ReadVelocity();
+        if (!groundInfo.grounded)
+        {
+            return;
+        }
+
+        Vector3 groundNormal = groundInfo.normal;
+        Vector3 groundForward = Vector3.ProjectOnPlane(transform.forward, groundNormal);
+        if (groundForward.sqrMagnitude < 0.0001f)
+        {
+            return;
+        }
+
+        groundForward.Normalize();
+        Vector3 groundVelocity = Vector3.ProjectOnPlane(velocity, groundNormal);
+        Vector3 verticalVelocity = velocity - groundVelocity;
+        float forwardSpeed = Vector3.Dot(groundVelocity, groundForward);
+        float clampedForwardSpeed = Mathf.Clamp(forwardSpeed, -maxReverseSpeed, maxForwardSpeed);
+        Vector3 lateralVelocity = groundVelocity - groundForward * forwardSpeed;
+
+        SetVelocity(groundForward * clampedForwardSpeed + lateralVelocity + verticalVelocity);
+    }
+
+    private void PreventTerrainPenetration()
+    {
+        SnapAboveTerrain(terrainSurfaceSkin);
+    }
+
+    private void SnapAboveTerrain(float clearance)
+    {
+        if (TryGetTerrainCorrection(clearance, out Vector3 correctedPosition))
+        {
+            if (_rb != null)
+            {
+                _rb.position = correctedPosition;
+            }
+
+            transform.position = correctedPosition;
+
+            Vector3 velocity = ReadVelocity();
+            if (velocity.y < 0f)
+            {
+                velocity.y = 0f;
+                SetVelocity(velocity);
+            }
+
+            Physics.SyncTransforms();
+        }
+    }
+
+    private bool TryGetTerrainCorrection(float clearance, out Vector3 correctedPosition)
+    {
+        correctedPosition = transform.position;
+        Collider[] colliders = GetComponentsInChildren<Collider>();
+        float highestGround = float.MinValue;
+        float lowestBottom = float.MaxValue;
+
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider tankCollider = colliders[i];
+            if (tankCollider == null || !tankCollider.enabled || tankCollider.isTrigger)
+            {
+                continue;
+            }
+
+            Bounds bounds = tankCollider.bounds;
+            lowestBottom = Mathf.Min(lowestBottom, bounds.min.y);
+            SampleTerrainAtXZ(bounds.center.x, bounds.center.z, ref highestGround);
+            SampleTerrainAtXZ(bounds.min.x, bounds.min.z, ref highestGround);
+            SampleTerrainAtXZ(bounds.min.x, bounds.max.z, ref highestGround);
+            SampleTerrainAtXZ(bounds.max.x, bounds.min.z, ref highestGround);
+            SampleTerrainAtXZ(bounds.max.x, bounds.max.z, ref highestGround);
+        }
+
+        if (highestGround == float.MinValue || lowestBottom == float.MaxValue)
+        {
+            return false;
+        }
+
+        float targetBottom = highestGround + Mathf.Max(0.02f, clearance);
+        if (lowestBottom >= targetBottom)
+        {
+            return false;
+        }
+
+        correctedPosition = transform.position + Vector3.up * (targetBottom - lowestBottom);
+        return true;
+    }
+
+    private void SampleTerrainAtXZ(float x, float z, ref float highestGround)
+    {
+        if (TrySampleTerrainAtXZ(x, z, out float terrainY))
+        {
+            highestGround = Mathf.Max(highestGround, terrainY);
+        }
+    }
+
+    private bool TrySampleTerrainAtXZ(float x, float z, out float terrainY)
+    {
+        terrainY = 0f;
+        ResolveTerrainReferences();
+
+        if (_terrainCollider != null || _terrainRenderer != null)
+        {
+            Bounds terrainBounds = _terrainCollider != null ? _terrainCollider.bounds : _terrainRenderer.bounds;
+            Vector3 origin = new Vector3(x, terrainBounds.max.y + Mathf.Max(terrainProbeHeight, 30f), z);
+            float distance = terrainBounds.size.y + Mathf.Max(terrainProbeDistance, 120f) + terrainProbeHeight;
+
+            if (_terrainCollider != null)
+            {
+                Ray ray = new Ray(origin, Vector3.down);
+                if (_terrainCollider.Raycast(ray, out RaycastHit terrainHit, distance))
+                {
+                    terrainY = terrainHit.point.y;
+                    return true;
+                }
+            }
+
+            if (Physics.Raycast(origin, Vector3.down, out RaycastHit fallbackHit, distance, groundMask, QueryTriggerInteraction.Ignore))
+            {
+                if (fallbackHit.collider != null && !fallbackHit.collider.transform.IsChildOf(transform))
+                {
+                    terrainY = fallbackHit.point.y;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        Vector3 genericOrigin = new Vector3(x, transform.position.y + Mathf.Max(terrainProbeHeight, 30f), z);
+        RaycastHit[] hits = Physics.RaycastAll(genericOrigin, Vector3.down, terrainProbeHeight + terrainProbeDistance, groundMask, QueryTriggerInteraction.Ignore);
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider hitCollider = hits[i].collider;
+            if (hitCollider == null)
+            {
+                continue;
+            }
+
+            if (hitCollider.transform == transform || hitCollider.transform.IsChildOf(transform))
+            {
+                continue;
+            }
+
+            terrainY = hits[i].point.y;
+            return true;
+        }
+
+        return false;
+    }
+
+    private void ResolveTerrainReferences()
+    {
+        if (_terrainSource == null)
+        {
+            _terrainSource = Object.FindFirstObjectByType<CraterTerrain>();
+        }
+
+        if (_terrainSource == null)
+        {
+            _terrainCollider = null;
+            _terrainRenderer = null;
+            return;
+        }
+
+        if (_terrainCollider == null)
+        {
+            _terrainCollider = _terrainSource.GetComponent<Collider>();
+        }
+
+        if (_terrainRenderer == null)
+        {
+            _terrainRenderer = _terrainSource.GetComponent<Renderer>();
+        }
     }
 
     private void HandleTurretAndBarrelInput()
@@ -306,7 +730,6 @@ public class TankController : MonoBehaviour
         if (!pressedSpace && !pressedMouse) return;
         if (Time.time < _nextCannonTime) return;
 
-        // Your existing projectile camera script uses this static guard.
         if (ProjectileCameraController.ActivePlayerProjectile != null) return;
 
         FireCannon();
@@ -327,6 +750,7 @@ public class TankController : MonoBehaviour
         }
 
         GameObject shell = Instantiate(shellPrefab, cannonFirePoint.position, cannonFirePoint.rotation);
+        IgnoreShellOwnerCollision(shell);
 
         ProjectileCameraController projectileCamera = shell.GetComponent<ProjectileCameraController>();
         if (projectileCamera != null)
@@ -342,8 +766,149 @@ public class TankController : MonoBehaviour
             shellBody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
             float launchSpeed = maxPower * Mathf.Clamp01(powerPercentage / 100f);
-            Vector3 launchVelocity = cannonFirePoint.forward * launchSpeed + GetVelocity();
+            Vector3 launchVelocity = cannonFirePoint.forward * launchSpeed + ReadVelocity();
             SetVelocity(shellBody, launchVelocity);
+        }
+    }
+
+    private void IgnoreShellOwnerCollision(GameObject shell)
+    {
+        if (shell == null)
+        {
+            return;
+        }
+
+        Collider[] shellColliders = shell.GetComponentsInChildren<Collider>(true);
+        Collider[] ownerColliders = GetComponentsInChildren<Collider>(true);
+        for (int s = 0; s < shellColliders.Length; s++)
+        {
+            if (shellColliders[s] == null)
+            {
+                continue;
+            }
+
+            for (int o = 0; o < ownerColliders.Length; o++)
+            {
+                if (ownerColliders[o] != null)
+                {
+                    Physics.IgnoreCollision(shellColliders[s], ownerColliders[o], true);
+                }
+            }
+        }
+    }
+
+    // Compatibility method used by GameplayTestApi / AI MCP smoke testing.
+    public void PrepareForGameplay()
+    {
+        enabled = true;
+        _dead = false;
+
+        if (_health <= 0f)
+        {
+            _health = maxHealth;
+        }
+
+        _nextCannonTime = 0f;
+
+        if (_rb == null) _rb = GetComponent<Rigidbody>();
+        ConfigureRigidbody();
+        AutoWireReferences();
+        SnapAboveTerrain(startTerrainClearance);
+
+        if (_rb != null)
+        {
+            _rb.WakeUp();
+        }
+    }
+
+    // Compatibility method used by GameplayTestApi.ResetBattle().
+    public void ResetForBattle(Vector3 resetPosition, Quaternion resetRotation)
+    {
+        if (_rb == null) _rb = GetComponent<Rigidbody>();
+
+        _dead = false;
+        _health = maxHealth;
+        _nextCannonTime = 0f;
+
+        transform.SetPositionAndRotation(resetPosition, resetRotation);
+        Physics.SyncTransforms();
+        SnapAboveTerrain(startTerrainClearance);
+
+        if (_rb != null)
+        {
+            SetVelocity(Vector3.zero);
+            _rb.angularVelocity = Vector3.zero;
+            _rb.Sleep();
+            _rb.WakeUp();
+        }
+
+        AutoWireReferences();
+
+        _turretYaw = 0f;
+        _barrelElevation = Mathf.Clamp(defaultBattleElevation, minBarrelElevation, maxBarrelElevation);
+
+        if (turretYawPivot != null)
+        {
+            turretYawPivot.localRotation = Quaternion.identity;
+        }
+
+        if (barrelPitchPivot != null)
+        {
+            barrelPitchPivot.localRotation = Quaternion.Euler(-_barrelElevation, 0f, 0f);
+        }
+
+        PrepareForGameplay();
+    }
+
+    // Compatibility method used by GameplayTestApi.FireCannonAtNearestEnemy().
+    public void FireAtPointForTest(Vector3 worldPoint, float testPowerPercentage)
+    {
+        AutoWireReferences();
+
+        if (cannonFirePoint == null)
+        {
+            Debug.LogWarning("[TankController] FireAtPointForTest failed because cannonFirePoint is missing.");
+            return;
+        }
+
+        AimTurretAndBarrelAtPoint(worldPoint);
+
+        float oldPower = powerPercentage;
+        powerPercentage = Mathf.Clamp(testPowerPercentage, 1f, 100f);
+        FireCannon();
+        powerPercentage = oldPower;
+    }
+
+    public void AimTurretAndBarrelAtPoint(Vector3 worldPoint)
+    {
+        AutoWireReferences();
+
+        if (turretYawPivot != null)
+        {
+            Vector3 flatToTarget = worldPoint - turretYawPivot.position;
+            flatToTarget.y = 0f;
+
+            if (flatToTarget.sqrMagnitude > 0.0001f)
+            {
+                Vector3 localFlatDirection = transform.InverseTransformDirection(flatToTarget.normalized);
+                _turretYaw = Mathf.Atan2(localFlatDirection.x, localFlatDirection.z) * Mathf.Rad2Deg;
+                turretYawPivot.localRotation = Quaternion.Euler(0f, _turretYaw, 0f);
+            }
+        }
+
+        if (barrelPitchPivot != null)
+        {
+            Transform yawBasis = turretYawPivot != null ? turretYawPivot : transform;
+            Vector3 toTarget = worldPoint - barrelPitchPivot.position;
+
+            if (toTarget.sqrMagnitude > 0.0001f)
+            {
+                Vector3 localDirection = yawBasis.InverseTransformDirection(toTarget.normalized);
+                float horizontal = new Vector2(localDirection.x, localDirection.z).magnitude;
+                float elevation = Mathf.Atan2(localDirection.y, horizontal) * Mathf.Rad2Deg;
+                _barrelElevation = Mathf.Clamp(elevation, minBarrelElevation, maxBarrelElevation);
+                barrelPitchPivot.localRotation = Quaternion.Euler(-_barrelElevation, 0f, 0f);
+            }
         }
     }
 
@@ -429,7 +994,7 @@ public class TankController : MonoBehaviour
         return angle;
     }
 
-    private Vector3 GetVelocity()
+    private Vector3 ReadVelocity()
     {
         if (_rb == null) return Vector3.zero;
 #if UNITY_6000_0_OR_NEWER

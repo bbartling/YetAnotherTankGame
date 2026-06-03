@@ -19,16 +19,16 @@ public class CraterTerrain : MonoBehaviour
     public bool randomizeSeedEachRun = true;
 
     [Header("Crater Settings")]
-    public float baseRadius = 6.5f;
-    public float baseDepth = 4.2f;
-    public float forceRadiusScale = 0.075f;
-    public float forceDepthScale = 0.06f;
+    public float baseRadius = 3.0f;
+    public float baseDepth = 1.8f;
+    public float forceRadiusScale = 0.035f;
+    public float forceDepthScale = 0.025f;
     public float rimLift = 0.05f;
     public float roughness = 0.06f;
     public float chunkThreshold = 16f;
     public float craterCoreShape = 1.7f;
     public float craterRimWidth = 0.32f;
-    public float craterCorePunchScale = 0.85f;
+    public float craterCorePunchScale = 0.45f;
     public float craterNoiseFrequency = 0.018f;
     public float craterNoiseScale = 0.45f;
     public float maxImpactVerticalOffset = 45f;
@@ -41,8 +41,8 @@ public class CraterTerrain : MonoBehaviour
     public int randomHillCount = 56;
     public int randomFeatureSeed = 1307;
     public float featureMargin = 120f;
-    public float craterForceMin = 92f;
-    public float craterForceMax = 165f;
+    public float craterForceMin = 48f;
+    public float craterForceMax = 88f;
     public float hillHeightMin = 3.5f;
     public float hillHeightMax = 12f;
     public float hillRadiusMin = 12f;

@@ -4,7 +4,7 @@ public class SniperZoom : MonoBehaviour
 {
     public Camera zoomCamera;
     public float zoomFOV = 15f;
-    public float normalFOV = 45f; // Reduced from 60 to fix fisheye
+    public float normalFOV = 58f;
     public float smoothSpeed = 15f; // Faster transition
 
     void Start()

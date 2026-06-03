@@ -14,13 +14,13 @@ public class EnemyTankAI : MonoBehaviour
     public AudioClip enemyFireSound;
 
     [Header("Engagement")]
-    public float detectionRange = 190f;
-    public float preferredDistance = 84f;
+    public float detectionRange = 1300f;
+    public float preferredDistance = 130f;
     public float retreatDistance = 42f;
     public float moveForce = 92f;
     public float turnTorque = 82f;
     public float strafeForce = 28f;
-    public float shellPower = 92f;
+    public float shellPower = 145f;
     public float fireCooldown = 2.1f;
     public float aimSpeed = 3.75f;
     public float accuracy = 0.72f;
@@ -52,11 +52,11 @@ public class EnemyTankAI : MonoBehaviour
     public float projectileBlastDamage = 100f;
     public float collisionDamage = 60f;
     public float fatalImpactThreshold = 0.35f;
-    public float deathDelay = 0.35f;
-    public int crumblePieceCount = 24;
+    public float deathDelay = 2.8f;
+    public int crumblePieceCount = 48;
     public float crumbleForce = 38f;
     public float machineGunDamageScale = 1f;
-    public float tankKillCraterForce = 165f;
+    public float tankKillCraterForce = 82f;
     public float tankKillBlastRadius = 12f;
     public float tankKillBlastForce = 520f;
 
@@ -100,7 +100,8 @@ public class EnemyTankAI : MonoBehaviour
         _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
         AutoWireReferences();
-        _patrolAngle = patrolStartAngle;        DisableNonPlayerCameras();
+        _patrolAngle = patrolStartAngle;
+        DisableNonPlayerCameras();
 
         _spawnPosition = transform.position;
         _health = maxHealth;
@@ -138,12 +139,12 @@ private void Update()
 
         HandleAudio(state, distance);
 
-        if (state == EnemyState.Patrol)
+        Vector3 targetPoint = GetCurrentTargetPoint(state);
+        if (state == EnemyState.Patrol && _player != null && distance <= detectionRange)
         {
-            return;
+            targetPoint = _player.position;
         }
 
-        Vector3 targetPoint = GetCurrentTargetPoint(state);
         AimTurret(targetPoint);
         TryFire(targetPoint, distance, state);
     }
@@ -322,7 +323,7 @@ private EnemyState GetState()
 
     private void Patrol()
     {
-        DriveToward(BuildPatrolPoint(), patrolMoveForce, patrolTurnTorque, patrolRadius, 8f, false, false);
+        DriveToward(BuildPatrolPoint(), patrolMoveForce, patrolTurnTorque, 5f, 2f, false, false);
     }
 
     private void DrivePatrol()
@@ -351,7 +352,7 @@ private EnemyState GetState()
 
         float signedAngle = Vector3.SignedAngle(forward, desiredDir, Vector3.up);
         float turnInput = Mathf.Clamp(signedAngle / 45f, -1f, 1f);
-        _rb.AddTorque(Vector3.up * (turnInput * torque), ForceMode.Force);
+        _rb.AddTorque(Vector3.up * (turnInput * torque), ForceMode.Acceleration);
 
         float distance = toTarget.magnitude;
         float moveInput = 0f;
@@ -366,20 +367,20 @@ private EnemyState GetState()
 
         if (moveInput != 0f)
         {
-            _rb.AddForce(transform.forward * (moveInput * driveForce), ForceMode.Force);
+            _rb.AddForce(transform.forward * (moveInput * driveForce), ForceMode.Acceleration);
         }
 
         if (useOrbitPressure)
         {
             Vector3 lateral = Vector3.Cross(Vector3.up, desiredDir).normalized;
             float pressure = Mathf.Sin(Time.time * 1.05f + transform.position.x * 0.03f + transform.position.z * 0.02f) * 0.65f;
-            _rb.AddForce(lateral * (pressure * strafeForce), ForceMode.Force);
+            _rb.AddForce(lateral * (pressure * strafeForce), ForceMode.Acceleration);
         }
     }
 
     private void HandleAudio(EnemyState state, float distance)
     {
-        bool driving = state != EnemyState.Patrol && distance > retreatDistance * 0.8f;
+        bool driving = state == EnemyState.Patrol || distance > retreatDistance * 0.8f;
         if (driving)
         {
             _stopTimer = engineStopDelay;
@@ -480,7 +481,7 @@ private EnemyState GetState()
             return;
         }
 
-        if (state == EnemyState.Patrol)
+        if (state == EnemyState.Patrol && distance > detectionRange)
         {
             return;
         }
@@ -488,12 +489,7 @@ private EnemyState GetState()
         Vector3 target = targetPoint + Vector3.up * visibilityHeight;
         Vector3 toTarget = target - firePoint.position;
         float facingDot = Vector3.Dot(firePoint.forward, toTarget.normalized);
-        if (distance > detectionRange || facingDot < 0.72f)
-        {
-            return;
-        }
-
-        if (!HasLineOfSight(target))
+        if (distance > detectionRange || facingDot < 0.45f)
         {
             return;
         }
@@ -527,9 +523,30 @@ private EnemyState GetState()
             return true;
         }
 
-        if (Physics.Raycast(origin, direction.normalized, out RaycastHit hit, distance))
+        RaycastHit[] hits = Physics.RaycastAll(origin, direction.normalized, distance, ~0, QueryTriggerInteraction.Ignore);
+        float nearestDistance = float.MaxValue;
+        RaycastHit nearestHit = default;
+        bool foundHit = false;
+
+        for (int i = 0; i < hits.Length; i++)
         {
-            return hit.transform == _player || (_player != null && hit.transform.IsChildOf(_player));
+            Transform hitTransform = hits[i].transform;
+            if (hitTransform == transform || hitTransform.IsChildOf(transform))
+            {
+                continue;
+            }
+
+            if (hits[i].distance < nearestDistance)
+            {
+                nearestDistance = hits[i].distance;
+                nearestHit = hits[i];
+                foundHit = true;
+            }
+        }
+
+        if (foundHit)
+        {
+            return nearestHit.transform == _player || (_player != null && nearestHit.transform.IsChildOf(_player));
         }
 
         return true;
@@ -543,6 +560,7 @@ private EnemyState GetState()
         }
 
         GameObject shell = Instantiate(shellPrefab, firePoint.position, firePoint.rotation);
+        IgnoreShellOwnerCollision(shell);
         ProjectileCameraController cameraController = shell.GetComponent<ProjectileCameraController>();
         if (cameraController != null)
         {
@@ -567,6 +585,32 @@ private EnemyState GetState()
         else
         {
             SetVelocity(rb, firePoint.forward * shellPower);
+        }
+    }
+
+    private void IgnoreShellOwnerCollision(GameObject shell)
+    {
+        if (shell == null)
+        {
+            return;
+        }
+
+        Collider[] shellColliders = shell.GetComponentsInChildren<Collider>(true);
+        Collider[] ownerColliders = GetComponentsInChildren<Collider>(true);
+        for (int s = 0; s < shellColliders.Length; s++)
+        {
+            if (shellColliders[s] == null)
+            {
+                continue;
+            }
+
+            for (int o = 0; o < ownerColliders.Length; o++)
+            {
+                if (ownerColliders[o] != null)
+                {
+                    Physics.IgnoreCollision(shellColliders[s], ownerColliders[o], true);
+                }
+            }
         }
     }
 
@@ -727,16 +771,11 @@ _isDead = true;
             colliders[i].enabled = false;
         }
 
-        Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
-        for (int i = 0; i < renderers.Length; i++)
-        {
-            renderers[i].enabled = false;
-        }
-
         SpawnKillCrater(worldPoint, worldNormal, force);
         SpawnKillBlast(worldPoint, worldNormal, force);
         PlayKillSound(worldPoint);
-        SpawnCrumblePieces(worldPoint, worldNormal, force);
+        SpawnCrumblePieces(worldPoint, worldNormal, force * 0.65f, crumblePieceCount);
+        yield return HideRenderersGradually(worldPoint, worldNormal, force);
 
         if (worldNormal.sqrMagnitude > 0.001f && _rb != null)
         {
@@ -749,7 +788,7 @@ _isDead = true;
 
     private void SpawnKillCrater(Vector3 worldPoint, Vector3 worldNormal, float force)
     {
-        float craterForce = Mathf.Clamp(Mathf.Max(tankKillCraterForce, force * 1.4f), 0f, 260f);
+        float craterForce = Mathf.Clamp(Mathf.Max(tankKillCraterForce, force * 0.55f), 0f, 130f);
         CraterTerrain craterTerrain = Object.FindFirstObjectByType<CraterTerrain>();
         if (craterTerrain != null)
         {
@@ -807,7 +846,7 @@ _isDead = true;
         }
     }
 
-    private void SpawnCrumblePieces(Vector3 worldPoint, Vector3 worldNormal, float force)
+    private void SpawnCrumblePieces(Vector3 worldPoint, Vector3 worldNormal, float force, int pieceCount)
     {
         Color baseColor = new Color(0.42f, 0.41f, 0.4f, 1f);
         Renderer renderer = GetComponentInChildren<Renderer>(true);
@@ -816,7 +855,7 @@ _isDead = true;
             baseColor = renderer.material.color;
         }
 
-        for (int i = 0; i < crumblePieceCount; i++)
+        for (int i = 0; i < pieceCount; i++)
         {
             GameObject piece = GameObject.CreatePrimitive(Random.value > 0.5f ? PrimitiveType.Cube : PrimitiveType.Sphere);
             piece.name = name + "_Piece";
@@ -848,7 +887,27 @@ _isDead = true;
             rb.AddForce(toss.normalized * Random.Range(crumbleForce * 0.55f, crumbleForce), ForceMode.Impulse);
             rb.AddTorque(Random.insideUnitSphere * force * 0.12f, ForceMode.Impulse);
 
-            Destroy(piece, Random.Range(1.5f, 4.5f));
+            Destroy(piece, Random.Range(4f, 8f));
+        }
+    }
+
+    private IEnumerator HideRenderersGradually(Vector3 worldPoint, Vector3 worldNormal, float force)
+    {
+        Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
+        float stepDelay = renderers.Length > 0 ? deathDelay / Mathf.Max(1, renderers.Length) : deathDelay;
+
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            Renderer renderer = renderers[i];
+            if (renderer == null || !renderer.enabled)
+            {
+                continue;
+            }
+
+            Bounds bounds = renderer.bounds;
+            SpawnCrumblePieces(bounds.center, worldNormal.sqrMagnitude > 0.001f ? worldNormal : Vector3.up, Mathf.Max(8f, force * 0.25f), 4);
+            renderer.enabled = false;
+            yield return new WaitForSeconds(Mathf.Clamp(stepDelay, 0.05f, 0.22f));
         }
     }
 

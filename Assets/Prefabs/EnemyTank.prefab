@@ -702,23 +702,47 @@ MonoBehaviour:
   barrelPivot: {fileID: 4696742650743481672}
   firePoint: {fileID: 2124435023059397026}
   shellPrefab: {fileID: 1614743657376917260, guid: 40dd80756c9714f4b8dc03e28e0dfbe1, type: 3}
-  fireSound: {fileID: 8300000, guid: 110dbeec5f15a8345a937d78a4415cd3, type: 3}
-  detectionRange: 180
-  preferredDistance: 85
+  enemyFireSound: {fileID: 0}
+  detectionRange: 1300
+  preferredDistance: 130
   retreatDistance: 50
   moveForce: 85
   turnTorque: 75
   strafeForce: 20
-  shellPower: 55
+  shellPower: 145
   fireCooldown: 2.4
   aimSpeed: 3.25
   accuracy: 0.72
+  visibilityHeight: 0.55
+  lastKnownMemorySeconds: 5.5
+  searchOrbitSpeed: 0.8
+  searchMoveForce: 72
+  searchTurnTorque: 68
+  ambushRadius: 18
+  patrolCenter: {fileID: 0}
+  patrolRadius: 56
+  patrolOrbitSpeed: 0.3
+  patrolMoveForce: 58
+  patrolTurnTorque: 58
+  patrolStartAngle: 0
+  patrolClockwise: 1
+  patrolJitter: 0.25
   minElevation: -8
   maxElevation: 48
   barrelElevationSpeed: 25
+  maxHealth: 100
+  projectileDirectDamage: 120
+  projectileBlastDamage: 100
+  collisionDamage: 60
+  fatalImpactThreshold: 0.35
+  deathDelay: 2.8
+  crumblePieceCount: 48
+  crumbleForce: 38
+  machineGunDamageScale: 1
+  tankKillCraterForce: 82
+  tankKillBlastRadius: 12
+  tankKillBlastForce: 520
   engineRunningClip: {fileID: 8300000, guid: fa8aa9a390bdaec4abdb247d3e6dcf27, type: 3}
   engineStartClip: {fileID: 8300000, guid: a17a1e652e6a5b94ab0143070532b1dc, type: 3}
   engineStopClip: {fileID: 8300000, guid: 8681f70dd513ca844bffb9f9e6c974b9, type: 3}
-  rotateTurretClip: {fileID: 8300000, guid: 8de49b50924f76f4eb561555e59b5ce6, type: 3}
-  adjustElevationClip: {fileID: 8300000, guid: 9aefe98e4cde55c4ea64e59c98847d11, type: 3}
   engineStopDelay: 0.8

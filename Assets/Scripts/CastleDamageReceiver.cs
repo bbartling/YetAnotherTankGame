@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -110,7 +111,11 @@ public class CastleDamageReceiver : MonoBehaviour
     private void CollapseCastle()
     {
         _collapsed = true;
+        StartCoroutine(CollapseCastleSequence());
+    }
 
+    private IEnumerator CollapseCastleSequence()
+    {
         SpawnCrumblePieces(transform.position, transform.position, crumblePieceCount);
 
         Collider[] colliders = GetComponentsInChildren<Collider>(true);
@@ -120,9 +125,16 @@ public class CastleDamageReceiver : MonoBehaviour
         }
 
         Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
+        float stepDelay = renderers.Length > 0 ? 2.8f / Mathf.Max(1, renderers.Length) : 0.1f;
         for (int i = 0; i < renderers.Length; i++)
         {
+            if (renderers[i] != null && renderers[i].enabled)
+            {
+                SpawnCrumblePieces(renderers[i].bounds.center, transform.position, 3);
+            }
+
             renderers[i].enabled = false;
+            yield return new WaitForSeconds(Mathf.Clamp(stepDelay, 0.04f, 0.18f));
         }
     }
 
@@ -167,7 +179,7 @@ public class CastleDamageReceiver : MonoBehaviour
             rb.AddForce(toss.normalized * Random.Range(crumbleForce * 0.6f, crumbleForce), ForceMode.Impulse);
             rb.AddTorque(Random.insideUnitSphere * crumbleForce * 0.15f, ForceMode.Impulse);
 
-            Destroy(piece, Random.Range(2f, 5f));
+            Destroy(piece, Random.Range(5f, 9f));
         }
     }
 
@@ -190,6 +202,7 @@ public bool IsCollapsed
 
 public void ResetForBattle()
     {
+        StopAllCoroutines();
         _health = maxHealth;
         _collapsed = false;
 

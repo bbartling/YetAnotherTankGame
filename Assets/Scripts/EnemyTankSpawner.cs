@@ -368,13 +368,13 @@ public class EnemyTankSpawner : MonoBehaviour
         ai.patrolClockwise = (index % 2) == 0;
         ai.patrolStartAngle = Random.Range(0f, 360f);
         ai.patrolJitter = Mathf.Lerp(0.2f, 0.55f, normalizedCount);
-        ai.detectionRange = Mathf.Min(300f, ai.detectionRange * Mathf.Lerp(1f, 1.18f, difficulty - 1f));
-        ai.preferredDistance = Mathf.Clamp(ai.preferredDistance * Mathf.Lerp(1f, 0.92f, normalizedCount), 62f, 104f);
+        ai.detectionRange = Mathf.Max(1300f, ai.detectionRange * Mathf.Lerp(1f, 1.18f, difficulty - 1f));
+        ai.preferredDistance = Mathf.Clamp(ai.preferredDistance * Mathf.Lerp(1f, 0.92f, normalizedCount), 95f, 150f);
         ai.retreatDistance = Mathf.Clamp(ai.retreatDistance * Mathf.Lerp(1f, 0.88f, normalizedCount), 32f, ai.preferredDistance - 12f);
         ai.moveForce *= Mathf.Lerp(1f, 1.18f, difficulty - 1f);
         ai.turnTorque *= Mathf.Lerp(1f, 1.12f, difficulty - 1f);
         ai.strafeForce *= Mathf.Lerp(1f, 1.15f, normalizedCount);
-        ai.shellPower *= Mathf.Lerp(1f, 1.2f, difficulty - 1f);
+        ai.shellPower = Mathf.Max(145f, ai.shellPower * Mathf.Lerp(1f, 1.2f, difficulty - 1f));
         ai.fireCooldown = Mathf.Max(0.95f, ai.fireCooldown / Mathf.Lerp(1f, 1.18f, difficulty - 1f));
         ai.aimSpeed *= Mathf.Lerp(1f, 1.12f, difficulty - 1f);
         ai.accuracy = Mathf.Clamp01(ai.accuracy + 0.04f * difficulty + (0.03f * normalizedCount));
@@ -390,7 +390,9 @@ public class EnemyTankSpawner : MonoBehaviour
         ai.projectileBlastDamage = Mathf.Max(ai.projectileBlastDamage, 92f);
         ai.collisionDamage = Mathf.Max(ai.collisionDamage, 64f);
         ai.fatalImpactThreshold = Mathf.Clamp(ai.fatalImpactThreshold, 0.3f, 0.45f);
-        ai.deathDelay = Mathf.Clamp(ai.deathDelay, 0.2f, 0.45f);
+        ai.deathDelay = Mathf.Max(2.8f, ai.deathDelay);
+        ai.crumblePieceCount = Mathf.Max(48, ai.crumblePieceCount);
+        ai.tankKillCraterForce = Mathf.Min(82f, ai.tankKillCraterForce);
     }
 
     private Vector3 GetPlayerTravelAxis()
