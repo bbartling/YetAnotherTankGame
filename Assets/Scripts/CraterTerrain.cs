@@ -33,6 +33,8 @@ public class CraterTerrain : MonoBehaviour
     public float craterNoiseScale = 0.45f;
     public float maxImpactVerticalOffset = 45f;
     public float maxImpactForce = 260f;
+    public int maxRuntimeImpacts = 160;
+    public int RuntimeImpactCount { get; private set; }
 
     [Header("Random Battlefield")]
     public bool seedRandomCraters = true;
@@ -94,6 +96,7 @@ public class CraterTerrain : MonoBehaviour
     {
         EnsureRuntimeReferences();
         BuildTerrainMesh();
+        RuntimeImpactCount = 0;
     }
 
     private void SeedBattlefieldNoise()
@@ -299,6 +302,11 @@ public class CraterTerrain : MonoBehaviour
 
     public void ApplyImpact(Vector3 worldPoint, Vector3 worldNormal, float force)
     {
+        if (!IsWithinRuntimeImpactBudget(RuntimeImpactCount, maxRuntimeImpacts))
+        {
+            return;
+        }
+
         EnsureRuntimeReferences();
         if (_runtimeMesh == null || _vertices == null || _vertices.Length == 0)
         {
@@ -358,6 +366,13 @@ public class CraterTerrain : MonoBehaviour
             _meshCollider.sharedMesh = null;
             _meshCollider.sharedMesh = _runtimeMesh;
         }
+
+        RuntimeImpactCount++;
+    }
+
+    public static bool IsWithinRuntimeImpactBudget(int currentImpactCount, int maxImpactCount)
+    {
+        return currentImpactCount < Mathf.Max(1, maxImpactCount);
     }
 
     private void EnsureRuntimeReferences()

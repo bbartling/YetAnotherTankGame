@@ -113,6 +113,7 @@ public class TankController : MonoBehaviour
     private CraterTerrain _terrainSource;
     private Collider _terrainCollider;
     private Renderer _terrainRenderer;
+    private DamageStateController _damageStateController;
 
     private struct TrackGroundHit
     {
@@ -139,12 +140,19 @@ public class TankController : MonoBehaviour
     public float CurrentSlopeAngle => _driveController != null ? _driveController.CurrentSlopeAngle : 0f;
     public bool IsGrounded => _driveController != null && _driveController.IsGrounded;
     public float EngineStrain => _driveController != null ? _driveController.EngineStrain : 0f;
+    public string CurrentDamageState => _damageStateController != null ? _damageStateController.CurrentState.ToString() : (_dead ? "Wrecked" : "Intact");
 
     private void Awake()
     {
         _rb = GetComponent<Rigidbody>();
         _audio = GetComponent<AudioSource>();
         _health = maxHealth;
+        _damageStateController = GetComponent<DamageStateController>();
+        if (_damageStateController == null)
+        {
+            _damageStateController = gameObject.AddComponent<DamageStateController>();
+        }
+        _damageStateController?.ApplyHealthRatio(1f);
 
         ConfigureRigidbody();
         AutoWireReferences();
@@ -907,6 +915,7 @@ public class TankController : MonoBehaviour
         {
             _health = maxHealth;
         }
+        _damageStateController?.ApplyHealthRatio(maxHealth > 0f ? _health / maxHealth : 1f);
 
         _nextCannonTime = 0f;
 
@@ -929,6 +938,7 @@ public class TankController : MonoBehaviour
 
         _dead = false;
         _health = maxHealth;
+        _damageStateController?.ApplyHealthRatio(1f);
         _nextCannonTime = 0f;
 
         transform.SetPositionAndRotation(resetPosition, resetRotation);
@@ -1053,6 +1063,8 @@ public class TankController : MonoBehaviour
             _health = 0f;
         }
 
+        _damageStateController?.ApplyHealthRatio(maxHealth > 0f ? _health / maxHealth : 0f);
+
         if (_health <= 0f)
         {
             Die(worldPoint, worldNormal, amount);
@@ -1064,6 +1076,7 @@ public class TankController : MonoBehaviour
         if (_dead) return;
 
         _dead = true;
+        _damageStateController?.ApplyHealthRatio(0f);
         Debug.Log("[TankController] Player tank destroyed.");
 
         if (_rb != null)

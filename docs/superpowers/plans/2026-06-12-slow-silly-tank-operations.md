@@ -63,15 +63,15 @@
 - Modify: `Assets/Scripts/CraterTerrain.cs`
 - Modify: `Assets/Scripts/ProjectileCameraController.cs`
 
-- [ ] Write failing tests for tank state progression, track/turret/barrel penalties, castle state progression, tree knockdown, and bounded effect counts.
-- [ ] Run tests; expected classification: `SIMPLE`, expected result: missing components and failed state assertions.
-- [ ] Implement normalized health and damage-zone contracts while preserving legacy damage entry points.
-- [ ] Implement `Intact`, `Smoking`, `BurningDisabled`, and `Wrecked` tank states.
-- [ ] Implement `Intact`, `Cracked`, `HeavilyDamaged`, and `Collapsed` castle states.
-- [ ] Implement bounded pooled smoke, fire, explosion, stone, dirt, metal, and wood effects.
-- [ ] Preserve terrain crater deformation and add an active-crater limit.
-- [ ] Run focused tests and inspect scene effect counts during repeated impacts.
-- [ ] Commit: `feat: add bounded modular battlefield damage states`.
+- [x] Write failing tests for tank state progression, track/turret/barrel penalties, castle state progression, tree knockdown, and bounded effect counts.
+- [x] Run tests; expected classification: `SIMPLE`, expected result: missing components and failed state assertions.
+- [x] Implement normalized health and damage-zone contracts while preserving legacy damage entry points.
+- [x] Implement `Intact`, `Smoking`, `BurningDisabled`, and `Wrecked` tank states.
+- [x] Implement `Intact`, `Cracked`, `HeavilyDamaged`, and `Collapsed` castle states.
+- [x] Implement bounded pooled smoke, fire, explosion, stone, dirt, metal, and wood effects.
+- [x] Preserve terrain crater deformation and add an active-crater limit.
+- [x] Run focused tests and inspect scene effect counts during repeated impacts.
+- [x] Commit: `feat: add bounded modular battlefield damage states`.
 
 ## Checkpoint 3: Blender Model Production And Prefab Assembly
 

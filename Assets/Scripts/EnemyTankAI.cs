@@ -84,6 +84,7 @@ public class EnemyTankAI : MonoBehaviour
     private TankPerception _perception;
     private TankCombatBrain _combatBrain;
     private TankPathingBrain _pathingBrain;
+    private DamageStateController _damageStateController;
 
     public string CurrentOperationalState { get; private set; } = "Patrol";
     public bool CurrentHasLineOfSight { get; private set; }
@@ -128,6 +129,12 @@ public class EnemyTankAI : MonoBehaviour
 
         _spawnPosition = transform.position;
         _health = maxHealth;
+        _damageStateController = GetComponent<DamageStateController>();
+        if (_damageStateController == null)
+        {
+            _damageStateController = gameObject.AddComponent<DamageStateController>();
+        }
+        _damageStateController?.ApplyHealthRatio(1f);
     }
 
 private void Start()
@@ -834,6 +841,8 @@ public void ApplyExplosionDamage(float explosionForce, Vector3 explosionPoint, V
             _health = 0f;
         }
 
+        _damageStateController?.ApplyHealthRatio(maxHealth > 0f ? _health / maxHealth : 0f);
+
         if (_health <= 0f)
         {
             Die(worldPoint, worldNormal, amount);
@@ -852,7 +861,8 @@ public void ApplyExplosionDamage(float explosionForce, Vector3 explosionPoint, V
         {
             BattlefieldDirector.Instance.RegisterEnemyDestroyed(this);
         }
-_isDead = true;
+        _isDead = true;
+        _damageStateController?.ApplyHealthRatio(0f);
         CancelInvoke();
         StopAllCoroutines();
         StartCoroutine(DeathSequence(worldPoint, worldNormal, force));
@@ -915,6 +925,7 @@ _isDead = true;
     {
         GameObject flash = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         flash.name = name + "_KillFlash";
+        BattlefieldEffectController.RegisterTemporary(flash, "Explosions", 16);
         flash.transform.position = transform.position + Vector3.up * 1.2f;
         flash.transform.localScale = Vector3.one * 4.5f;
 
@@ -967,6 +978,7 @@ _isDead = true;
         {
             GameObject piece = GameObject.CreatePrimitive(Random.value > 0.5f ? PrimitiveType.Cube : PrimitiveType.Sphere);
             piece.name = name + "_Piece";
+            BattlefieldEffectController.RegisterTemporary(piece, "Debris", 64);
             piece.transform.position = transform.position + Random.insideUnitSphere * 0.8f;
             piece.transform.localScale = Vector3.one * Random.Range(0.16f, 0.45f);
 
@@ -1032,6 +1044,11 @@ _isDead = true;
 public bool IsDestroyed
     {
         get { return _isDead; }
+    }
+
+    public string CurrentDamageState
+    {
+        get { return _damageStateController != null ? _damageStateController.CurrentState.ToString() : (_isDead ? "Wrecked" : "Intact"); }
     }
 
     public float CurrentHealth
