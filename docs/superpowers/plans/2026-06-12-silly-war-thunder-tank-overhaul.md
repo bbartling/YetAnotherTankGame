@@ -32,7 +32,7 @@
 - [x] Create branch `feature/silly-war-thunder-tank-overhaul`.
 - [x] Record current behavior, known defects, and locked non-regression promises.
 - [x] Verify Unity remains idle, scene remains clean, console has zero errors, and git diff contains documentation only.
-- [ ] Commit with `docs: lock tank overhaul baseline and execution plan`.
+- [x] Commit with `docs: lock tank overhaul baseline and execution plan`.
 
 ## Checkpoint B: WebGL And PythonAnywhere Pipeline
 
@@ -48,14 +48,14 @@
 - Modify: `.gitignore`
 - Modify: `ProjectSettings/ProjectSettings.asset`
 
-- [ ] Write EditMode tests asserting the build script, Flask folder, safe WebGL settings, build scene, and manifest contract.
-- [ ] Run EditMode tests and confirm the new tests fail.
-- [ ] Implement `TankWebGLBuildPipeline.ConfigureWebGL`, `BuildWebGL`, manifest creation, deployment copy, required-file validation, and ZIP creation.
-- [ ] Implement Flask MIME handling and direct static WebGL routes.
-- [ ] Implement the patient PowerShell test/build/deploy wrapper with logs under `Logs/`.
-- [ ] Run EditMode tests and confirm they pass.
-- [ ] Configure WebGL and inspect Unity console for errors and blocking warnings.
-- [ ] Build WebGL using one patient wait cycle, then verify:
+- [x] Write EditMode tests asserting the build script, Flask folder, safe WebGL settings, build scene, and manifest contract.
+- [x] Run EditMode tests and confirm the new tests fail.
+- [x] Implement `TankWebGLBuildPipeline.ConfigureWebGL`, `BuildWebGL`, manifest creation, deployment copy, required-file validation, and ZIP creation.
+- [x] Implement Flask MIME handling and direct static WebGL routes.
+- [x] Implement the patient PowerShell test/build/deploy wrapper with logs under `Logs/`.
+- [x] Run EditMode tests and confirm they pass.
+- [x] Configure WebGL and inspect Unity console for errors and blocking warnings.
+- [x] Build WebGL using patient wait cycles, then verify:
   - `Builds/WebGL/index.html`
   - `Builds/WebGL/Build/*.loader.js`
   - `Builds/WebGL/Build/*.framework.js`
@@ -64,7 +64,7 @@
   - `Builds/WebGL_BUILD_MANIFEST.json`
   - `pythonanywhere_flask/WEBGL_BUILD_MANIFEST.json`
   - `tank_game_pythonanywhere.zip`
-- [ ] Commit with `build: add reproducible WebGL PythonAnywhere pipeline`.
+- [x] Commit with `build: add reproducible WebGL PythonAnywhere pipeline`.
 
 ## Checkpoint C: Slow Heavy Tank Core
 
