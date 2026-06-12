@@ -3,10 +3,10 @@ using UnityEngine;
 public class TankDriveController : MonoBehaviour
 {
     [Header("Locked Heavy Movement")]
-    public float maxForwardSpeed = 5f;
-    public float maxReverseSpeed = 2.5f;
-    public float accelerationSeconds = 2.4f;
-    public float brakingSeconds = 1.1f;
+    public float maxForwardSpeed = 2.5f;
+    public float maxReverseSpeed = 1f;
+    public float accelerationSeconds = 6f;
+    public float brakingSeconds = 2.5f;
     [Range(0.1f, 1f)] public float highSpeedSteeringMultiplier = 0.35f;
     [Range(0.1f, 1f)] public float lowGearSpeedMultiplier = 0.55f;
 
@@ -23,6 +23,15 @@ public class TankDriveController : MonoBehaviour
     private float _testThrottle;
     private float _testSteer;
     private bool _testLowGear;
+
+    private void OnEnable()
+    {
+        maxForwardSpeed = Mathf.Min(maxForwardSpeed, 2.5f);
+        maxReverseSpeed = Mathf.Min(maxReverseSpeed, 1f);
+        accelerationSeconds = Mathf.Max(accelerationSeconds, 6f);
+        brakingSeconds = Mathf.Max(brakingSeconds, 2.5f);
+        highSpeedSteeringMultiplier = Mathf.Min(highSpeedSteeringMultiplier, 0.35f);
+    }
 
     public void ReadInput(out float throttle, out float steer, out bool lowGear)
     {

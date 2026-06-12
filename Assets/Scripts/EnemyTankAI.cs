@@ -15,28 +15,28 @@ public class EnemyTankAI : MonoBehaviour
 
     [Header("Engagement")]
     public float detectionRange = 1300f;
-    public float preferredDistance = 130f;
-    public float retreatDistance = 42f;
-    public float moveForce = 92f;
-    public float turnTorque = 82f;
-    public float strafeForce = 28f;
+    public float preferredDistance = 220f;
+    public float retreatDistance = 100f;
+    public float moveForce = 24f;
+    public float turnTorque = 32f;
+    public float strafeForce = 0f;
     public float shellPower = 145f;
-    public float fireCooldown = 2.1f;
-    public float aimSpeed = 3.75f;
+    public float fireCooldown = 8f;
+    public float aimSpeed = 1.25f;
     public float accuracy = 0.72f;
     public float visibilityHeight = 0.55f;
     public float lastKnownMemorySeconds = 5.5f;
     public float searchOrbitSpeed = 0.8f;
-    public float searchMoveForce = 72f;
-    public float searchTurnTorque = 68f;
+    public float searchMoveForce = 20f;
+    public float searchTurnTorque = 28f;
     public float ambushRadius = 18f;
 
     [Header("Patrol")]
     public Transform patrolCenter;
     public float patrolRadius = 56f;
     public float patrolOrbitSpeed = 0.3f;
-    public float patrolMoveForce = 58f;
-    public float patrolTurnTorque = 58f;
+    public float patrolMoveForce = 18f;
+    public float patrolTurnTorque = 24f;
     public float patrolStartAngle = 0f;
     public bool patrolClockwise = true;
     public float patrolJitter = 0.25f;
@@ -88,6 +88,21 @@ public class EnemyTankAI : MonoBehaviour
         Hunt,
         Search,
         Dead
+    }
+
+    private void OnEnable()
+    {
+        preferredDistance = Mathf.Max(preferredDistance, 220f);
+        retreatDistance = Mathf.Clamp(retreatDistance, 100f, preferredDistance - 60f);
+        moveForce = Mathf.Min(moveForce, 24f);
+        turnTorque = Mathf.Min(turnTorque, 32f);
+        strafeForce = 0f;
+        fireCooldown = Mathf.Max(fireCooldown, 8f);
+        aimSpeed = Mathf.Min(aimSpeed, 1.25f);
+        searchMoveForce = Mathf.Min(searchMoveForce, 20f);
+        searchTurnTorque = Mathf.Min(searchTurnTorque, 28f);
+        patrolMoveForce = Mathf.Min(patrolMoveForce, 18f);
+        patrolTurnTorque = Mathf.Min(patrolTurnTorque, 24f);
     }
 
     private void Awake()

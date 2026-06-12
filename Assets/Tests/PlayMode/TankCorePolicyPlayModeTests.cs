@@ -9,10 +9,29 @@ public class TankCorePolicyPlayModeTests
         GameObject tankObject = new GameObject("PolicyTank");
         TankDriveController drive = tankObject.AddComponent<TankDriveController>();
 
-        Assert.That(drive.maxForwardSpeed, Is.LessThanOrEqualTo(6f));
-        Assert.That(drive.maxReverseSpeed, Is.LessThan(drive.maxForwardSpeed));
-        Assert.That(drive.accelerationSeconds, Is.GreaterThanOrEqualTo(1f));
-        Assert.That(drive.GetSteeringMultiplier(drive.maxForwardSpeed), Is.LessThan(0.6f));
+        Assert.That(drive.maxForwardSpeed, Is.LessThanOrEqualTo(2.75f));
+        Assert.That(drive.maxReverseSpeed, Is.LessThanOrEqualTo(1.25f));
+        Assert.That(drive.accelerationSeconds, Is.GreaterThanOrEqualTo(5f));
+        Assert.That(drive.GetSteeringMultiplier(drive.maxForwardSpeed), Is.LessThan(0.45f));
+
+        Object.Destroy(tankObject);
+    }
+
+    [Test]
+    public void TankMovement_ClampsLegacySerializedFastValuesOnEnable()
+    {
+        GameObject tankObject = new GameObject("LegacyFastTank");
+        tankObject.SetActive(false);
+        TankDriveController drive = tankObject.AddComponent<TankDriveController>();
+        drive.maxForwardSpeed = 13f;
+        drive.maxReverseSpeed = 7.5f;
+        drive.accelerationSeconds = 2.4f;
+
+        tankObject.SetActive(true);
+
+        Assert.That(drive.maxForwardSpeed, Is.LessThanOrEqualTo(2.75f));
+        Assert.That(drive.maxReverseSpeed, Is.LessThanOrEqualTo(1.25f));
+        Assert.That(drive.accelerationSeconds, Is.GreaterThanOrEqualTo(5f));
 
         Object.Destroy(tankObject);
     }
