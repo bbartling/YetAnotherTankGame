@@ -39,6 +39,12 @@ public class GameplayTestApi : MonoBehaviour
     private bool _hasInitialPlayerTransform;
     private bool _fallThroughDetected;
     private bool _playerFellThroughMap;
+
+    public float PlayerTankSpeed => playerTank != null ? playerTank.CurrentGroundSpeed : 0f;
+    public float PlayerTankSlopeAngle => playerTank != null ? playerTank.CurrentSlopeAngle : 0f;
+    public bool PlayerTankGrounded => playerTank != null && playerTank.IsGrounded;
+    public bool ProjectileCameraActive => ProjectileCameraController.ActivePlayerProjectile != null;
+    public int ProjectileCameraActivationCount => ProjectileCameraController.PlayerCameraActivationCount;
     private string _fallThroughMessage = string.Empty;
 
     private void Awake()
@@ -274,6 +280,11 @@ public class GameplayTestApi : MonoBehaviour
         builder.AppendFormat("\"elapsedTime\":{0:0.0},", director != null ? director.ElapsedBattleTime : 0f);
         builder.AppendFormat("\"playerAlive\":{0},", playerTank != null && !playerTank.IsDestroyed ? "true" : "false");
         builder.AppendFormat("\"playerHealth\":{0:0.0},", playerTank != null ? playerTank.HealthPercent : 0f);
+        builder.AppendFormat("\"playerTankSpeed\":{0:0.00},", PlayerTankSpeed);
+        builder.AppendFormat("\"playerTankSlopeAngle\":{0:0.00},", PlayerTankSlopeAngle);
+        builder.AppendFormat("\"playerTankGrounded\":{0},", PlayerTankGrounded ? "true" : "false");
+        builder.AppendFormat("\"projectileCameraActive\":{0},", ProjectileCameraActive ? "true" : "false");
+        builder.AppendFormat("\"projectileCameraActivationCount\":{0},", ProjectileCameraActivationCount);
         builder.AppendFormat("\"castleHealth\":{0:0.0},", castle != null ? castle.HealthPercent : 0f);
         builder.AppendFormat("\"enemyCount\":{0},", enemies != null ? enemies.Length : 0);
         builder.Append("\"enemies\":[");

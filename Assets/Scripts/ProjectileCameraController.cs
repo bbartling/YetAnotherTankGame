@@ -12,6 +12,7 @@ public class ProjectileCameraController : MonoBehaviour
     public bool enableCameraSwitching = true;
 
     public static ProjectileCameraController ActivePlayerProjectile { get; private set; }
+    public static int PlayerCameraActivationCount { get; private set; }
 
     [Header("Smooth Projectile Camera")]
     public Vector3 cameraOffset = new Vector3(0f, 3f, -9f);
@@ -100,6 +101,7 @@ public class ProjectileCameraController : MonoBehaviour
         if (enableCameraSwitching && projectileCamera != null && _tankCamera != null)
         {
             ActivePlayerProjectile = this;
+            PlayerCameraActivationCount++;
             _projCamTransform = projectileCamera.transform;
 
             projectileCamera.enabled = true;

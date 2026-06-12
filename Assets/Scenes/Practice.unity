@@ -32089,6 +32089,11 @@ GameObject:
   - component: {fileID: 396673833}
   - component: {fileID: 396673837}
   - component: {fileID: 396673838}
+  - component: {fileID: 396673843}
+  - component: {fileID: 396673842}
+  - component: {fileID: 396673841}
+  - component: {fileID: 396673840}
+  - component: {fileID: 396673839}
   m_Layer: 0
   m_Name: PlayerTank
   m_TagString: Untagged
@@ -32785,6 +32790,90 @@ MonoBehaviour:
   tracerLifetime: 0.035
   tracerWidth: 0.035
   tracerMaterial: {fileID: 0}
+--- !u!114 &396673839
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 396673827}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d74ad4f06001a64092d75df0f116716, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::TankAudioController
+  engineSource: {fileID: 0}
+  idlePitch: 0.72
+  strainedPitch: 1.05
+  idleVolume: 0.25
+  strainedVolume: 0.7
+--- !u!114 &396673840
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 396673827}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10735761d68ca9e43b23e86d2ace07ab, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::TankAimController
+  barrelPitchPivot: {fileID: 0}
+  mouseWheelPitchSensitivity: 18
+  keyboardPitchSpeed: 24
+  minElevation: -8
+  maxElevation: 35
+--- !u!114 &396673841
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 396673827}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db829a7cab527314289e82753fabf845, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::TankTurretController
+  turretYawPivot: {fileID: 0}
+  mouseYawDegreesPerSecond: 32
+  turretYawSpeed: 55
+--- !u!114 &396673842
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 396673827}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd9a56afb5a0d734aa694334cac61605, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::TankSuspensionVisual
+  visualRoot: {fileID: 0}
+  alignmentDegreesPerSecond: 45
+--- !u!114 &396673843
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 396673827}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99b3d9e7d5c4d27458522c867406ced2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::TankDriveController
+  maxForwardSpeed: 5
+  maxReverseSpeed: 2.5
+  accelerationSeconds: 2.4
+  brakingSeconds: 1.1
+  highSpeedSteeringMultiplier: 0.35
+  lowGearSpeedMultiplier: 0.55
+  tractionLossSlopeDegrees: 24
+  maxClimbSlopeDegrees: 42
+  minimumUphillSpeedMultiplier: 0.18
 --- !u!1 &398309902
 GameObject:
   m_ObjectHideFlags: 0
@@ -74218,6 +74307,7 @@ GameObject:
   - component: {fileID: 963194227}
   - component: {fileID: 963194226}
   - component: {fileID: 963194229}
+  - component: {fileID: 963194230}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -74315,6 +74405,26 @@ MonoBehaviour:
   zoomFOV: 22
   normalFOV: 58
   smoothSpeed: 10
+--- !u!114 &963194230
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 562adaf24003c1244963de36b80702af, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::TankOrbitCamera
+  target: {fileID: 396673830}
+  targetOffset: {x: 0, y: 2.2, z: 0}
+  followDistance: 8
+  collisionRadius: 0.35
+  positionSmoothTime: 0.12
+  collisionMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!1 &963273969
 GameObject:
   m_ObjectHideFlags: 0
@@ -115491,27 +115601,23 @@ MonoBehaviour:
   enemyCountInput: {fileID: 0}
   controlsCopy: 'Controls:
 
-    W/S - hold drive forward/back
+    W/S or arrows - heavy forward/reverse drive
 
-    A/D - tap while
-    driving to turn tracks
+    A/D or arrows - steer tracks
+
+    Shift - low gear / stabilized creeping
 
     Mouse X - rotate turret
 
-    Mouse wheel - elevate
-    barrel
+    Mouse wheel - elevate barrel
 
     PageUp / PageDown - fine barrel elevation
 
-    Esc - toggle camera
-    view
-
-    Right mouse - sniper view
+    Right click - scope/rangefinder
 
     Left click / Space - fire cannon
 
-    Left
-    Shift - machine gun
+    F - machine gun
 
     C - controls during game'
   defaultEnemyCount: 6

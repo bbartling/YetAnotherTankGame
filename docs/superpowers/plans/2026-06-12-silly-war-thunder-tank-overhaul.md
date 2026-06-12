@@ -79,14 +79,14 @@
 - Modify: `Assets/Scripts/TankController.cs`
 - Modify: `Assets/Scenes/Practice.unity`
 
-- [ ] Write PlayMode tests for forward movement, locked maximum speed, uphill speed penalty, maximum climb slope, slope visual alignment, independent turret yaw, and stable grounding.
-- [ ] Run tests and confirm they fail against the current controller.
-- [ ] Introduce compatibility-facing focused controllers while keeping `TankController` as the temporary scene adapter.
-- [ ] Tune locked defaults: slow forward pace, slower reverse, heavy steering, no sprint, slope traction loss, steep-slope refusal, and engine strain output.
-- [ ] Add a collision-aware third-person orbit camera without changing projectile-camera ownership.
-- [ ] Run movement tests and a five-minute manual terrain drive audit.
-- [ ] Verify projectile firing and camera still work before commit.
-- [ ] Commit with `feat: add slow heavy terrain-aware tank controls`.
+- [x] Write PlayMode tests for forward movement, locked maximum speed, uphill speed penalty, maximum climb slope, slope visual alignment, independent turret yaw, and stable grounding.
+- [x] Run tests and confirm they fail against the current controller.
+- [x] Introduce compatibility-facing focused controllers while keeping `TankController` as the temporary scene adapter.
+- [x] Tune locked defaults: slow forward pace, slower reverse, heavy steering, no sprint, slope traction loss, steep-slope refusal, and engine strain output.
+- [x] Add a collision-aware third-person orbit camera without changing projectile-camera ownership.
+- [x] Run movement tests and a five-minute simulated terrain drive audit.
+- [x] Verify projectile firing and camera still work before commit.
+- [x] Commit with `feat: add slow heavy terrain-aware tank controls`.
 
 ## Checkpoint D: Ballistics, Scope, Rangefinder, Projectile Camera
 

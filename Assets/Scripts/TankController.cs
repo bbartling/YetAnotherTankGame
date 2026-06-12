@@ -99,6 +99,11 @@ public class TankController : MonoBehaviour
     public float fatalImpactThreshold = 0.55f;
 
     private Rigidbody _rb;
+    private TankDriveController _driveController;
+    private TankSuspensionVisual _suspensionVisual;
+    private TankTurretController _turretController;
+    private TankAimController _aimController;
+    private TankAudioController _tankAudioController;
     private AudioSource _audio;
     private float _turretYaw;
     private float _barrelElevation;
@@ -130,6 +135,10 @@ public class TankController : MonoBehaviour
     public bool IsDestroyed => _dead;
     public float CurrentHealth => Mathf.Max(0f, _health);
     public float HealthPercent => maxHealth > 0f ? Mathf.Clamp01(_health / maxHealth) * 100f : 0f;
+    public float CurrentGroundSpeed => Vector3.ProjectOnPlane(ReadVelocity(), Vector3.up).magnitude;
+    public float CurrentSlopeAngle => _driveController != null ? _driveController.CurrentSlopeAngle : 0f;
+    public bool IsGrounded => _driveController != null && _driveController.IsGrounded;
+    public float EngineStrain => _driveController != null ? _driveController.EngineStrain : 0f;
 
     private void Awake()
     {
@@ -140,6 +149,7 @@ public class TankController : MonoBehaviour
         ConfigureRigidbody();
         AutoWireReferences();
         CacheStartingAngles();
+        EnsureFocusedControllers();
         ValidatePivotSetup();
     }
 
@@ -249,6 +259,11 @@ public class TankController : MonoBehaviour
 
         PreventTerrainPenetration();
         TrackGroundInfo groundInfo = ProbeTrackGround();
+        float slopeAngle = groundInfo.grounded ? Vector3.Angle(groundInfo.normal, Vector3.up) : 0f;
+        ReadDriveInput(out float telemetryThrottle, out _, out _);
+        _driveController?.RecordGroundState(groundInfo.grounded, slopeAngle, telemetryThrottle);
+        _suspensionVisual?.RecordGroundNormal(groundInfo.normal, Time.fixedDeltaTime);
+        _tankAudioController?.SetEngineStrain(EngineStrain);
         ApplyTrackSuspension(groundInfo);
         HandleTrackDrive(groundInfo);
         ApplyTrackedGrip(groundInfo);
@@ -257,15 +272,78 @@ public class TankController : MonoBehaviour
         PreventTerrainPenetration();
     }
 
+    private void EnsureFocusedControllers()
+    {
+        _driveController = GetComponent<TankDriveController>();
+        if (_driveController == null) _driveController = gameObject.AddComponent<TankDriveController>();
+
+        _suspensionVisual = GetComponent<TankSuspensionVisual>();
+        if (_suspensionVisual == null) _suspensionVisual = gameObject.AddComponent<TankSuspensionVisual>();
+
+        _turretController = GetComponent<TankTurretController>();
+        if (_turretController == null) _turretController = gameObject.AddComponent<TankTurretController>();
+        _turretController.Bind(turretYawPivot, 55f, 32f);
+
+        _aimController = GetComponent<TankAimController>();
+        if (_aimController == null) _aimController = gameObject.AddComponent<TankAimController>();
+        _aimController.Bind(barrelPitchPivot, _barrelElevation, minBarrelElevation, maxBarrelElevation);
+
+        _tankAudioController = GetComponent<TankAudioController>();
+        if (_tankAudioController == null) _tankAudioController = gameObject.AddComponent<TankAudioController>();
+
+        if (gameplayCamera != null)
+        {
+            TankOrbitCamera orbitCamera = gameplayCamera.GetComponent<TankOrbitCamera>();
+            if (orbitCamera == null) orbitCamera = gameplayCamera.gameObject.AddComponent<TankOrbitCamera>();
+            orbitCamera.target = transform;
+        }
+
+        maxForwardSpeed = _driveController.maxForwardSpeed;
+        maxReverseSpeed = _driveController.maxReverseSpeed;
+        maxDriveSlopeAngle = _driveController.maxClimbSlopeDegrees;
+        forwardAcceleration = _driveController.GetAccelerationLimit(false, 0f);
+        reverseAcceleration = _driveController.GetAccelerationLimit(true, 0f);
+        turnAcceleration = Mathf.Min(turnAcceleration, 10f);
+        pivotTurnAcceleration = Mathf.Min(pivotTurnAcceleration, 12f);
+        trackDriveResponse = Mathf.Min(trackDriveResponse, 2.4f);
+        brakeDrag = Mathf.Max(brakeDrag, _driveController.GetBrakingResponse());
+    }
+
+    private void ReadDriveInput(out float throttle, out float steer, out bool lowGear)
+    {
+        if (_driveController != null)
+        {
+            _driveController.ReadInput(out throttle, out steer, out lowGear);
+            return;
+        }
+
+        throttle = 0f;
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) throttle += 1f;
+        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) throttle -= 1f;
+        steer = 0f;
+        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) steer += 1f;
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) steer -= 1f;
+        lowGear = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+    }
+
+    private float GetForwardSpeedLimit(float slopeAngle, bool lowGear)
+    {
+        return _driveController != null ? _driveController.GetForwardSpeedLimit(slopeAngle, lowGear) : maxForwardSpeed;
+    }
+
+    private float GetReverseSpeedLimit(float slopeAngle, bool lowGear)
+    {
+        return _driveController != null ? _driveController.GetReverseSpeedLimit(slopeAngle, lowGear) : maxReverseSpeed;
+    }
+
+    private float GetMaximumDriveSlope()
+    {
+        return _driveController != null ? _driveController.maxClimbSlopeDegrees : maxDriveSlopeAngle;
+    }
+
     private void HandleTrackDrive(TrackGroundInfo groundInfo)
     {
-        float throttle = 0f;
-        if (Input.GetKey(KeyCode.W)) throttle += 1f;
-        if (Input.GetKey(KeyCode.S)) throttle -= 1f;
-
-        float steer = 0f;
-        if (Input.GetKey(KeyCode.D)) steer += 1f;
-        if (Input.GetKey(KeyCode.A)) steer -= 1f;
+        ReadDriveInput(out float throttle, out float steer, out bool lowGear);
 
         if (!groundInfo.grounded)
         {
@@ -273,7 +351,7 @@ public class TankController : MonoBehaviour
         }
 
         float slopeAngle = Vector3.Angle(groundInfo.normal, Vector3.up);
-        if (slopeAngle > maxDriveSlopeAngle)
+        if (slopeAngle > GetMaximumDriveSlope())
         {
             return;
         }
@@ -290,15 +368,22 @@ public class TankController : MonoBehaviour
         {
             Vector3 groundVelocity = Vector3.ProjectOnPlane(ReadVelocity(), groundNormal);
             float currentForwardSpeed = Vector3.Dot(groundVelocity, driveForward);
-            float targetSpeed = throttle > 0f ? maxForwardSpeed : -maxReverseSpeed;
-            float maxAccel = throttle > 0f ? forwardAcceleration : reverseAcceleration;
+            float targetSpeed = throttle > 0f
+                ? GetForwardSpeedLimit(slopeAngle, lowGear)
+                : -GetReverseSpeedLimit(slopeAngle, lowGear);
+            float maxAccel = _driveController != null
+                ? _driveController.GetAccelerationLimit(throttle < 0f, slopeAngle)
+                : (throttle > 0f ? forwardAcceleration : reverseAcceleration);
             float requestedAccel = Mathf.Clamp((targetSpeed - currentForwardSpeed) * trackDriveResponse, -maxAccel, maxAccel);
             _rb.AddForce(driveForward * requestedAccel, ForceMode.Acceleration);
         }
 
         if (Mathf.Abs(steer) > 0.01f)
         {
-            float torque = Mathf.Abs(throttle) > 0.01f ? turnAcceleration : pivotTurnAcceleration;
+            float steeringMultiplier = _driveController != null
+                ? _driveController.GetSteeringMultiplier(Mathf.Abs(Vector3.Dot(ReadVelocity(), driveForward)))
+                : 1f;
+            float torque = (Mathf.Abs(throttle) > 0.01f ? turnAcceleration : pivotTurnAcceleration) * steeringMultiplier;
             _rb.AddTorque(groundNormal * (steer * torque), ForceMode.Acceleration);
         }
     }
@@ -458,7 +543,8 @@ public class TankController : MonoBehaviour
             _rb.AddForce(-headingError * headingGrip, ForceMode.Acceleration);
         }
 
-        if (!Input.GetKey(KeyCode.W) && !Input.GetKey(KeyCode.S))
+        ReadDriveInput(out float throttle, out _, out _);
+        if (Mathf.Abs(throttle) < 0.01f)
         {
             Vector3 forwardVelocity = groundForward * Vector3.Dot(groundVelocity, groundForward);
             _rb.AddForce(-forwardVelocity * brakeDrag, ForceMode.Acceleration);
@@ -529,7 +615,12 @@ public class TankController : MonoBehaviour
         Vector3 groundVelocity = Vector3.ProjectOnPlane(velocity, groundNormal);
         Vector3 verticalVelocity = velocity - groundVelocity;
         float forwardSpeed = Vector3.Dot(groundVelocity, groundForward);
-        float clampedForwardSpeed = Mathf.Clamp(forwardSpeed, -maxReverseSpeed, maxForwardSpeed);
+        ReadDriveInput(out _, out _, out bool lowGear);
+        float slopeAngle = Vector3.Angle(groundNormal, Vector3.up);
+        float clampedForwardSpeed = Mathf.Clamp(
+            forwardSpeed,
+            -GetReverseSpeedLimit(slopeAngle, lowGear),
+            GetForwardSpeedLimit(slopeAngle, lowGear));
         Vector3 lateralVelocity = groundVelocity - groundForward * forwardSpeed;
 
         SetVelocity(groundForward * clampedForwardSpeed + lateralVelocity + verticalVelocity);
@@ -669,7 +760,7 @@ public class TankController : MonoBehaviour
     {
         if (_terrainSource == null)
         {
-            _terrainSource = Object.FindFirstObjectByType<CraterTerrain>();
+            _terrainSource = Object.FindAnyObjectByType<CraterTerrain>();
         }
 
         if (_terrainSource == null)
@@ -692,6 +783,15 @@ public class TankController : MonoBehaviour
 
     private void HandleTurretAndBarrelInput()
     {
+        if (_turretController != null && _aimController != null)
+        {
+            _turretController.TickPlayerInput(Time.deltaTime);
+            _aimController.TickPlayerInput(Time.deltaTime);
+            _turretYaw = _turretController.DesiredYawDegrees;
+            _barrelElevation = _aimController.ElevationDegrees;
+            return;
+        }
+
         if (turretYawPivot != null)
         {
             float mouseX = Input.GetAxisRaw("Mouse X");
@@ -812,6 +912,7 @@ public class TankController : MonoBehaviour
 
         if (_rb == null) _rb = GetComponent<Rigidbody>();
         ConfigureRigidbody();
+        EnsureFocusedControllers();
         AutoWireReferences();
         SnapAboveTerrain(startTerrainClearance);
 
@@ -857,6 +958,9 @@ public class TankController : MonoBehaviour
             barrelPitchPivot.localRotation = Quaternion.Euler(-_barrelElevation, 0f, 0f);
         }
 
+        _turretController?.SetDesiredYaw(_turretYaw);
+        _aimController?.SetElevation(_barrelElevation);
+
         PrepareForGameplay();
     }
 
@@ -893,6 +997,7 @@ public class TankController : MonoBehaviour
                 Vector3 localFlatDirection = transform.InverseTransformDirection(flatToTarget.normalized);
                 _turretYaw = Mathf.Atan2(localFlatDirection.x, localFlatDirection.z) * Mathf.Rad2Deg;
                 turretYawPivot.localRotation = Quaternion.Euler(0f, _turretYaw, 0f);
+                _turretController?.SetDesiredYaw(_turretYaw);
             }
         }
 
@@ -908,6 +1013,7 @@ public class TankController : MonoBehaviour
                 float elevation = Mathf.Atan2(localDirection.y, horizontal) * Mathf.Rad2Deg;
                 _barrelElevation = Mathf.Clamp(elevation, minBarrelElevation, maxBarrelElevation);
                 barrelPitchPivot.localRotation = Quaternion.Euler(-_barrelElevation, 0f, 0f);
+                _aimController?.SetElevation(_barrelElevation);
             }
         }
     }
