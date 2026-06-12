@@ -36,6 +36,8 @@ public class SniperRangeFinder : MonoBehaviour
     private readonly List<Image> _ticks = new List<Image>();
     private readonly List<TextMeshProUGUI> _tickLabels = new List<TextMeshProUGUI>();
     private float _lastRange;
+    private TankBallistics.Solution _lastSolution;
+    private bool _hasSolution;
 
     private void Awake()
     {
@@ -76,6 +78,7 @@ public class SniperRangeFinder : MonoBehaviour
 
         float estimatedRange = EstimateBallisticRange();
         _lastRange = estimatedRange;
+        UpdateBallisticSolution();
         UpdateRangeUI(estimatedRange);
     }
 
@@ -247,6 +250,35 @@ public class SniperRangeFinder : MonoBehaviour
             }
             _indicator.color = c;
         }
+
+        if (_hintLabel != null)
+        {
+            _hintLabel.text = _hasSolution
+                ? $"ELEV {_lastSolution.ElevationDegrees:0.0}°  TOF {_lastSolution.TimeOfFlight:0.0}s"
+                : "NO BALLISTIC SOLUTION";
+        }
+    }
+
+    private void UpdateBallisticSolution()
+    {
+        _hasSolution = false;
+        if (tank == null || tank.cannonFirePoint == null || aimCamera == null)
+        {
+            return;
+        }
+
+        Ray aimRay = aimCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+        Vector3 targetPoint = Physics.Raycast(aimRay, out RaycastHit hit, maxRange, hitMask, QueryTriggerInteraction.Ignore)
+            ? hit.point
+            : aimRay.GetPoint(Mathf.Min(_lastRange, maxRange));
+
+        _hasSolution = TankBallistics.TrySolve(
+            tank.cannonFirePoint.position,
+            targetPoint,
+            TankBallistics.GetMuzzleSpeed(tank.maxPower, tank.powerPercentage),
+            Physics.gravity,
+            false,
+            out _lastSolution);
     }
 
     private float EstimateBallisticRange()
@@ -257,7 +289,7 @@ public class SniperRangeFinder : MonoBehaviour
         }
 
         Vector3 origin = tank.firePoint.position;
-        float muzzleSpeed = Mathf.Lerp(tank.maxPower * 0.45f, tank.maxPower, tank.powerPercentage / 100f);
+        float muzzleSpeed = TankBallistics.GetMuzzleSpeed(tank.maxPower, tank.powerPercentage);
         Vector3 velocity = tank.firePoint.forward * muzzleSpeed + GetTankVelocity();
         Vector3 current = origin;
         float traveled = 0f;

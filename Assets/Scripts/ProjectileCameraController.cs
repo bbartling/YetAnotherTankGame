@@ -150,6 +150,12 @@ public class ProjectileCameraController : MonoBehaviour
 
     void LateUpdate()
     {
+        if (ActivePlayerProjectile == this && Input.GetKeyDown(KeyCode.Escape))
+        {
+            CancelProjectileCamera();
+            return;
+        }
+
         UpdateProjectileCamera();
         HandleProximitySound();
         UpdateTrailColor();
@@ -381,6 +387,14 @@ public class ProjectileCameraController : MonoBehaviour
         if (!_isDestroying)
         {
             StartCoroutine(ExplosionSequence(false));
+        }
+    }
+
+    public void CancelProjectileCamera()
+    {
+        if (!_isDestroying)
+        {
+            StartCoroutine(ExplosionSequence(true));
         }
     }
 

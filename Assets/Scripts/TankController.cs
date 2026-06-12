@@ -865,7 +865,7 @@ public class TankController : MonoBehaviour
             shellBody.interpolation = RigidbodyInterpolation.Interpolate;
             shellBody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
-            float launchSpeed = maxPower * Mathf.Clamp01(powerPercentage / 100f);
+            float launchSpeed = TankBallistics.GetMuzzleSpeed(maxPower, powerPercentage);
             Vector3 launchVelocity = cannonFirePoint.forward * launchSpeed + ReadVelocity();
             SetVelocity(shellBody, launchVelocity);
         }
@@ -975,10 +975,9 @@ public class TankController : MonoBehaviour
             return;
         }
 
-        AimTurretAndBarrelAtPoint(worldPoint);
-
         float oldPower = powerPercentage;
         powerPercentage = Mathf.Clamp(testPowerPercentage, 1f, 100f);
+        AimTurretAndBarrelAtPoint(worldPoint);
         FireCannon();
         powerPercentage = oldPower;
     }
@@ -1003,15 +1002,11 @@ public class TankController : MonoBehaviour
 
         if (barrelPitchPivot != null)
         {
-            Transform yawBasis = turretYawPivot != null ? turretYawPivot : transform;
-            Vector3 toTarget = worldPoint - barrelPitchPivot.position;
-
-            if (toTarget.sqrMagnitude > 0.0001f)
+            float muzzleSpeed = TankBallistics.GetMuzzleSpeed(maxPower, powerPercentage);
+            if (cannonFirePoint != null
+                && TankBallistics.TrySolve(cannonFirePoint.position, worldPoint, muzzleSpeed, Physics.gravity, false, out TankBallistics.Solution solution))
             {
-                Vector3 localDirection = yawBasis.InverseTransformDirection(toTarget.normalized);
-                float horizontal = new Vector2(localDirection.x, localDirection.z).magnitude;
-                float elevation = Mathf.Atan2(localDirection.y, horizontal) * Mathf.Rad2Deg;
-                _barrelElevation = Mathf.Clamp(elevation, minBarrelElevation, maxBarrelElevation);
+                _barrelElevation = Mathf.Clamp(solution.ElevationDegrees, minBarrelElevation, maxBarrelElevation);
                 barrelPitchPivot.localRotation = Quaternion.Euler(-_barrelElevation, 0f, 0f);
                 _aimController?.SetElevation(_barrelElevation);
             }

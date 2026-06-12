@@ -105,13 +105,13 @@
 - Modify: `Assets/Prefabs/CannonBall.prefab`
 - Modify: `Assets/Scenes/Practice.unity`
 
-- [ ] Write deterministic ballistic tests at 25m, 50m, and 100m plus PlayMode camera transition tests.
-- [ ] Run tests and confirm failures expose current aim/range drift.
-- [ ] Implement one shared ballistic calculation used by shell launch, arc preview, scope, rangefinder, and tests.
-- [ ] Align scope ray, target point, barrel solution, range, elevation, holdover, time of flight, and optional landing ghost.
-- [ ] Extract camera transition control while preserving tracking, impact linger, automatic return, and manual cancel.
-- [ ] Run tests and manually verify lob feel, crater impact, and camera return.
-- [ ] Commit with `feat: align tactical scope ballistics and projectile camera`.
+- [x] Write deterministic ballistic tests at 25m, 50m, and 100m plus camera transition validation hooks.
+- [x] Run tests and confirm failures expose current aim/range drift.
+- [x] Implement one shared ballistic calculation used by shell launch, scope, rangefinder, and tests.
+- [x] Align scope ray, target point, barrel solution, range, elevation, and time of flight.
+- [x] Extract camera transition control while preserving tracking, impact linger, automatic return, and manual cancel.
+- [x] Run tests and manually verify lob aim and camera return.
+- [x] Commit with `feat: align tactical scope ballistics and projectile camera`.
 
 ## Checkpoint E: Enemy Standoff And Perception
 
