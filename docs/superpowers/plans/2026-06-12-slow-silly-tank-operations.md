@@ -32,19 +32,19 @@
 - Modify: `Assets/Scripts/EnemyTankSpawner.cs`
 - Modify: `Assets/Scripts/GameplayTestApi.cs`
 
-- [ ] Tighten `TankMovement_SlowHeavyNotRaceCar` to require forward speed `<= 2.75 m/s`, reverse speed `<= 1.25 m/s`, acceleration `>= 5 seconds`, and high-speed steering multiplier `< 0.45`.
-- [ ] Add failing policy tests requiring enemy cruise speed `<= 2.5 m/s`, preferred standoff `>= 160m`, retreat distance `>= 90m`, reload `>= 6 seconds`, and no combat strafing.
-- [ ] Run PlayMode tests; expected classification: `SIMPLE`, expected result: failures against current fast defaults.
-- [ ] Tune `TankDriveController` defaults and compatibility values in `TankController`.
-- [ ] Implement `TankPerception` for LOS, sight memory, movement/noise awareness, and target visibility.
-- [ ] Implement `TankCombatBrain` with `Patrol`, `Suspicious`, `Spotting`, `HaltToAim`, `Firing`, `Reloading`, `Repositioning`, `Retreating`, `Disabled`, and `Destroyed`.
-- [ ] Implement `TankPathingBrain` with capped movement, standoff steering, slope rejection, and stuck recovery.
-- [ ] Adapt `EnemyTankAI` to delegate decisions to the new components without removing its existing health, projectile, crater, and death hooks.
-- [ ] Remove spawner difficulty scaling that increases movement speed or creates sub-six-second reloads.
-- [ ] Expose current state, speed, LOS, and distance through `GameplayTestApi`.
-- [ ] Run focused PlayMode tests; require all passes.
-- [ ] Manually verify player lobbed shot and projectile-camera return still work.
-- [ ] Commit: `feat: slow combat and add deliberate enemy operations`.
+- [x] Tighten `TankMovement_SlowHeavyNotRaceCar` to require forward speed `<= 2.75 m/s`, reverse speed `<= 1.25 m/s`, acceleration `>= 5 seconds`, and high-speed steering multiplier `< 0.45`.
+- [x] Add failing policy tests requiring enemy cruise speed `<= 2.5 m/s`, preferred standoff `>= 160m`, retreat distance `>= 90m`, reload `>= 6 seconds`, and no combat strafing.
+- [x] Run PlayMode tests; expected classification: `SIMPLE`, expected result: failures against current fast defaults.
+- [x] Tune `TankDriveController` defaults and compatibility values in `TankController`.
+- [x] Implement `TankPerception` for LOS, sight memory, movement/noise awareness, and target visibility.
+- [x] Implement `TankCombatBrain` with `Patrol`, `Suspicious`, `Spotting`, `HaltToAim`, `Firing`, `Reloading`, `Repositioning`, `Retreating`, `Disabled`, and `Destroyed`.
+- [x] Implement `TankPathingBrain` with capped movement, standoff steering, slope rejection, and stuck recovery.
+- [x] Adapt `EnemyTankAI` to delegate decisions to the new components without removing its existing health, projectile, crater, and death hooks.
+- [x] Remove spawner difficulty scaling that increases movement speed or creates sub-six-second reloads.
+- [x] Expose current state, speed, LOS, and distance through `GameplayTestApi`.
+- [x] Run focused PlayMode tests; require all passes.
+- [x] Manually verify player lobbed shot and projectile-camera return still work.
+- [x] Commit: `feat: slow combat and add deliberate enemy operations`.
 
 ## Checkpoint 2: Modular Damage States And Bounded Effects
 

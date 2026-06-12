@@ -91,7 +91,7 @@ public class EnemyTankSpawner : MonoBehaviour
                 ground = new Vector3(raw.x, playerTank.position.y, raw.z);
             }
 
-            Vector3 spawnPosition = ground + Vector3.up * groundLift;
+            Vector3 spawnPosition = ground + Vector3.up * GetSafeGroundLift(groundLift);
             Quaternion rotation = Quaternion.LookRotation((playerTank.position - spawnPosition).normalized, Vector3.up);
             SpawnEnemyAt(spawnPosition, rotation, i, enemyCount);
         }
@@ -205,6 +205,11 @@ public class EnemyTankSpawner : MonoBehaviour
         }
 
         return Vector3.zero;
+    }
+
+    public static float GetSafeGroundLift(float requestedGroundLift)
+    {
+        return Mathf.Max(2.5f, requestedGroundLift);
     }
 
     private GameObject SpawnEnemyAt(Vector3 spawnPosition, Quaternion rotation, int index, int totalCount)
@@ -335,7 +340,7 @@ public class EnemyTankSpawner : MonoBehaviour
 
             if (!tooCloseToSpawn)
             {
-                return groundPoint + Vector3.up * groundLift;
+                return groundPoint + Vector3.up * GetSafeGroundLift(groundLift);
             }
         }
 
@@ -344,7 +349,7 @@ public class EnemyTankSpawner : MonoBehaviour
         Vector3 fallbackGround = SampleGround(fallback);
         if (fallbackGround != Vector3.zero)
         {
-            return fallbackGround + Vector3.up * groundLift;
+            return fallbackGround + Vector3.up * GetSafeGroundLift(groundLift);
         }
 
         return fallback;

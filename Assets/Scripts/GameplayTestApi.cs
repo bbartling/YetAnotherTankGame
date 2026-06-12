@@ -45,6 +45,30 @@ public class GameplayTestApi : MonoBehaviour
     public bool PlayerTankGrounded => playerTank != null && playerTank.IsGrounded;
     public bool ProjectileCameraActive => ProjectileCameraController.ActivePlayerProjectile != null;
     public int ProjectileCameraActivationCount => ProjectileCameraController.PlayerCameraActivationCount;
+    public float EnemyDistanceToPlayer
+    {
+        get
+        {
+            EnemyTankAI enemy = FindNearestLiveEnemy();
+            return enemy != null ? enemy.CurrentDistanceToPlayer : float.PositiveInfinity;
+        }
+    }
+    public bool EnemyHasLineOfSight
+    {
+        get
+        {
+            EnemyTankAI enemy = FindNearestLiveEnemy();
+            return enemy != null && enemy.CurrentHasLineOfSight;
+        }
+    }
+    public string EnemyCurrentState
+    {
+        get
+        {
+            EnemyTankAI enemy = FindNearestLiveEnemy();
+            return enemy != null ? enemy.CurrentOperationalState : "None";
+        }
+    }
     private string _fallThroughMessage = string.Empty;
 
     private void Awake()

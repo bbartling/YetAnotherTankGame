@@ -81,6 +81,13 @@ public class EnemyTankAI : MonoBehaviour
     private Vector3 _lastKnownPlayerPosition;
     private float _lastSeenTime;
     private float _searchOrbitAngle;
+    private TankPerception _perception;
+    private TankCombatBrain _combatBrain;
+    private TankPathingBrain _pathingBrain;
+
+    public string CurrentOperationalState { get; private set; } = "Patrol";
+    public bool CurrentHasLineOfSight { get; private set; }
+    public float CurrentDistanceToPlayer { get; private set; } = float.PositiveInfinity;
 
     private enum EnemyState
     {
@@ -103,6 +110,7 @@ public class EnemyTankAI : MonoBehaviour
         searchTurnTorque = Mathf.Min(searchTurnTorque, 28f);
         patrolMoveForce = Mathf.Min(patrolMoveForce, 18f);
         patrolTurnTorque = Mathf.Min(patrolTurnTorque, 24f);
+        InitializePolicies();
     }
 
     private void Awake()
@@ -151,8 +159,9 @@ private void Update()
 
         EnemyState state = GetState();
         float distance = GetCurrentDistance();
+        TankCombatBrain.State operationalState = GetOperationalState(distance);
 
-        HandleAudio(state, distance);
+        HandleAudio(operationalState);
 
         Vector3 targetPoint = GetCurrentTargetPoint(state);
         if (state == EnemyState.Patrol && _player != null && distance <= detectionRange)
@@ -161,7 +170,7 @@ private void Update()
         }
 
         AimTurret(targetPoint);
-        TryFire(targetPoint, distance, state);
+        TryFire(targetPoint, distance, operationalState);
     }
 
 private void FixedUpdate()
@@ -172,20 +181,30 @@ private void FixedUpdate()
         }
 
         EnemyState state = GetState();
+        float distance = GetCurrentDistance();
+        TankCombatBrain.State operationalState = GetOperationalState(distance);
         Vector3 targetPoint = GetCurrentTargetPoint(state);
 
-        switch (state)
+        switch (operationalState)
         {
-            case EnemyState.Hunt:
+            case TankCombatBrain.State.Repositioning:
                 DriveToward(targetPoint, moveForce, turnTorque, preferredDistance, retreatDistance, true, false);
                 break;
-            case EnemyState.Search:
+            case TankCombatBrain.State.Retreating:
+                DriveToward(targetPoint, moveForce, turnTorque, preferredDistance, retreatDistance, true, false);
+                break;
+            case TankCombatBrain.State.Suspicious:
                 DriveToward(targetPoint, searchMoveForce, searchTurnTorque, Mathf.Max(10f, ambushRadius), retreatDistance, true, true);
                 break;
-            default:
+            case TankCombatBrain.State.Patrol:
                 DrivePatrol();
                 break;
+            default:
+                SlowToAimingHalt();
+                break;
         }
+
+        _rb.linearVelocity = _pathingBrain.ClampPlanarVelocity(_rb.linearVelocity);
     }
 
     private void AutoWireReferences()
@@ -271,6 +290,8 @@ private EnemyState GetState()
 
         float distance = Vector3.Distance(transform.position, _player.position);
         bool hasSight = HasLineOfSight();
+        _perception.Observe(hasSight, _player.position, Time.time);
+        CurrentHasLineOfSight = hasSight;
         if (distance <= detectionRange && hasSight)
         {
             _lastKnownPlayerPosition = _player.position;
@@ -278,12 +299,81 @@ private EnemyState GetState()
             return EnemyState.Hunt;
         }
 
-        if (distance <= detectionRange && Time.time - _lastSeenTime <= lastKnownMemorySeconds)
+        if (distance <= detectionRange && _perception.HasRecentMemory(Time.time))
         {
             return EnemyState.Search;
         }
 
         return EnemyState.Patrol;
+    }
+
+    private void InitializePolicies()
+    {
+        _perception = new TankPerception(lastKnownMemorySeconds);
+        _combatBrain = new TankCombatBrain
+        {
+            PreferredDistance = preferredDistance,
+            RetreatDistance = retreatDistance,
+            RepositionDistance = preferredDistance + 80f
+        };
+        _pathingBrain = new TankPathingBrain
+        {
+            MaxTravelSpeed = 2.25f,
+            MaxSlopeDegrees = 35f
+        };
+    }
+
+    private TankCombatBrain.State GetOperationalState(float distance)
+    {
+        InitializePoliciesIfNeeded();
+        CurrentDistanceToPlayer = distance;
+        bool aimAligned = IsAimAligned();
+        bool reloading = Time.time < _nextFireTime;
+        bool remembersTarget = _perception.HasRecentMemory(Time.time);
+        TankCombatBrain.State state = _combatBrain.Decide(
+            CurrentHasLineOfSight,
+            distance,
+            _rb != null ? _rb.linearVelocity.magnitude : 0f,
+            aimAligned,
+            reloading,
+            remembersTarget,
+            false,
+            _isDead);
+        CurrentOperationalState = state.ToString();
+        return state;
+    }
+
+    public string EvaluateOperationalState(bool hasLineOfSight, float distance, float speed, bool aimAligned, bool reloading, bool remembersTarget)
+    {
+        InitializePoliciesIfNeeded();
+        return _combatBrain.Decide(hasLineOfSight, distance, speed, aimAligned, reloading, remembersTarget, false, _isDead).ToString();
+    }
+
+    private void InitializePoliciesIfNeeded()
+    {
+        if (_perception == null || _combatBrain == null || _pathingBrain == null)
+        {
+            InitializePolicies();
+        }
+    }
+
+    private bool IsAimAligned()
+    {
+        if (_player == null || firePoint == null)
+        {
+            return false;
+        }
+
+        Vector3 toTarget = (_player.position + Vector3.up * visibilityHeight) - firePoint.position;
+        return toTarget.sqrMagnitude > 0.01f && Vector3.Dot(firePoint.forward, toTarget.normalized) >= 0.96f;
+    }
+
+    private void SlowToAimingHalt()
+    {
+        Vector3 velocity = _rb.linearVelocity;
+        velocity.x *= 0.82f;
+        velocity.z *= 0.82f;
+        _rb.linearVelocity = velocity;
     }
 
     private float GetCurrentDistance()
@@ -393,9 +483,12 @@ private EnemyState GetState()
         }
     }
 
-    private void HandleAudio(EnemyState state, float distance)
+    private void HandleAudio(TankCombatBrain.State state)
     {
-        bool driving = state == EnemyState.Patrol || distance > retreatDistance * 0.8f;
+        bool driving = state == TankCombatBrain.State.Patrol ||
+                       state == TankCombatBrain.State.Suspicious ||
+                       state == TankCombatBrain.State.Repositioning ||
+                       state == TankCombatBrain.State.Retreating;
         if (driving)
         {
             _stopTimer = engineStopDelay;
@@ -489,14 +582,14 @@ private EnemyState GetState()
         barrelPivot.localRotation = Quaternion.Euler(-_currentElevation, 0f, 0f);
     }
 
-    private void TryFire(Vector3 targetPoint, float distance, EnemyState state)
+    private void TryFire(Vector3 targetPoint, float distance, TankCombatBrain.State state)
     {
         if (Time.time < _nextFireTime || shellPrefab == null || firePoint == null)
         {
             return;
         }
 
-        if (state == EnemyState.Patrol && distance > detectionRange)
+        if (state != TankCombatBrain.State.Firing)
         {
             return;
         }
