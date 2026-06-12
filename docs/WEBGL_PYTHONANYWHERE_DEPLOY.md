@@ -39,7 +39,17 @@ warnings.
 
 1. Upload `tank_game_pythonanywhere.zip`.
 2. Extract it into the Flask app directory.
-3. Configure the WSGI file to import `app` from `app.py`.
+3. Configure `/var/www/bensapi_pythonanywhere_com_wsgi.py`:
+
+```python
+import sys
+
+project_home = "/home/bensApi/mysite"
+if project_home not in sys.path:
+    sys.path = [project_home] + sys.path
+
+from flask_app import app as application
+```
 4. Add direct static mappings for `/Build/` and `/TemplateData/`.
 5. Restart the app.
 6. Verify `/health`, `/`, `.wasm`, `.data`, and browser console output.

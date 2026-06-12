@@ -107,9 +107,9 @@ public static class TankWebGLBuildPipeline
 
     private static void RefreshDeploymentCopy()
     {
-        if (!File.Exists(Path.Combine(DeploymentRoot, "app.py")))
+        if (!File.Exists(Path.Combine(DeploymentRoot, "flask_app.py")))
         {
-            throw new FileNotFoundException("PythonAnywhere Flask app is missing.", Path.Combine(DeploymentRoot, "app.py"));
+            throw new FileNotFoundException("PythonAnywhere Flask app is missing.", Path.Combine(DeploymentRoot, "flask_app.py"));
         }
 
         if (Directory.Exists(DeploymentWebGLDirectory))

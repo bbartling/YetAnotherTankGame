@@ -9,7 +9,7 @@ public class TankBuildPipelineEditModeTests
     public void RequiredBuildAndDeploymentFilesExist()
     {
         Assert.That(File.Exists("Assets/Editor/TankWebGLBuildPipeline.cs"), Is.True);
-        Assert.That(File.Exists("pythonanywhere_flask/app.py"), Is.True);
+        Assert.That(File.Exists("pythonanywhere_flask/flask_app.py"), Is.True);
         Assert.That(File.Exists("pythonanywhere_flask/requirements.txt"), Is.True);
         Assert.That(File.Exists("scripts/build_webgl_pythonanywhere.ps1"), Is.True);
     }

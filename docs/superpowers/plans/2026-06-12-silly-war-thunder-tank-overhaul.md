@@ -39,7 +39,7 @@
 **Files:**
 - Create: `Assets/Editor/TankWebGLBuildPipeline.cs`
 - Create: `Assets/Tests/EditMode/Editor/TankBuildPipelineEditModeTests.cs`
-- Create: `pythonanywhere_flask/app.py`
+- Create: `pythonanywhere_flask/flask_app.py`
 - Create: `pythonanywhere_flask/requirements.txt`
 - Create: `pythonanywhere_flask/README.md`
 - Create: `pythonanywhere_flask/webgl/.gitkeep`
