@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using NUnit.Framework;
 
 public class TankCombatBrainPlayModeTests
@@ -37,3 +38,4 @@ public class TankCombatBrainPlayModeTests
         Assert.That(brain.Decide(false, 220f, 0f, false, false, false), Is.EqualTo(TankCombatBrain.State.Patrol));
     }
 }
+#endif

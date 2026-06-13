@@ -19,7 +19,7 @@ Render pipeline: URP `17.4.0`
 - Build settings contain one enabled scene: `Assets/Scenes/Practice.unity`.
 - The active build target is `StandaloneWindows64`.
 - Two Windows build profiles exist.
-- No WebGL build profile, tracked editor build pipeline, PythonAnywhere app, deployment script, or reproducible ZIP pipeline exists.
+- A tracked WebGL/PythonAnywhere pipeline exists: `Assets/Editor/TankWebGLBuildPipeline.cs`, `scripts/build_webgl_pythonanywhere.ps1`, and `pythonanywhere_flask/`.
 - WebGL player settings exist but are not locked or validated.
 
 ## Current Scene Structure
@@ -146,7 +146,7 @@ This camera behavior is a locked feature and may only be replaced by a tested im
 - Heavy use of `GameObject.Find`, `Camera.main`, scene-wide object searches, runtime primitive creation, and `Shader.Find`.
 - Runtime debris, impact marks, tracers, and crater changes lack explicit WebGL budgets.
 - No real automated regression suite.
-- No reproducible WebGL/PythonAnywhere release pipeline.
+- WebGL/PythonAnywhere release output is reproducible and validated through manifests plus `tank_game_pythonanywhere.zip`.
 
 ## Features That Must Not Regress
 
@@ -161,4 +161,3 @@ This camera behavior is a locked feature and may only be replaced by a tested im
 - Wind and battlefield atmosphere where practical.
 - A beatable single-player battle loop.
 - Chrome Windows, Safari Mac, and PythonAnywhere WebGL goals.
-

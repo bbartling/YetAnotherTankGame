@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using NUnit.Framework;
 using System.Reflection;
 using UnityEngine;
@@ -93,3 +94,4 @@ public class EnemyTankOperationsPlayModeTests
         Assert.That(EnemyTankSpawner.GetSafeGroundLift(4f), Is.EqualTo(4f));
     }
 }
+#endif

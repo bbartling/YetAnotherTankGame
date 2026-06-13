@@ -30,6 +30,11 @@ def health():
     return {"status": "ok", "game": "Silly Tank Hill War"}
 
 
+@app.route("/robots.txt")
+def robots():
+    return "User-agent: *\nDisallow:\n", 200, {"Content-Type": "text/plain; charset=utf-8"}
+
+
 @app.route("/<path:filename>")
 def webgl_file(filename):
     requested = (WEBGL_DIR / filename).resolve()

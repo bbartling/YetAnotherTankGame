@@ -1,5 +1,6 @@
 using System.IO;
 using System.Linq;
+#if UNITY_EDITOR
 using NUnit.Framework;
 using UnityEditor;
 
@@ -33,4 +34,12 @@ public class TankBuildPipelineEditModeTests
         Assert.That(TankWebGLBuildPipeline.DeploymentManifestPath, Is.EqualTo("pythonanywhere_flask/WEBGL_BUILD_MANIFEST.json"));
         Assert.That(TankWebGLBuildPipeline.ZipOutputPath, Is.EqualTo("tank_game_pythonanywhere.zip"));
     }
+
+    [Test]
+    public void DeploymentZipExcludesPythonCacheFiles()
+    {
+        Assert.That(TankWebGLBuildPipeline.ShouldIncludeDeploymentFile("pythonanywhere_flask/flask_app.py"), Is.True);
+        Assert.That(TankWebGLBuildPipeline.ShouldIncludeDeploymentFile("pythonanywhere_flask/__pycache__/flask_app.pyc"), Is.False);
+    }
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using NUnit.Framework;
 using UnityEngine;
 
@@ -25,3 +26,4 @@ public class TankBallisticsEditModeTests
         Assert.That(TankBallistics.GetMuzzleSpeed(75f, 50f), Is.EqualTo(37.5f).Within(0.001f));
     }
 }
+#endif

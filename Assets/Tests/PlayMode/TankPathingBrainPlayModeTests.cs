@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using NUnit.Framework;
 using UnityEngine;
 
@@ -33,3 +34,4 @@ public class TankPathingBrainPlayModeTests
         Assert.That(brain.CanAdvanceOnSlope(40f), Is.False);
     }
 }
+#endif

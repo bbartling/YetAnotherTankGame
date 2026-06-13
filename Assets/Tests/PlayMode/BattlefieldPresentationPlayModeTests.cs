@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using NUnit.Framework;
 using UnityEngine;
 
@@ -152,3 +153,4 @@ public class BattlefieldPresentationPlayModeTests
         Object.DestroyImmediate(authored);
     }
 }
+#endif

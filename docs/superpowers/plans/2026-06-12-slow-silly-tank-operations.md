@@ -141,12 +141,12 @@
 - Generate: `pythonanywhere_flask/webgl/`
 - Generate: `tank_game_pythonanywhere.zip`
 
-- [ ] Add deterministic release tests proving slow player movement, slope struggle, aligned scope, projectile-camera return, enemy standoff/no-ram behavior, visible damage states, castle collapse, tree knockdown, and reachable win state.
-- [ ] Run all EditMode and PlayMode tests; classify each result before processing and require zero failures.
-- [ ] Inspect Unity console and require zero compile/runtime errors.
-- [ ] Measure active effects, debris, craters, enemies, and build size against the WebGL budget.
-- [ ] Build WebGL using patient wait cycles and inspect build plus Editor logs.
-- [ ] Verify PythonAnywhere deployment copy, manifest, ZIP contents, ZIP size, and SHA-256.
+- [x] Add deterministic release tests proving slow player movement, slope struggle, aligned scope, projectile-camera return, enemy standoff/no-ram behavior, visible damage states, castle collapse, tree knockdown, and reachable win state.
+- [x] Run all EditMode and PlayMode tests; classify each result before processing and require zero failures.
+- [x] Inspect Unity console and require zero compile/runtime errors.
+- [x] Measure active effects, debris, craters, enemies, and build size against the WebGL budget.
+- [x] Build WebGL using patient wait cycles and inspect build plus Editor logs.
+- [x] Verify PythonAnywhere deployment copy, manifest, ZIP contents, ZIP size, and SHA-256.
 - [ ] Perform Chrome smoke validation and document Safari direct-URL checks.
-- [ ] Update locked docs with final values and evidence.
-- [ ] Commit: `release: validate slow silly tank operations overhaul`.
+- [x] Update locked docs with final values and evidence.
+- [x] Commit: `release: validate slow silly tank operations overhaul`.

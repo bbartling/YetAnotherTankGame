@@ -32800,7 +32800,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0d74ad4f06001a64092d75df0f116716, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankAudioController
   engineSource: {fileID: 0}
   idlePitch: 0.72
@@ -32817,7 +32817,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 10735761d68ca9e43b23e86d2ace07ab, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankAimController
   barrelPitchPivot: {fileID: 0}
   mouseWheelPitchSensitivity: 18
@@ -32834,7 +32834,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db829a7cab527314289e82753fabf845, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankTurretController
   turretYawPivot: {fileID: 0}
   mouseYawDegreesPerSecond: 32
@@ -32849,7 +32849,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fd9a56afb5a0d734aa694334cac61605, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankSuspensionVisual
   visualRoot: {fileID: 0}
   alignmentDegreesPerSecond: 45
@@ -32863,7 +32863,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 99b3d9e7d5c4d27458522c867406ced2, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankDriveController
   maxForwardSpeed: 5
   maxReverseSpeed: 2.5
@@ -58233,8 +58233,8 @@ Camera:
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
-  m_HDR: 1
-  m_AllowMSAA: 1
+  m_HDR: 0
+  m_AllowMSAA: 0
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
   m_OcclusionCulling: 1
@@ -58906,6 +58906,7 @@ MonoBehaviour:
   craterNoiseScale: 0.38
   maxImpactVerticalOffset: 45
   maxImpactForce: 260
+  maxRuntimeImpacts: 160
   seedRandomCraters: 1
   seedRandomHills: 1
   randomCraterCount: 72
@@ -74367,8 +74368,8 @@ Camera:
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
-  m_HDR: 1
-  m_AllowMSAA: 1
+  m_HDR: 0
+  m_AllowMSAA: 0
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
   m_OcclusionCulling: 1
@@ -74415,7 +74416,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 562adaf24003c1244963de36b80702af, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankOrbitCamera
   target: {fileID: 396673830}
   targetOffset: {x: 0, y: 2.2, z: 0}
@@ -78590,8 +78591,8 @@ Camera:
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
-  m_HDR: 1
-  m_AllowMSAA: 1
+  m_HDR: 0
+  m_AllowMSAA: 0
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
   m_OcclusionCulling: 1
@@ -88303,8 +88304,8 @@ Camera:
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
-  m_HDR: 1
-  m_AllowMSAA: 1
+  m_HDR: 0
+  m_AllowMSAA: 0
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
   m_OcclusionCulling: 1
@@ -115603,19 +115604,23 @@ MonoBehaviour:
 
     W/S or arrows - heavy forward/reverse drive
 
-    A/D or arrows - steer tracks
+    A/D
+    or arrows - steer tracks
 
     Shift - low gear / stabilized creeping
 
-    Mouse X - rotate turret
+    Mouse
+    X - rotate turret
 
     Mouse wheel - elevate barrel
 
-    PageUp / PageDown - fine barrel elevation
+    PageUp / PageDown -
+    fine barrel elevation
 
     Right click - scope/rangefinder
 
-    Left click / Space - fire cannon
+    Left click /
+    Space - fire cannon
 
     F - machine gun
 
@@ -124426,8 +124431,8 @@ Camera:
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
-  m_HDR: 1
-  m_AllowMSAA: 1
+  m_HDR: 0
+  m_AllowMSAA: 0
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
   m_OcclusionCulling: 1
@@ -155568,8 +155573,8 @@ Camera:
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
-  m_HDR: 1
-  m_AllowMSAA: 1
+  m_HDR: 0
+  m_AllowMSAA: 0
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
   m_OcclusionCulling: 1

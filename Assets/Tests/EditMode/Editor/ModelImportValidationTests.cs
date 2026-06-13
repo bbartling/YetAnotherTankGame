@@ -1,4 +1,5 @@
 using System.IO;
+#if UNITY_EDITOR
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -65,3 +66,4 @@ public class ModelImportValidationTests
         }
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using NUnit.Framework;
 using UnityEngine;
 
@@ -83,3 +84,4 @@ public class TankCorePolicyPlayModeTests
         Object.Destroy(hull);
     }
 }
+#endif

@@ -127,8 +127,23 @@ public static class TankWebGLBuildPipeline
             File.Delete(ZipOutputPath);
         }
 
-        ZipFile.CreateFromDirectory(DeploymentRoot, ZipOutputPath, System.IO.Compression.CompressionLevel.Optimal, false);
+        using (ZipArchive archive = ZipFile.Open(ZipOutputPath, ZipArchiveMode.Create))
+        {
+            foreach (string file in Directory.GetFiles(DeploymentRoot, "*", SearchOption.AllDirectories)
+                         .Where(ShouldIncludeDeploymentFile))
+            {
+                string entryName = Path.GetRelativePath(DeploymentRoot, file).Replace('\\', '/');
+                archive.CreateEntryFromFile(file, entryName, System.IO.Compression.CompressionLevel.Optimal);
+            }
+        }
         Debug.Log($"Created PythonAnywhere ZIP: {Path.GetFullPath(ZipOutputPath)} ({new FileInfo(ZipOutputPath).Length} bytes)");
+    }
+
+    public static bool ShouldIncludeDeploymentFile(string path)
+    {
+        string normalized = path.Replace('\\', '/');
+        return !normalized.Contains("/__pycache__/", StringComparison.OrdinalIgnoreCase) &&
+               !normalized.EndsWith(".pyc", StringComparison.OrdinalIgnoreCase);
     }
 
     private static void CopyDirectory(string source, string destination)

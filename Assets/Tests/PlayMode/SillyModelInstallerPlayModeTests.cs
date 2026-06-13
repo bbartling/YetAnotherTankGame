@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using NUnit.Framework;
 using UnityEngine;
 
@@ -26,3 +27,4 @@ public class SillyModelInstallerPlayModeTests
         Object.DestroyImmediate(root);
     }
 }
+#endif

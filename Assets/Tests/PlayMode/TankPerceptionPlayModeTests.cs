@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using NUnit.Framework;
 using UnityEngine;
 
@@ -31,3 +32,4 @@ public class TankPerceptionPlayModeTests
         Assert.That(perception.HasRecentMemory(24f), Is.False);
     }
 }
+#endif

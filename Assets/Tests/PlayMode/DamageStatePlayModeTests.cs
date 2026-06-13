@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using NUnit.Framework;
 using System.Reflection;
 using UnityEngine;
@@ -185,3 +186,4 @@ public class DamageStatePlayModeTests
         Object.DestroyImmediate(root);
     }
 }
+#endif
