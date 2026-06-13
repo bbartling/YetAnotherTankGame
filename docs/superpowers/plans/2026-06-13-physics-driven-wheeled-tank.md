@@ -28,11 +28,11 @@
 - Modify: `Assets/Scripts/Tank/TankDriveController.cs`
 - Modify: `Assets/Scripts/GameplayTestApi.cs`
 
-- [ ] Add failing tests proving eight wheel contact points exist, suspension force is calculated per wheel, normal driving does not use highest-corner terrain correction, and the vehicle center can descend below its starting height inside a crater/ramp test fixture.
-- [ ] Run focused PlayMode tests; expected classification: `SIMPLE`, expected result: missing `WheeledSuspensionController` and failed crater-descent policy.
-- [ ] Implement eight local wheel mount definitions and per-wheel downward sphere/ray probes.
-- [ ] Apply spring/damper forces at grounded wheel contacts.
-- [ ] Disable continuous `SnapAboveTerrain` calls during `FixedUpdate`; retain correction only for startup/reset/severe penetration recovery.
+- [x] Add failing tests proving eight wheel contact points exist, suspension force is calculated per wheel, normal driving does not use highest-corner terrain correction, and the vehicle center can descend below its starting height inside a crater/ramp test fixture.
+- [x] Run focused PlayMode tests; expected classification: `SIMPLE`, expected result: missing `WheeledSuspensionController` and failed crater-descent policy.
+- [x] Implement eight local wheel mount definitions and per-wheel downward sphere/ray probes.
+- [x] Apply spring/damper forces at grounded wheel contacts.
+- [x] Disable continuous `SnapAboveTerrain` calls during `FixedUpdate`; retain correction only for startup/reset/severe penetration recovery.
 - [ ] Expose grounded wheel count and suspension evidence through `GameplayTestApi`.
 - [ ] Run focused tests and manually drive/position the tank into a crater.
 - [ ] Commit: `feat: add wheel suspension and crater-following physics`.

@@ -43,6 +43,7 @@ public class TankController : MonoBehaviour
     public float terrainProbeHeight = 35f;
     public float terrainProbeDistance = 90f;
     public float startTerrainClearance = 1.5f;
+    public bool continuousTerrainSnapEnabled;
 
     [Header("Tracked Vehicle Grounding")]
     public float trackHalfWidth = 0.42f;
@@ -104,6 +105,7 @@ public class TankController : MonoBehaviour
     private TankTurretController _turretController;
     private TankAimController _aimController;
     private TankAudioController _tankAudioController;
+    private WheeledSuspensionController _wheeledSuspension;
     private AudioSource _audio;
     private float _turretYaw;
     private float _barrelElevation;
@@ -266,19 +268,21 @@ public class TankController : MonoBehaviour
     {
         if (_dead || _rb == null) return;
 
-        PreventTerrainPenetration();
         TrackGroundInfo groundInfo = ProbeTrackGround();
         float slopeAngle = groundInfo.grounded ? Vector3.Angle(groundInfo.normal, Vector3.up) : 0f;
         ReadDriveInput(out float telemetryThrottle, out _, out _);
         _driveController?.RecordGroundState(groundInfo.grounded, slopeAngle, telemetryThrottle);
         _suspensionVisual?.RecordGroundNormal(groundInfo.normal, Time.fixedDeltaTime);
         _tankAudioController?.SetEngineStrain(EngineStrain);
-        ApplyTrackSuspension(groundInfo);
+        _wheeledSuspension?.ApplySuspension(_rb);
         HandleTrackDrive(groundInfo);
         ApplyTrackedGrip(groundInfo);
         AlignHullToTrackGrade(groundInfo);
         ClampGroundSpeed(groundInfo);
-        PreventTerrainPenetration();
+        if (continuousTerrainSnapEnabled)
+        {
+            PreventTerrainPenetration();
+        }
     }
 
     private void EnsureFocusedControllers()
@@ -288,6 +292,9 @@ public class TankController : MonoBehaviour
 
         _suspensionVisual = GetComponent<TankSuspensionVisual>();
         if (_suspensionVisual == null) _suspensionVisual = gameObject.AddComponent<TankSuspensionVisual>();
+
+        _wheeledSuspension = GetComponent<WheeledSuspensionController>();
+        if (_wheeledSuspension == null) _wheeledSuspension = gameObject.AddComponent<WheeledSuspensionController>();
 
         _turretController = GetComponent<TankTurretController>();
         if (_turretController == null) _turretController = gameObject.AddComponent<TankTurretController>();
