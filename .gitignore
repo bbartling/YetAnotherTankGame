@@ -103,3 +103,9 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# Scratch screenshots superseded by the tracked upright model validation capture
+/Assets/Screenshots/silly-model-player-check.png*
+/Assets/Screenshots/silly-model-player-close.png*
+/Assets/Screenshots/silly-model-player-final.png*
+/Assets/Screenshots/silly-model-player-intact.png*

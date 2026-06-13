@@ -230,6 +230,17 @@ public class EnemyTankSpawner : MonoBehaviour
         if (ai != null)
         {
             ApplySpawnProfile(ai, index, totalCount);
+            SillyModelInstaller installer = enemy.GetComponent<SillyModelInstaller>();
+            if (installer != null)
+            {
+                string[] variants =
+                {
+                    "Models/Tanks/SillyEnemyScout",
+                    "Models/Tanks/SillyEnemyStandard",
+                    "Models/Tanks/SillyEnemyCommander"
+                };
+                installer.ReplaceResource(variants[index % variants.Length], 0.7f);
+            }
             if (battlefieldDirector != null)
             {
                 battlefieldDirector.RegisterEnemySpawned(ai);

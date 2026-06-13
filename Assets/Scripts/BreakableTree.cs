@@ -33,6 +33,7 @@ public class BreakableTree : MonoBehaviour
         _rb = GetComponent<Rigidbody>();
         _audio = GetComponent<AudioSource>();
         _health = maxHealth;
+        SillyModelInstaller.Ensure(gameObject, "Models/Trees/SillyTreeKit", 1f, true);
 
         _rb.mass = Mathf.Max(0.5f, maxHealth * 0.06f);
         _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;

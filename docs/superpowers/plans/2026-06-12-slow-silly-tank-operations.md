@@ -92,17 +92,17 @@
 - Create: `Assets/Tests/EditMode/Editor/ModelImportValidationTests.cs`
 - Modify: player, enemy, castle, turret, and tree prefabs used by `Practice.unity`
 
-- [ ] Verify Blender MCP connectivity and save source files before export.
-- [ ] Write failing EditMode tests for required source/runtime assets, non-zero renderer bounds, required pivots, and damage-state references.
-- [ ] Create the player tank with grumpy eyes, oversized commander helmet/dome, chunky barrel, exaggerated tracks, comic armor plates, and wobbling antenna.
-- [ ] Create scout, standard, and commander enemy silhouettes with separate hull, turret, barrel, and tracks.
-- [ ] Create modular intact/cracked/damaged/collapsed castle pieces and separate castle turrets.
-- [ ] Create standing, damaged, fallen, and stump tree variants.
-- [ ] Apply transforms, use one-meter scale, and export predictable runtime FBX assets.
-- [ ] Assemble prefabs with gameplay pivots, colliders, damage states, and simple WebGL materials.
-- [ ] Add loud model-validation errors; required models must never silently fall back to primitives.
-- [ ] Run model tests, inspect renderer bounds, and capture player/enemy/castle screenshots.
-- [ ] Commit: `feat: add silly modular Blender battlefield models`.
+- [x] Verify Blender MCP connectivity and save source files before export.
+- [x] Write failing EditMode tests for required source/runtime assets, non-zero renderer bounds, required pivots, and damage-state references.
+- [x] Create the player tank with grumpy eyes, oversized commander helmet/dome, chunky barrel, exaggerated tracks, comic armor plates, and wobbling antenna.
+- [x] Create scout, standard, and commander enemy silhouettes with separate hull, turret, barrel, and tracks.
+- [x] Create modular intact/cracked/damaged/collapsed castle pieces and separate castle turrets.
+- [x] Create standing, damaged, fallen, and stump tree variants.
+- [x] Apply transforms, use one-meter scale, and export predictable runtime FBX assets.
+- [x] Assemble prefabs with gameplay pivots, colliders, damage states, and simple WebGL materials.
+- [x] Add loud model-validation errors; required models must never silently fall back to primitives.
+- [x] Run model tests, inspect renderer bounds, and capture player/enemy/castle screenshots.
+- [x] Commit: `feat: add silly modular Blender battlefield models`.
 
 ## Checkpoint 4: Animation, Smoke, Fire, Explosions, And Audio
 

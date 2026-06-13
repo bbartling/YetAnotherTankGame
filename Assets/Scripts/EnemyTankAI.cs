@@ -124,6 +124,7 @@ public class EnemyTankAI : MonoBehaviour
         _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
         AutoWireReferences();
+        SillyModelInstaller.Ensure(gameObject, "Models/Tanks/SillyEnemyStandard", 0.7f, true);
         _patrolAngle = patrolStartAngle;
         DisableNonPlayerCameras();
 

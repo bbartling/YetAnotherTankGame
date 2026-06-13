@@ -32,6 +32,7 @@ public class CastleDamageReceiver : MonoBehaviour
             _damageStateController = gameObject.AddComponent<DamageStateController>();
         }
         _damageStateController.ApplyHealthRatio(1f);
+        SillyModelInstaller.Ensure(gameObject, "Models/Castle/SillyCastleKit", 1f, false);
     }
 
     public void ApplyImpact(Vector3 worldPoint, Vector3 worldNormal, float force)

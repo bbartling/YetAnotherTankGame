@@ -159,6 +159,7 @@ public class TankController : MonoBehaviour
         CacheStartingAngles();
         EnsureFocusedControllers();
         ValidatePivotSetup();
+        SillyModelInstaller.Ensure(gameObject, "Models/Tanks/SillyPlayerTank", 6f, true);
     }
 
     private void Start()
