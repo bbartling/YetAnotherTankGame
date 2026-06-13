@@ -26,8 +26,24 @@ public class TankBarrelScopeCamera : MonoBehaviour
         _camera.fieldOfView = scoped ? scopeFieldOfView : normalFieldOfView;
         if (scoped)
         {
-            transform.position = sight.TransformPoint(localSightOffset);
-            transform.rotation = sight.rotation;
+            ApplyScopePose();
         }
+    }
+
+    public void ApplyScopePose()
+    {
+        if (_camera == null)
+        {
+            _camera = GetComponent<Camera>();
+        }
+
+        if (_camera == null || sight == null)
+        {
+            return;
+        }
+
+        _camera.fieldOfView = scopeFieldOfView;
+        transform.position = sight.TransformPoint(localSightOffset);
+        transform.rotation = sight.rotation;
     }
 }

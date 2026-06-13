@@ -141,6 +141,7 @@ public class TankController : MonoBehaviour
     public float CurrentGroundSpeed => Vector3.ProjectOnPlane(ReadVelocity(), Vector3.up).magnitude;
     public float CurrentSlopeAngle => _driveController != null ? _driveController.CurrentSlopeAngle : 0f;
     public bool IsGrounded => _driveController != null && _driveController.IsGrounded;
+    public int GroundedWheelCount => _wheeledSuspension != null ? _wheeledSuspension.GroundedWheelCount : 0;
     public float EngineStrain => _driveController != null ? _driveController.EngineStrain : 0f;
     public string CurrentDamageState => _damageStateController != null ? _damageStateController.CurrentState.ToString() : (_dead ? "Wrecked" : "Intact");
 

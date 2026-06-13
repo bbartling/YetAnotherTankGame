@@ -109,6 +109,48 @@ public class BattlefieldPresentationPlayModeTests
     }
 
     [Test]
+    public void TankVisualAnimator_RotatesEightWheelVisualsWhileMoving()
+    {
+        GameObject root = new GameObject("WheelTank");
+        TankVisualAnimator animator = root.AddComponent<TankVisualAnimator>();
+        animator.wheels = new Transform[8];
+        Quaternion[] initial = new Quaternion[8];
+        for (int i = 0; i < animator.wheels.Length; i++)
+        {
+            animator.wheels[i] = new GameObject($"Wheel_{i}").transform;
+            animator.wheels[i].SetParent(root.transform, false);
+            initial[i] = animator.wheels[i].localRotation;
+        }
+
+        animator.TickVisuals(0.1f, 2f, 0f);
+
+        for (int i = 0; i < animator.wheels.Length; i++)
+        {
+            Assert.That(Quaternion.Angle(initial[i], animator.wheels[i].localRotation), Is.GreaterThan(0f));
+        }
+        Object.DestroyImmediate(root);
+    }
+
+    [Test]
+    public void VisualPivotFollower_PreservesRestPoseAndFollowsTargetDelta()
+    {
+        GameObject root = new GameObject("PivotFollower");
+        Transform target = new GameObject("Target").transform;
+        target.SetParent(root.transform, false);
+        Transform visual = new GameObject("Visual").transform;
+        visual.SetParent(root.transform, false);
+        visual.rotation = Quaternion.Euler(5f, 10f, 2f);
+        VisualPivotFollower follower = visual.gameObject.AddComponent<VisualPivotFollower>();
+        follower.Bind(target);
+
+        target.rotation = Quaternion.Euler(0f, 45f, 0f);
+        follower.SendMessage("LateUpdate");
+
+        Assert.That(Mathf.Abs(Mathf.DeltaAngle(55f, visual.eulerAngles.y)), Is.LessThan(0.5f));
+        Object.DestroyImmediate(root);
+    }
+
+    [Test]
     public void DestructionAnimator_CollapseMovesChunkFromRestPose()
     {
         GameObject root = new GameObject("CastleChunk");

@@ -43,6 +43,7 @@ public class GameplayTestApi : MonoBehaviour
     public float PlayerTankSpeed => playerTank != null ? playerTank.CurrentGroundSpeed : 0f;
     public float PlayerTankSlopeAngle => playerTank != null ? playerTank.CurrentSlopeAngle : 0f;
     public bool PlayerTankGrounded => playerTank != null && playerTank.IsGrounded;
+    public int PlayerGroundedWheelCount => playerTank != null ? playerTank.GroundedWheelCount : 0;
     public bool ProjectileCameraActive => ProjectileCameraController.ActivePlayerProjectile != null;
     public int ProjectileCameraActivationCount => ProjectileCameraController.PlayerCameraActivationCount;
     public float EnemyDistanceToPlayer
@@ -307,6 +308,7 @@ public class GameplayTestApi : MonoBehaviour
         builder.AppendFormat("\"playerTankSpeed\":{0:0.00},", PlayerTankSpeed);
         builder.AppendFormat("\"playerTankSlopeAngle\":{0:0.00},", PlayerTankSlopeAngle);
         builder.AppendFormat("\"playerTankGrounded\":{0},", PlayerTankGrounded ? "true" : "false");
+        builder.AppendFormat("\"playerGroundedWheelCount\":{0},", PlayerGroundedWheelCount);
         builder.AppendFormat("\"projectileCameraActive\":{0},", ProjectileCameraActive ? "true" : "false");
         builder.AppendFormat("\"projectileCameraActivationCount\":{0},", ProjectileCameraActivationCount);
         builder.AppendFormat("\"castleHealth\":{0:0.0},", castle != null ? castle.HealthPercent : 0f);

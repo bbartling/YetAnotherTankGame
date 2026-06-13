@@ -5,6 +5,29 @@ using UnityEngine;
 public class WheeledTankHandlingPlayModeTests
 {
     [Test]
+    public void GameplayTestApi_ReportsGroundedWheelCount()
+    {
+        GameObject tankObject = new GameObject("TestApiWheelTank");
+        tankObject.SetActive(false);
+        TankController tank = tankObject.AddComponent<TankController>();
+        WheeledSuspensionController suspension = tankObject.AddComponent<WheeledSuspensionController>();
+        typeof(WheeledSuspensionController)
+            .GetProperty(nameof(WheeledSuspensionController.GroundedWheelCount))
+            .GetSetMethod(true)
+            .Invoke(suspension, new object[] { 6 });
+        typeof(TankController)
+            .GetField("_wheeledSuspension", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            .SetValue(tank, suspension);
+        GameObject apiObject = new GameObject("GameplayTestApi");
+        GameplayTestApi api = apiObject.AddComponent<GameplayTestApi>();
+        api.playerTank = tank;
+
+        Assert.That(api.PlayerGroundedWheelCount, Is.EqualTo(6));
+        Object.DestroyImmediate(apiObject);
+        Object.DestroyImmediate(tankObject);
+    }
+
+    [Test]
     public void WheeledSuspension_DefinesEightIndependentWheelMounts()
     {
         GameObject root = new GameObject("WheeledTank");

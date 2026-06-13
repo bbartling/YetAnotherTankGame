@@ -1,6 +1,6 @@
 # Silly Tank Hill War
 
-A deliberately slow, silly-looking tactical tank game built in Unity 6000.4.6f1. Tanks creep over hills, lob physical cannonballs, use a scope/rangefinder, watch shots through the projectile camera, and fight standoff enemies around destructible castles and trees.
+A silly-looking tactical armored-vehicle game built in Unity 6000.4.6f1. The eight-wheel player tank accelerates deliberately, follows rough terrain, can tip or roll, lobs physical cannonballs, uses a barrel-aligned scope/rangefinder, watches shots through the projectile camera, and fights standoff enemies around destructible castles and trees.
 
 ## Controls
 

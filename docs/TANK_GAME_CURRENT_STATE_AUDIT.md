@@ -148,6 +148,17 @@ This camera behavior is a locked feature and may only be replaced by a tested im
 - No real automated regression suite.
 - WebGL/PythonAnywhere release output is reproducible and validated through manifests plus `tank_game_pythonanywhere.zip`.
 
+## June 13, 2026 Wheeled Handling Update
+
+- The player visual is an authored silly eight-wheel armored vehicle with four separately animated square-edged wheels per side.
+- Player road speed is capped at `7.5 m/s` forward and `3.5 m/s` reverse, with approximately four-second acceleration and two-second braking.
+- Eight wheel-contact probes apply normalized spring/damper forces. Continuous highest-footprint terrain correction is disabled during normal driving so the vehicle can descend into craters.
+- Artificial continuous hull leveling is disabled, allowing physics-driven pitch, tipping, and rolling.
+- Visible authored turret and barrel parts follow the gameplay yaw/elevation pivots.
+- Third-person camera defaults are raised to a `4.5m` target offset and `11m` follow distance.
+- Right mouse uses a barrel-firepoint-aligned scope pose while preserving projectile-camera ownership after firing.
+- `GameplayTestApi` exposes `playerGroundedWheelCount` for suspension validation.
+
 ## Features That Must Not Regress
 
 - Physical player cannonball with visible artillery-like lob.

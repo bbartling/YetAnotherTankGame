@@ -14,7 +14,7 @@ A release is valid only when:
 ## Automated Suites
 
 - EditMode: ballistics, required Blender/runtime models, renderer bounds, build scenes, WebGL settings, Flask layout, and build pipeline.
-- PlayMode: slow/heavy tank policy, slope policy, turret independence, enemy perception/standoff/pathing, damage states, bounded effects, model installation, recoil/track animation, audio fallbacks, and distance rolloff.
+- PlayMode: wheeled acceleration/slope policy, wheel suspension contacts, visible turret/barrel binding, raised camera and barrel-scope alignment, enemy perception/standoff/pathing, damage states, bounded effects, model installation, wheel animation, audio fallbacks, and distance rolloff.
 
 Use the Unity Test Runner or Unity MCP. Classify results before processing:
 
@@ -27,6 +27,8 @@ Use the Unity Test Runner or Unity MCP. Classify results before processing:
 2. Drive uphill; confirm speed loss and visual slope alignment.
 3. Enter right-click scope; confirm reticle/range information follows the actual aim.
 4. Fire a lobbed cannonball; confirm projectile camera activates, follows impact, and returns.
+5. Drive through an existing crater and rough terrain; confirm individual wheel suspension follows the surface instead of bridging over the depression.
+6. Cross a steep side slope; confirm the vehicle can naturally tip or roll and is not automatically forced upright.
 5. Confirm enemy tanks engage from range, stop to aim, reload, reposition, and avoid ramming.
 6. Damage a tank until smoke/fire/wreck states appear.
 7. Hit trees and castle pieces; confirm knockdown/crumble effects and bounded debris.
