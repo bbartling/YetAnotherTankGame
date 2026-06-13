@@ -122,6 +122,9 @@ public class CastleDamageReceiver : MonoBehaviour
     {
         _collapsed = true;
         _damageStateController?.ApplyHealthRatio(0f);
+        DestructionAnimator animator = GetComponent<DestructionAnimator>();
+        if (animator == null) animator = gameObject.AddComponent<DestructionAnimator>();
+        animator.BeginCollapse();
         StartCoroutine(CollapseCastleSequence());
     }
 

@@ -118,6 +118,9 @@ public class EnemyTankAI : MonoBehaviour
     {
         _rb = GetComponent<Rigidbody>();
         _audio = GetComponent<AudioSource>();
+        EnemyAudioController enemyAudio = GetComponent<EnemyAudioController>();
+        if (enemyAudio == null) enemyAudio = gameObject.AddComponent<EnemyAudioController>();
+        enemyAudio.ConfigureDistanceRolloff();
         _rb.linearDamping = 0.8f;
         _rb.angularDamping = 2.3f;
         _rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
@@ -676,6 +679,11 @@ private EnemyState GetState()
         }
 
         GameObject shell = Instantiate(shellPrefab, firePoint.position, firePoint.rotation);
+        if (shell.GetComponent<ProjectileAudioController>() == null)
+        {
+            shell.AddComponent<ProjectileAudioController>();
+        }
+        GetComponent<TankVisualAnimator>()?.TriggerRecoil();
         IgnoreShellOwnerCollision(shell);
         ProjectileCameraController cameraController = shell.GetComponent<ProjectileCameraController>();
         if (cameraController != null)

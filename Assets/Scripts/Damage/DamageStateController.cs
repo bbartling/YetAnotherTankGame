@@ -75,6 +75,7 @@ public class DamageStateController : MonoBehaviour
         SetActive(intactModel, CurrentState != State.Wrecked);
         SetActive(wreckModel, CurrentState == State.Wrecked);
         modelSwap?.ApplyState(CurrentState);
+        GetComponent<SillyModelInstaller>()?.ApplyDamageState(CurrentState);
 
         SetParticlesPlaying(smokeEffect, smokeEffect != null && smokeEffect.activeSelf);
         SetParticlesPlaying(fireEffect, fireEffect != null && fireEffect.activeSelf);

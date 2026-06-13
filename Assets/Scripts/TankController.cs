@@ -859,6 +859,11 @@ public class TankController : MonoBehaviour
         }
 
         GameObject shell = Instantiate(shellPrefab, cannonFirePoint.position, cannonFirePoint.rotation);
+        if (shell.GetComponent<ProjectileAudioController>() == null)
+        {
+            shell.AddComponent<ProjectileAudioController>();
+        }
+        GetComponent<TankVisualAnimator>()?.TriggerRecoil();
         IgnoreShellOwnerCollision(shell);
 
         ProjectileCameraController projectileCamera = shell.GetComponent<ProjectileCameraController>();

@@ -14,6 +14,15 @@ public class TankAudioController : MonoBehaviour
         {
             engineSource = GetComponent<AudioSource>();
         }
+        EnsureFallbackClips();
+    }
+
+    public void EnsureFallbackClips()
+    {
+        if (engineSource != null && engineSource.clip == null)
+        {
+            engineSource.clip = ProceduralBattlefieldAudio.CreateEngineLoop();
+        }
     }
 
     public void SetEngineStrain(float strain)

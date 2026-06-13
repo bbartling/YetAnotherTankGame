@@ -58,6 +58,7 @@ public class SillyModelInstaller : MonoBehaviour
         InstalledVisual.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
         InstalledVisual.transform.localScale = Vector3.one * visualScale;
         ConfigureInitialVariants();
+        BindTankVisualAnimator();
     }
 
     public void ReplaceResource(string requiredResourcePath, float scale)
@@ -96,5 +97,47 @@ public class SillyModelInstaller : MonoBehaviour
                 part.gameObject.SetActive(false);
             }
         }
+    }
+
+    public void ApplyDamageState(DamageStateController.State state)
+    {
+        if (InstalledVisual == null)
+        {
+            return;
+        }
+
+        bool damaged = state == DamageStateController.State.BurningDisabled || state == DamageStateController.State.Wrecked;
+        Transform[] parts = InstalledVisual.GetComponentsInChildren<Transform>(true);
+        foreach (Transform part in parts)
+        {
+            if (part.name.Contains("Damaged"))
+            {
+                part.gameObject.SetActive(damaged);
+            }
+            else if (part.name == "Hull" || part.name == "Turret" || part.name == "Barrel" ||
+                     part.name == "LeftTrack" || part.name == "RightTrack")
+            {
+                part.gameObject.SetActive(!damaged);
+            }
+        }
+    }
+
+    private void BindTankVisualAnimator()
+    {
+        Transform barrel = InstalledVisual.transform.Find("Barrel");
+        Transform antenna = InstalledVisual.transform.Find("Antenna");
+        if (barrel == null && antenna == null)
+        {
+            return;
+        }
+
+        TankVisualAnimator animator = GetComponent<TankVisualAnimator>();
+        if (animator == null)
+        {
+            animator = gameObject.AddComponent<TankVisualAnimator>();
+        }
+        animator.Bind(barrel, antenna);
+        animator.leftTrack = InstalledVisual.transform.Find("LeftTrack");
+        animator.rightTrack = InstalledVisual.transform.Find("RightTrack");
     }
 }

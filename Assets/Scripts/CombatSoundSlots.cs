@@ -16,4 +16,20 @@ public class CombatSoundSlots : MonoBehaviour
     public AudioClip cannonGroundExplosion;
     public AudioClip machineGunMetalRicochet;
     public AudioClip enemyTankKill;
+
+    private void Awake()
+    {
+        EnsureFallbackClips();
+    }
+
+    public void EnsureFallbackClips()
+    {
+        if (playerCannonShot == null) playerCannonShot = ProceduralBattlefieldAudio.CreateCannonBoom();
+        if (enemyCannonShot == null) enemyCannonShot = ProceduralBattlefieldAudio.CreateCannonBoom();
+        if (turretShot == null) turretShot = ProceduralBattlefieldAudio.CreateCannonBoom();
+        if (enemyCannonNearMiss == null) enemyCannonNearMiss = ProceduralBattlefieldAudio.CreateShellWhistle();
+        if (cannonGroundExplosion == null) cannonGroundExplosion = ProceduralBattlefieldAudio.CreateImpact();
+        if (machineGunMetalRicochet == null) machineGunMetalRicochet = ProceduralBattlefieldAudio.CreateImpact();
+        if (enemyTankKill == null) enemyTankKill = ProceduralBattlefieldAudio.CreateImpact();
+    }
 }

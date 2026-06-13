@@ -118,13 +118,13 @@
 - Modify: `Assets/Scripts/CombatSoundSlots.cs`
 - Modify: assembled prefabs and `Practice.unity`
 
-- [ ] Write failing tests for recoil, antenna wobble, track motion, burning-state effects, castle collapse animation, engine strain audio, proximity audio, and capped loud one-shots.
-- [ ] Implement transform-based recoil, hatch/antenna motion, track visuals, tree fall, and castle collapse.
-- [ ] Wire pooled smoke, fire, explosions, and material-specific impacts to damage events.
-- [ ] Implement replaceable audio slots for engine idle/strain, tracks, turret, barrel, reload, cannon, shell, impacts, fire, tree, and castle.
-- [ ] Enforce audio voice limits and distance rolloff.
-- [ ] Run presentation tests and manually inspect missing-reference warnings.
-- [ ] Commit: `feat: add animated damage effects and battlefield audio`.
+- [x] Write failing tests for recoil, antenna wobble, track motion, burning-state effects, castle collapse animation, engine strain audio, proximity audio, and capped loud one-shots.
+- [x] Implement transform-based recoil, hatch/antenna motion, track visuals, tree fall, and castle collapse.
+- [x] Wire pooled smoke, fire, explosions, and material-specific impacts to damage events.
+- [x] Implement replaceable audio slots for engine idle/strain, tracks, turret, barrel, reload, cannon, shell, impacts, fire, tree, and castle.
+- [x] Enforce audio voice limits and distance rolloff.
+- [x] Run presentation tests and manually inspect missing-reference warnings.
+- [x] Commit: `feat: add animated damage effects and battlefield audio`.
 
 ## Checkpoint 5: Full Validation And Release
 
