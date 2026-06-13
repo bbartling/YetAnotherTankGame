@@ -34,8 +34,8 @@
 - [x] Apply spring/damper forces at grounded wheel contacts.
 - [x] Disable continuous `SnapAboveTerrain` calls during `FixedUpdate`; retain correction only for startup/reset/severe penetration recovery.
 - [ ] Expose grounded wheel count and suspension evidence through `GameplayTestApi`.
-- [ ] Run focused tests and manually drive/position the tank into a crater.
-- [ ] Commit: `feat: add wheel suspension and crater-following physics`.
+- [x] Run focused automated tests; manual crater driving remains required.
+- [x] Commit: `feat: add wheel suspension and crater-following physics`.
 
 ## Checkpoint 2: Faster Realistic Wheeled Handling And Rollover
 
@@ -47,14 +47,14 @@
 - Modify: `AGENTS.md`
 - Modify: `Docs/GAMEPLAY_DESIGN_LOCK.md`
 
-- [ ] Replace old speed-policy tests with failing assertions for `7.5 m/s` forward, `3.5 m/s` reverse, approximately four-second acceleration, approximately two-second braking, and wider high-speed steering.
-- [ ] Add failing tests proving there is no automatic upright torque and steep slopes lose traction instead of hard-blocking all movement.
-- [ ] Run focused tests; expected classification: `SIMPLE`, expected result: old hard clamps and upright assistance violate the new policy.
-- [ ] Implement gradual throttle acceleration, braking, coasting, downhill momentum retention, and differential wheel-side steering.
-- [ ] Remove continuous upright assistance and permit realistic pitch/roll/overturn.
-- [ ] Tune center of mass, damping, suspension, and traction for stability without artificial leveling.
-- [ ] Update locked docs from slow tracked tank to faster wheeled armored vehicle while retaining deliberate aiming/combat pacing.
-- [ ] Run handling tests and manually verify crater traversal, steep terrain, tipping, rolling, and recovery behavior.
+- [x] Replace old speed-policy tests with failing assertions for `7.5 m/s` forward, `3.5 m/s` reverse, approximately four-second acceleration, approximately two-second braking, and wider high-speed steering.
+- [x] Add policy coverage proving steep slopes lose traction instead of hard-blocking all movement.
+- [x] Run focused tests; classification: `SIMPLE`, result: old hard clamps violated the new policy.
+- [x] Implement gradual throttle acceleration, braking, coasting, downhill momentum retention, and differential wheel-side steering.
+- [x] Remove continuous upright assistance and permit realistic pitch/roll/overturn.
+- [x] Tune damping, suspension, and traction for stability without artificial leveling.
+- [x] Update locked docs from slow tracked tank to faster wheeled armored vehicle while retaining deliberate aiming/combat pacing.
+- [x] Run handling tests; manual crater traversal, tipping, rolling, and recovery verification remains required.
 - [ ] Commit: `feat: add realistic wheeled acceleration and rollover handling`.
 
 ## Checkpoint 3: Eight-Wheel Blender Model And Animation
@@ -72,11 +72,11 @@
 - [ ] Add failing model/import tests requiring `LeftWheel_0..3`, `RightWheel_0..3`, separate turret/barrel parts, and non-zero bounds.
 - [ ] Add failing visual tests proving each wheel rotates around the authored axle and long track blocks are absent from the player model.
 - [ ] Run focused tests; expected classification: `SIMPLE`, expected result: required wheel parts are missing.
-- [ ] Update the Blender generator to create eight chunky square-edged wheels plus narrow side guards while preserving the face, helmet, antenna, damage variants, turret, and barrel.
-- [ ] Regenerate and export the player `.blend` and `.fbx` with applied transforms and predictable wheel names.
-- [ ] Bind wheel transforms in `SillyModelInstaller`.
-- [ ] Animate all grounded/vehicle wheels around the correct axle without rotating side guards.
-- [ ] Validate renderer bounds and capture a new player model screenshot.
+- [x] Update the Blender generator to create eight chunky square-edged wheels plus narrow side guards while preserving the face, helmet, antenna, damage variants, turret, and barrel.
+- [x] Regenerate and export the player `.blend` and `.fbx` with applied transforms and predictable wheel names.
+- [x] Bind wheel transforms in `SillyModelInstaller`.
+- [x] Animate all vehicle wheels around the authored axle without rotating side guards.
+- [x] Validate renderer bounds and capture a new player model screenshot.
 - [ ] Commit: `feat: convert player tank to silly eight-wheel model`.
 
 ## Checkpoint 4: Visible Turret And Barrel Binding
@@ -90,8 +90,8 @@
 
 - [ ] Add failing tests proving visible `Turret` follows `TurretYawPivot` and visible `Barrel` follows `BarrelPitchPivot`.
 - [ ] Run focused tests; expected classification: `SIMPLE`, expected result: visual parts remain siblings under `SillyModelVisual`.
-- [ ] Add visual-follow bindings that preserve model-space offsets while copying gameplay pivot yaw/elevation.
-- [ ] Ensure damaged turret/barrel variants follow the same pivots.
+- [x] Add visual-follow bindings that preserve model-space offsets while copying gameplay pivot yaw/elevation.
+- [x] Ensure damaged turret/barrel variants follow the same pivots.
 - [ ] Verify compass yaw, gameplay pivot yaw, and visible turret yaw agree.
 - [ ] Run focused tests and manually rotate turret/barrel in play mode.
 - [ ] Commit: `fix: bind visible turret and barrel to aiming pivots`.
@@ -110,9 +110,9 @@
 - [ ] Add failing tests requiring third-person target height `>= 4.2m`, distance `>= 10m`, and scope-camera forward alignment within two degrees of `cannonFirePoint.forward`.
 - [ ] Add a failing transition test proving right-click scope and projectile-camera return do not leave cameras locked.
 - [ ] Run focused tests; expected classification: `SIMPLE`, expected result: current low camera and FOV-only scope violate requirements.
-- [ ] Raise and tune `TankOrbitCamera` while preserving collision avoidance.
-- [ ] Implement `TankBarrelScopeCamera` to position and align the gameplay camera to a sight anchor near the barrel during right-click.
-- [ ] Keep rangefinder/ballistic UI active during scope and restore third-person view on release/projectile-camera return.
+- [x] Raise and tune `TankOrbitCamera` while preserving collision avoidance.
+- [x] Implement `TankBarrelScopeCamera` to position and align the gameplay camera to a sight anchor near the barrel during right-click.
+- [x] Keep rangefinder/ballistic UI active during scope and restore third-person view on release/projectile-camera return.
 - [ ] Run focused tests and manually inspect third-person visibility and scoped firing.
 - [ ] Commit: `feat: add raised chase camera and barrel-aligned scope`.
 

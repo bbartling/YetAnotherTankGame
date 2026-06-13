@@ -139,5 +139,24 @@ public class SillyModelInstaller : MonoBehaviour
         animator.Bind(barrel, antenna);
         animator.leftTrack = InstalledVisual.transform.Find("LeftTrack");
         animator.rightTrack = InstalledVisual.transform.Find("RightTrack");
+        animator.wheels = new Transform[8];
+        for (int i = 0; i < 4; i++)
+        {
+            animator.wheels[i] = InstalledVisual.transform.Find($"LeftWheel_{i}");
+            animator.wheels[i + 4] = InstalledVisual.transform.Find($"RightWheel_{i}");
+        }
+
+        BindVisualPivot(InstalledVisual.transform.Find("Turret"), GetComponent<TankController>()?.turretYawPivot);
+        BindVisualPivot(InstalledVisual.transform.Find("Turret_Damaged"), GetComponent<TankController>()?.turretYawPivot);
+        BindVisualPivot(InstalledVisual.transform.Find("Barrel"), GetComponent<TankController>()?.barrelPitchPivot);
+        BindVisualPivot(InstalledVisual.transform.Find("Barrel_Damaged"), GetComponent<TankController>()?.barrelPitchPivot);
+    }
+
+    private static void BindVisualPivot(Transform visual, Transform pivot)
+    {
+        if (visual == null || pivot == null) return;
+        VisualPivotFollower follower = visual.GetComponent<VisualPivotFollower>();
+        if (follower == null) follower = visual.gameObject.AddComponent<VisualPivotFollower>();
+        follower.Bind(pivot);
     }
 }

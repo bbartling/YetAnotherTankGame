@@ -3,11 +3,11 @@ using UnityEngine;
 public class TankDriveController : MonoBehaviour
 {
     [Header("Locked Heavy Movement")]
-    public float maxForwardSpeed = 2.5f;
-    public float maxReverseSpeed = 1f;
-    public float accelerationSeconds = 6f;
-    public float brakingSeconds = 2.5f;
-    [Range(0.1f, 1f)] public float highSpeedSteeringMultiplier = 0.35f;
+    public float maxForwardSpeed = 7.5f;
+    public float maxReverseSpeed = 3.5f;
+    public float accelerationSeconds = 4f;
+    public float brakingSeconds = 2f;
+    [Range(0.1f, 1f)] public float highSpeedSteeringMultiplier = 0.45f;
     [Range(0.1f, 1f)] public float lowGearSpeedMultiplier = 0.55f;
 
     [Header("Slope Traction")]
@@ -26,11 +26,11 @@ public class TankDriveController : MonoBehaviour
 
     private void OnEnable()
     {
-        maxForwardSpeed = Mathf.Min(maxForwardSpeed, 2.5f);
-        maxReverseSpeed = Mathf.Min(maxReverseSpeed, 1f);
-        accelerationSeconds = Mathf.Max(accelerationSeconds, 6f);
-        brakingSeconds = Mathf.Max(brakingSeconds, 2.5f);
-        highSpeedSteeringMultiplier = Mathf.Min(highSpeedSteeringMultiplier, 0.35f);
+        maxForwardSpeed = 7.5f;
+        maxReverseSpeed = 3.5f;
+        accelerationSeconds = 4f;
+        brakingSeconds = 2f;
+        highSpeedSteeringMultiplier = 0.45f;
     }
 
     public void ReadInput(out float throttle, out float steer, out bool lowGear)
@@ -65,11 +65,6 @@ public class TankDriveController : MonoBehaviour
 
     public float GetSlopeSpeedMultiplier(float slopeAngle)
     {
-        if (slopeAngle > maxClimbSlopeDegrees)
-        {
-            return 0f;
-        }
-
         if (slopeAngle <= tractionLossSlopeDegrees)
         {
             return 1f;

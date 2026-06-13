@@ -7,6 +7,7 @@ public class TankVisualAnimator : MonoBehaviour
     public Transform antenna;
     public Transform leftTrack;
     public Transform rightTrack;
+    public Transform[] wheels;
     public float recoilDistance = 0.45f;
     public float recoilReturnSpeed = 5f;
     public float antennaWobbleDegrees = 7f;
@@ -65,5 +66,12 @@ public class TankVisualAnimator : MonoBehaviour
         float trackDegrees = speed * deltaTime * 95f;
         if (leftTrack != null) leftTrack.Rotate(trackDegrees, 0f, 0f, Space.Self);
         if (rightTrack != null) rightTrack.Rotate(trackDegrees, 0f, 0f, Space.Self);
+        if (wheels != null)
+        {
+            for (int i = 0; i < wheels.Length; i++)
+            {
+                if (wheels[i] != null) wheels[i].Rotate(0f, trackDegrees, 0f, Space.Self);
+            }
+        }
     }
 }

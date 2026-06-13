@@ -9,10 +9,10 @@ This block is the authoritative feature contract. Update it in the same validate
 ### Game Identity And Feel
 
 - Working title: `SILLY TANK HILL WAR`.
-- The target feel is silly cartoon tanks with slow War Thunder-ish pacing.
-- Player tank must be slow and heavy, not race-car fast.
-- Player tank must visually align to terrain slopes.
-- Player tank must lose speed and struggle on steep slopes.
+- The target feel is silly cartoon armored vehicles with deliberate War Thunder-ish combat pacing.
+- Player vehicle reaches approximately `7.5 m/s` with gradual acceleration, never FPS-sprint movement.
+- Player vehicle must follow terrain into craters.
+- Player vehicle must lose traction on steep slopes and may realistically tip or roll.
 - Shift may provide low gear or aim stabilization, never sprint.
 
 ### Locked Weapons And Cameras
@@ -123,4 +123,3 @@ The process pattern is modeled after:
 - `https://github.com/bbartling/TheHoneyManEscape`
 
 Use its locked `AGENTS.md`, Blender source/runtime pairing, WebGL build script, Flask hosting layout, and regression audits as process references. Do not copy unrelated HoneyMan gameplay behavior into this tank game.
-

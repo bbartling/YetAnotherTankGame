@@ -4,17 +4,17 @@
 
 Working title: `SILLY TANK HILL WAR`
 
-The game is a silly cartoon tank battle with slow War Thunder-ish pacing: creep over hills, spot threats at range, carefully aim lobbed cannonballs, watch the projectile camera, and break tanks, trees, turrets, castles, and terrain.
+The game is a silly cartoon armored-vehicle battle with deliberate War Thunder-ish pacing: cross rough terrain, spot threats at range, carefully aim lobbed cannonballs, watch the projectile camera, and break tanks, trees, turrets, castles, and terrain.
 
 ## Locked Player Experience
 
-- Player tank movement is slow, heavy, readable, and tactical, never race-car fast.
+- Player wheeled vehicle reaches approximately `7.5 m/s` with gradual acceleration and braking, never FPS-sprint movement.
 - Reverse is slower than forward.
 - Low-speed turning is possible but heavy.
 - High-speed turning is wide and limited.
 - Uphill movement loses speed and produces engine strain.
-- The tank visually aligns to terrain slope.
-- The tank struggles, slides, or refuses on slopes beyond a locked maximum.
+- The vehicle follows terrain into craters and may realistically tip or roll.
+- The vehicle loses traction and speed on steep slopes instead of being held upright artificially.
 - Turret rotates independently from the hull.
 - Barrel elevation controls a visibly arcing physical cannonball.
 - Left click fires the player cannonball; firing is not hitscan.
@@ -82,4 +82,3 @@ The game is a silly cartoon tank battle with slow War Thunder-ish pacing: creep 
 - WebGL deployment scripts.
 - Blender source/runtime model pairing.
 - Automated validation tests and manual release checklist.
-

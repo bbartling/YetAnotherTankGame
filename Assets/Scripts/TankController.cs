@@ -277,7 +277,6 @@ public class TankController : MonoBehaviour
         _wheeledSuspension?.ApplySuspension(_rb);
         HandleTrackDrive(groundInfo);
         ApplyTrackedGrip(groundInfo);
-        AlignHullToTrackGrade(groundInfo);
         ClampGroundSpeed(groundInfo);
         if (continuousTerrainSnapEnabled)
         {
@@ -312,6 +311,11 @@ public class TankController : MonoBehaviour
             TankOrbitCamera orbitCamera = gameplayCamera.GetComponent<TankOrbitCamera>();
             if (orbitCamera == null) orbitCamera = gameplayCamera.gameObject.AddComponent<TankOrbitCamera>();
             orbitCamera.target = transform;
+            orbitCamera.targetOffset = new Vector3(0f, 4.5f, 1.5f);
+            orbitCamera.followDistance = 11f;
+            TankBarrelScopeCamera scopeCamera = gameplayCamera.GetComponent<TankBarrelScopeCamera>();
+            if (scopeCamera == null) scopeCamera = gameplayCamera.gameObject.AddComponent<TankBarrelScopeCamera>();
+            scopeCamera.sight = cannonFirePoint;
         }
 
         maxForwardSpeed = _driveController.maxForwardSpeed;
@@ -367,11 +371,6 @@ public class TankController : MonoBehaviour
         }
 
         float slopeAngle = Vector3.Angle(groundInfo.normal, Vector3.up);
-        if (slopeAngle > GetMaximumDriveSlope())
-        {
-            return;
-        }
-
         Vector3 groundNormal = groundInfo.normal;
         Vector3 driveForward = Vector3.ProjectOnPlane(transform.forward, groundNormal);
         if (driveForward.sqrMagnitude < 0.0001f)

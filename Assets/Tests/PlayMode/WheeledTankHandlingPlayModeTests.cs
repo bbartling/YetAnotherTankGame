@@ -51,5 +51,24 @@ public class WheeledTankHandlingPlayModeTests
 
         Object.DestroyImmediate(root);
     }
+
+    [Test]
+    public void WheeledSuspension_IgnoresSelfColliderAndFindsGround()
+    {
+        GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
+        GameObject root = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        root.name = "SelfColliderTank";
+        root.transform.position = Vector3.up;
+        Rigidbody body = root.AddComponent<Rigidbody>();
+        body.useGravity = false;
+        WheeledSuspensionController suspension = root.AddComponent<WheeledSuspensionController>();
+        Physics.SyncTransforms();
+
+        int grounded = suspension.ApplySuspension(body);
+
+        Assert.That(grounded, Is.GreaterThan(0));
+        Object.DestroyImmediate(root);
+        Object.DestroyImmediate(ground);
+    }
 }
 #endif

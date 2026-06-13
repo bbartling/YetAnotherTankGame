@@ -3,8 +3,8 @@ using UnityEngine;
 public class TankOrbitCamera : MonoBehaviour
 {
     public Transform target;
-    public Vector3 targetOffset = new Vector3(0f, 2.2f, 0f);
-    public float followDistance = 8f;
+    public Vector3 targetOffset = new Vector3(0f, 4.5f, 1.5f);
+    public float followDistance = 11f;
     public float collisionRadius = 0.35f;
     public float positionSmoothTime = 0.12f;
     public LayerMask collisionMask = ~0;

@@ -6,9 +6,9 @@ public class WheeledSuspensionController : MonoBehaviour
     public float halfWidth = 0.55f;
     public float frontOffset = 0.85f;
     public float wheelSpacing = 0.57f;
-    public float probeHeight = 0.75f;
-    public float suspensionTravel = 0.75f;
-    public float wheelRadius = 0.28f;
+    public float probeHeight = 1.2f;
+    public float suspensionTravel = 2.2f;
+    public float wheelRadius = 0.34f;
     public float springStrength = 30f;
     public float damperStrength = 8f;
     public LayerMask groundMask = ~0;
@@ -43,12 +43,7 @@ public class WheeledSuspensionController : MonoBehaviour
         {
             Vector3 mount = transform.TransformPoint(GetLocalWheelMount(i));
             Vector3 origin = mount + transform.up * probeHeight;
-            if (!Physics.SphereCast(origin, wheelRadius, -transform.up, out RaycastHit hit, distance, groundMask, QueryTriggerInteraction.Ignore))
-            {
-                continue;
-            }
-
-            if (hit.transform == transform || hit.transform.IsChildOf(transform))
+            if (!TryGetNearestNonSelfHit(origin, -transform.up, distance, out RaycastHit hit))
             {
                 continue;
             }
@@ -57,10 +52,33 @@ public class WheeledSuspensionController : MonoBehaviour
             float compression = Mathf.Clamp01(1f - travelDistance / Mathf.Max(0.01f, suspensionTravel));
             float contactVelocity = Vector3.Dot(body.GetPointVelocity(hit.point), hit.normal);
             float force = CalculateSpringForce(compression, springStrength, contactVelocity, damperStrength);
-            body.AddForceAtPosition(hit.normal * force, hit.point, ForceMode.Acceleration);
+            body.AddForceAtPosition(hit.normal * (force / WheelCount), hit.point, ForceMode.Acceleration);
             GroundedWheelCount++;
         }
 
         return GroundedWheelCount;
+    }
+
+    private bool TryGetNearestNonSelfHit(Vector3 origin, Vector3 direction, float distance, out RaycastHit nearest)
+    {
+        nearest = default;
+        float nearestDistance = float.MaxValue;
+        RaycastHit[] hits = Physics.SphereCastAll(origin, wheelRadius, direction, distance, groundMask, QueryTriggerInteraction.Ignore);
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Transform hitTransform = hits[i].transform;
+            if (hitTransform == null || hitTransform == transform || hitTransform.IsChildOf(transform))
+            {
+                continue;
+            }
+
+            if (hits[i].distance < nearestDistance)
+            {
+                nearestDistance = hits[i].distance;
+                nearest = hits[i];
+            }
+        }
+
+        return nearest.collider != null;
     }
 }

@@ -8,8 +8,14 @@ public static class ModelImportValidation
         "Hull",
         "Turret",
         "Barrel",
-        "LeftTrack",
-        "RightTrack"
+        "LeftWheel_0",
+        "LeftWheel_1",
+        "LeftWheel_2",
+        "LeftWheel_3",
+        "RightWheel_0",
+        "RightWheel_1",
+        "RightWheel_2",
+        "RightWheel_3"
     };
 
     public static bool HasVisibleRendererBounds(GameObject model)

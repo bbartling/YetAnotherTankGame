@@ -5,21 +5,22 @@ using UnityEngine;
 public class TankCorePolicyPlayModeTests
 {
     [Test]
-    public void TankMovement_SlowHeavyNotRaceCar()
+    public void TankMovement_WheeledVehicleHasDeliberateRoadSpeed()
     {
         GameObject tankObject = new GameObject("PolicyTank");
         TankDriveController drive = tankObject.AddComponent<TankDriveController>();
 
-        Assert.That(drive.maxForwardSpeed, Is.LessThanOrEqualTo(2.75f));
-        Assert.That(drive.maxReverseSpeed, Is.LessThanOrEqualTo(1.25f));
-        Assert.That(drive.accelerationSeconds, Is.GreaterThanOrEqualTo(5f));
-        Assert.That(drive.GetSteeringMultiplier(drive.maxForwardSpeed), Is.LessThan(0.45f));
+        Assert.That(drive.maxForwardSpeed, Is.EqualTo(7.5f).Within(0.1f));
+        Assert.That(drive.maxReverseSpeed, Is.EqualTo(3.5f).Within(0.1f));
+        Assert.That(drive.accelerationSeconds, Is.EqualTo(4f).Within(0.25f));
+        Assert.That(drive.brakingSeconds, Is.EqualTo(2f).Within(0.25f));
+        Assert.That(drive.GetSteeringMultiplier(drive.maxForwardSpeed), Is.LessThan(0.55f));
 
         Object.Destroy(tankObject);
     }
 
     [Test]
-    public void TankMovement_ClampsLegacySerializedFastValuesOnEnable()
+    public void TankMovement_UpgradesLegacySerializedValuesToWheeledPolicy()
     {
         GameObject tankObject = new GameObject("LegacyFastTank");
         tankObject.SetActive(false);
@@ -30,9 +31,9 @@ public class TankCorePolicyPlayModeTests
 
         tankObject.SetActive(true);
 
-        Assert.That(drive.maxForwardSpeed, Is.LessThanOrEqualTo(2.75f));
-        Assert.That(drive.maxReverseSpeed, Is.LessThanOrEqualTo(1.25f));
-        Assert.That(drive.accelerationSeconds, Is.GreaterThanOrEqualTo(5f));
+        Assert.That(drive.maxForwardSpeed, Is.EqualTo(7.5f).Within(0.1f));
+        Assert.That(drive.maxReverseSpeed, Is.EqualTo(3.5f).Within(0.1f));
+        Assert.That(drive.accelerationSeconds, Is.EqualTo(4f).Within(0.25f));
 
         Object.Destroy(tankObject);
     }
@@ -48,7 +49,7 @@ public class TankCorePolicyPlayModeTests
         float blockedLimit = drive.GetForwardSpeedLimit(drive.maxClimbSlopeDegrees + 1f);
 
         Assert.That(uphillLimit, Is.LessThan(levelLimit));
-        Assert.That(blockedLimit, Is.Zero);
+        Assert.That(blockedLimit, Is.GreaterThan(0f));
         Assert.That(drive.GetEngineStrain(1f, drive.tractionLossSlopeDegrees + 5f), Is.GreaterThan(0.5f));
 
         Object.Destroy(tankObject);
