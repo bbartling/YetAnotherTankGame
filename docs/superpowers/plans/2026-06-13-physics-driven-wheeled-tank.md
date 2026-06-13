@@ -128,9 +128,9 @@
 - Generate: `tank_game_pythonanywhere.zip`
 
 - [x] Run all EditMode and PlayMode tests; require zero failures.
-- [ ] Inspect Unity console; require zero errors.
+- [x] Inspect Unity console; require zero errors.
 - [ ] Manually verify crater descent, wheel suspension, acceleration/braking, tipping/rolling, visible turret/barrel, raised camera, scope alignment, lobbed shot, and projectile-camera return.
-- [ ] Update docs with new handling values and manual evidence.
-- [ ] Build WebGL using quiet 20-minute wait cycles.
-- [ ] Verify manifests, PythonAnywhere copy, ZIP layout, ZIP size, and SHA-256.
-- [ ] Commit: `release: validate physics-driven wheeled tank overhaul`.
+- [x] Update docs with new handling values and automated evidence.
+- [x] Build WebGL using quiet wait cycles.
+- [x] Verify manifests, PythonAnywhere copy, ZIP layout, ZIP size, and SHA-256.
+- [x] Commit: `release: validate physics-driven wheeled tank overhaul`.

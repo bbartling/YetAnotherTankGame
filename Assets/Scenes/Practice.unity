@@ -32139,6 +32139,7 @@ MonoBehaviour:
   terrainProbeHeight: 60
   terrainProbeDistance: 220
   startTerrainClearance: 1.1
+  continuousTerrainSnapEnabled: 0
   trackHalfWidth: 0.42
   trackHalfLength: 0.72
   suspensionProbeHeight: 1.1

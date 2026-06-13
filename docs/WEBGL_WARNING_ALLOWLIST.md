@@ -1,7 +1,7 @@
 # WebGL Warning Allowlist
 
 This allowlist is temporary and applies to the clean WebGL validation build
-completed on 2026-06-12 with Unity 6000.4.6f1.
+completed on 2026-06-13 with Unity 6000.4.6f1.
 
 ## Allowed Until Migration
 
@@ -34,14 +34,14 @@ completed on 2026-06-12 with Unity 6000.4.6f1.
 
 ## Evidence
 
-- Clean WebGL build completed: `2026-06-13T01:39:36.6369392Z`
+- Clean WebGL build completed: `2026-06-13T17:55:37Z`
 - Result: succeeded
 - Build errors: 0
 - Build warnings: 34
-- Output size: 61,447,699 bytes
+- Output size: 61,487,783 bytes
 - Unity console errors after build: 0
-- PythonAnywhere ZIP size: 18,901,608 bytes
+- PythonAnywhere ZIP size: 18,914,770 bytes
 - PythonAnywhere ZIP SHA-256:
-  `9651DAA1CF1690B308A451814387852CB4C62263A8AF28769B97764CAFC76736`
+  `9836D9B8A7D9AC771B9F2D589C56C84291471677D0D0C31BE698A58BCD410D53`
 - No Sentis/Inference shader warnings after removing the unused
   `com.unity.ai.assistant` and `com.unity.ai.inference` packages.

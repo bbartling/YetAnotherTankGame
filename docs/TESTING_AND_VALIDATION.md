@@ -29,9 +29,9 @@ Use the Unity Test Runner or Unity MCP. Classify results before processing:
 4. Fire a lobbed cannonball; confirm projectile camera activates, follows impact, and returns.
 5. Drive through an existing crater and rough terrain; confirm individual wheel suspension follows the surface instead of bridging over the depression.
 6. Cross a steep side slope; confirm the vehicle can naturally tip or roll and is not automatically forced upright.
-5. Confirm enemy tanks engage from range, stop to aim, reload, reposition, and avoid ramming.
-6. Damage a tank until smoke/fire/wreck states appear.
-7. Hit trees and castle pieces; confirm knockdown/crumble effects and bounded debris.
+7. Confirm enemy tanks engage from range, stop to aim, reload, reposition, and avoid ramming.
+8. Damage a tank until smoke/fire/wreck states appear.
+9. Hit trees and castle pieces; confirm knockdown/crumble effects and bounded debris.
 
 ## Safari Manual Check
 
@@ -43,8 +43,10 @@ Use the Unity Test Runner or Unity MCP. Classify results before processing:
 
 ## Current Release Evidence
 
-- EditMode: `10/10` passed.
-- PlayMode: `40/40` passed.
+- EditMode: `11/11` passed.
+- PlayMode: `50/50` passed.
 - Local Flask smoke: `/`, `/Build/WebGL.loader.js`, and `/Build/WebGL.data` returned HTTP 200.
 - `/robots.txt` returned HTTP 200.
+- WebGL output: `61,487,783` bytes with `34` allowlisted Unity 6 deprecation warnings and zero errors.
+- PythonAnywhere ZIP: `18,914,770` bytes, SHA-256 `9836D9B8A7D9AC771B9F2D589C56C84291471677D0D0C31BE698A58BCD410D53`.
 - Automated local Chrome launch was blocked by the managed shell policy; direct Chrome and Safari play checks remain manual release checks.
