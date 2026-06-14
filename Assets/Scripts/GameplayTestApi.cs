@@ -115,6 +115,7 @@ public class GameplayTestApi : MonoBehaviour
     public void StartBattle(int enemyCount)
     {
         ResolveReferences();
+        CaptureCurrentPlayerTransform();
         ResetBattle();
 
         if (enemySpawner != null)
@@ -145,22 +146,6 @@ public class GameplayTestApi : MonoBehaviour
         {
             Vector3 resetPosition = _hasInitialPlayerTransform ? _initialPlayerPosition : playerTank.transform.position;
             Quaternion resetRotation = _hasInitialPlayerTransform ? _initialPlayerRotation : playerTank.transform.rotation;
-            if (enemySpawner != null)
-            {
-                if (TryGetHighestPlayerFootprintGround(resetPosition, out float highestGroundY))
-                {
-                    float lift = GetPlayerGroundLift();
-                    resetPosition = new Vector3(resetPosition.x, highestGroundY + lift, resetPosition.z);
-                }
-                else
-                {
-                    resetPosition.y = Mathf.Max(resetPosition.y, 20f);
-                }
-            }
-            else
-            {
-                resetPosition.y = Mathf.Max(resetPosition.y, 20f);
-            }
             playerTank.ResetForBattle(resetPosition, resetRotation);
         }
 
@@ -606,6 +591,18 @@ private void MonitorPlayerFallThrough()
         }
 
         if (playerTank.transform.position.y < fallThroughWorldY)
+        {
+            return;
+        }
+
+        _initialPlayerPosition = playerTank.transform.position;
+        _initialPlayerRotation = playerTank.transform.rotation;
+        _hasInitialPlayerTransform = true;
+    }
+
+    private void CaptureCurrentPlayerTransform()
+    {
+        if (playerTank == null || playerTank.transform.position.y < fallThroughWorldY)
         {
             return;
         }

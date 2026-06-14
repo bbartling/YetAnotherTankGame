@@ -69,6 +69,8 @@ public class TankController : MonoBehaviour
     public float linearDamping = 0.65f;
     public float rolloverDefeatAngle = 75f;
     public float rolloverDefeatDelay = 2f;
+    public float rolloverStartupGraceSeconds = 6f;
+    public float rolloverStableArmSeconds = 2f;
 
     [Header("Mouse Turret")]
     [Tooltip("Mouse X yaws the turret left/right. This is intentionally local to turretYawPivot so the turret does not orbit the map.")]
@@ -121,6 +123,10 @@ public class TankController : MonoBehaviour
     private Renderer _terrainRenderer;
     private DamageStateController _damageStateController;
     private readonly TankRolloverController _rolloverController = new TankRolloverController();
+    private float _rolloverArmedAt;
+    private float _rolloverStableSeconds;
+    private bool _rolloverArmed = true;
+    private bool _awaitingDriveInput;
 
     private struct TrackGroundHit
     {
@@ -175,7 +181,7 @@ public class TankController : MonoBehaviour
 
     private void Start()
     {
-        SnapAboveTerrain(startTerrainClearance);
+        SnapAboveTerrain(terrainSurfaceSkin);
     }
 
     private void ConfigureRigidbody()
@@ -278,6 +284,18 @@ public class TankController : MonoBehaviour
     private void FixedUpdate()
     {
         if (_dead || _rb == null) return;
+        if (_awaitingDriveInput)
+        {
+            ReadDriveInput(out float startupThrottle, out float startupSteer, out _);
+            if (Mathf.Abs(startupThrottle) < 0.01f && Mathf.Abs(startupSteer) < 0.01f)
+            {
+                return;
+            }
+
+            _awaitingDriveInput = false;
+            _rb.isKinematic = false;
+            _rb.WakeUp();
+        }
 
         TrackGroundInfo groundInfo = ProbeTrackGround();
         float slopeAngle = groundInfo.grounded ? Vector3.Angle(groundInfo.normal, Vector3.up) : 0f;
@@ -301,6 +319,21 @@ public class TankController : MonoBehaviour
 
     private bool CheckRolloverDefeat()
     {
+        if (!_rolloverArmed)
+        {
+            _rolloverController.Reset();
+
+            bool pastStartupGrace = Time.time >= _rolloverArmedAt;
+            bool settledUpright = IsGrounded
+                && RolloverAngle < rolloverDefeatAngle * 0.5f
+                && CurrentVelocity.sqrMagnitude < 1f;
+            _rolloverStableSeconds = pastStartupGrace && settledUpright
+                ? _rolloverStableSeconds + Time.fixedDeltaTime
+                : 0f;
+            _rolloverArmed = _rolloverStableSeconds >= Mathf.Max(0f, rolloverStableArmSeconds);
+            return false;
+        }
+
         _rolloverController.rolloverAngle = rolloverDefeatAngle;
         _rolloverController.defeatDelay = rolloverDefeatDelay;
         if (!_rolloverController.Tick(RolloverAngle, Time.fixedDeltaTime))
@@ -956,6 +989,9 @@ public class TankController : MonoBehaviour
         enabled = true;
         _dead = false;
         _rolloverController.Reset();
+        _rolloverArmedAt = Time.time + Mathf.Max(0f, rolloverStartupGraceSeconds);
+        _rolloverStableSeconds = 0f;
+        _rolloverArmed = false;
 
         if (_health <= 0f)
         {
@@ -969,12 +1005,9 @@ public class TankController : MonoBehaviour
         ConfigureRigidbody();
         EnsureFocusedControllers();
         AutoWireReferences();
-        SnapAboveTerrain(startTerrainClearance);
-
-        if (_rb != null)
-        {
-            _rb.WakeUp();
-        }
+        _awaitingDriveInput = true;
+        _rb.isKinematic = true;
+        _rb.Sleep();
     }
 
     // Compatibility method used by GameplayTestApi.ResetBattle().
@@ -989,33 +1022,16 @@ public class TankController : MonoBehaviour
 
         transform.SetPositionAndRotation(resetPosition, resetRotation);
         Physics.SyncTransforms();
-        SnapAboveTerrain(startTerrainClearance);
 
         if (_rb != null)
         {
             SetVelocity(Vector3.zero);
             _rb.angularVelocity = Vector3.zero;
             _rb.Sleep();
-            _rb.WakeUp();
         }
 
         AutoWireReferences();
-
-        _turretYaw = 0f;
-        _barrelElevation = Mathf.Clamp(defaultBattleElevation, minBarrelElevation, maxBarrelElevation);
-
-        if (turretYawPivot != null)
-        {
-            turretYawPivot.localRotation = Quaternion.identity;
-        }
-
-        if (barrelPitchPivot != null)
-        {
-            barrelPitchPivot.localRotation = Quaternion.Euler(-_barrelElevation, 0f, 0f);
-        }
-
-        _turretController?.SetDesiredYaw(_turretYaw);
-        _aimController?.SetElevation(_barrelElevation);
+        CacheStartingAngles();
 
         PrepareForGameplay();
     }
