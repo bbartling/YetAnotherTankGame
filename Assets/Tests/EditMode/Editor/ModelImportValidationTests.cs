@@ -65,5 +65,14 @@ public class ModelImportValidationTests
             Assert.That(ModelImportValidation.HasRequiredTankParts(model), Is.True, path);
         }
     }
+
+    [Test]
+    public void PlayerTankContainsProperTurretParts()
+    {
+        GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Models/Tanks/SillyPlayerTank.fbx");
+        Assert.That(model.transform.Find("TurretRing"), Is.Not.Null);
+        Assert.That(model.transform.Find("GunMantlet"), Is.Not.Null);
+        Assert.That(model.transform.Find("CommanderCupola"), Is.Not.Null);
+    }
 }
 #endif

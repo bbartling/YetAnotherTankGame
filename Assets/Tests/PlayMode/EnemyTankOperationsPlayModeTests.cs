@@ -93,5 +93,16 @@ public class EnemyTankOperationsPlayModeTests
         Assert.That(EnemyTankSpawner.GetSafeGroundLift(0.35f), Is.GreaterThanOrEqualTo(2.5f));
         Assert.That(EnemyTankSpawner.GetSafeGroundLift(4f), Is.EqualTo(4f));
     }
+
+    [Test]
+    public void EnemyHealthBar_UsesGreenRemainingHealthOverRedDamageBackground()
+    {
+        GameObject enemyObject = new GameObject("HealthBarEnemy");
+        EnemyHealthBar healthBar = enemyObject.AddComponent<EnemyHealthBar>();
+
+        Assert.That(healthBar.healthyColor.g, Is.GreaterThan(healthBar.healthyColor.r));
+        Assert.That(healthBar.damageBackgroundColor.r, Is.GreaterThan(healthBar.damageBackgroundColor.g));
+        Object.DestroyImmediate(enemyObject);
+    }
 }
 #endif

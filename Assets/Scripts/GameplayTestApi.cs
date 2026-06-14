@@ -44,6 +44,9 @@ public class GameplayTestApi : MonoBehaviour
     public float PlayerTankSlopeAngle => playerTank != null ? playerTank.CurrentSlopeAngle : 0f;
     public bool PlayerTankGrounded => playerTank != null && playerTank.IsGrounded;
     public int PlayerGroundedWheelCount => playerTank != null ? playerTank.GroundedWheelCount : 0;
+    public float PlayerRolloverAngle => playerTank != null ? playerTank.RolloverAngle : 0f;
+    public float PlayerRolloverSeconds => playerTank != null ? playerTank.RolloverSeconds : 0f;
+    public bool PlayerOverturned => playerTank != null && playerTank.IsOverturned;
     public bool ProjectileCameraActive => ProjectileCameraController.ActivePlayerProjectile != null;
     public int ProjectileCameraActivationCount => ProjectileCameraController.PlayerCameraActivationCount;
     public float EnemyDistanceToPlayer
@@ -309,6 +312,9 @@ public class GameplayTestApi : MonoBehaviour
         builder.AppendFormat("\"playerTankSlopeAngle\":{0:0.00},", PlayerTankSlopeAngle);
         builder.AppendFormat("\"playerTankGrounded\":{0},", PlayerTankGrounded ? "true" : "false");
         builder.AppendFormat("\"playerGroundedWheelCount\":{0},", PlayerGroundedWheelCount);
+        builder.AppendFormat("\"playerRolloverAngle\":{0:0.00},", PlayerRolloverAngle);
+        builder.AppendFormat("\"playerRolloverSeconds\":{0:0.00},", PlayerRolloverSeconds);
+        builder.AppendFormat("\"playerOverturned\":{0},", PlayerOverturned ? "true" : "false");
         builder.AppendFormat("\"projectileCameraActive\":{0},", ProjectileCameraActive ? "true" : "false");
         builder.AppendFormat("\"projectileCameraActivationCount\":{0},", ProjectileCameraActivationCount);
         builder.AppendFormat("\"castleHealth\":{0:0.0},", castle != null ? castle.HealthPercent : 0f);

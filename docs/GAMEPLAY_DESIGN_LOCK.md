@@ -14,6 +14,10 @@ The game is a silly cartoon armored-vehicle battle with deliberate War Thunder-i
 - High-speed turning is wide and limited.
 - Uphill movement loses speed and produces engine strain.
 - The vehicle follows terrain into craters and may realistically tip or roll.
+- The player vehicle uses a heavy low-center-of-mass chassis, but sustained rollover ends the battle.
+- Wheels animate forward and backward around their authored axle.
+- The player tank contrasts with terrain and has a readable turret ring, mantlet, cupola, and barrel.
+- Enemy health bars use green remaining health over red lost health with percentage text.
 - The vehicle loses traction and speed on steep slopes instead of being held upright artificially.
 - Turret rotates independently from the hull.
 - Barrel elevation controls a visibly arcing physical cannonball.

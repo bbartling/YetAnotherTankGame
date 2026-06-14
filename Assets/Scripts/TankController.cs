@@ -61,10 +61,14 @@ public class TankController : MonoBehaviour
     public float brakeDrag = 7f;
 
     [Header("Tank Stability")]
-    public Vector3 centerOfMassOffset = new Vector3(0f, -0.55f, 0f);
+    public float playerVisualScale = 3f;
+    public float chassisMass = 18000f;
+    public Vector3 centerOfMassOffset = new Vector3(0f, -1.15f, 0f);
     public float uprightAssist = 12f;
-    public float angularDamping = 3f;
+    public float angularDamping = 4.5f;
     public float linearDamping = 0.65f;
+    public float rolloverDefeatAngle = 75f;
+    public float rolloverDefeatDelay = 2f;
 
     [Header("Mouse Turret")]
     [Tooltip("Mouse X yaws the turret left/right. This is intentionally local to turretYawPivot so the turret does not orbit the map.")]
@@ -116,6 +120,7 @@ public class TankController : MonoBehaviour
     private Collider _terrainCollider;
     private Renderer _terrainRenderer;
     private DamageStateController _damageStateController;
+    private readonly TankRolloverController _rolloverController = new TankRolloverController();
 
     private struct TrackGroundHit
     {
@@ -144,6 +149,9 @@ public class TankController : MonoBehaviour
     public int GroundedWheelCount => _wheeledSuspension != null ? _wheeledSuspension.GroundedWheelCount : 0;
     public float EngineStrain => _driveController != null ? _driveController.EngineStrain : 0f;
     public string CurrentDamageState => _damageStateController != null ? _damageStateController.CurrentState.ToString() : (_dead ? "Wrecked" : "Intact");
+    public float RolloverAngle => Vector3.Angle(transform.up, Vector3.up);
+    public float RolloverSeconds => _rolloverController.OverturnedSeconds;
+    public bool IsOverturned => _rolloverController.IsOverturned;
 
     private void Awake()
     {
@@ -162,7 +170,7 @@ public class TankController : MonoBehaviour
         CacheStartingAngles();
         EnsureFocusedControllers();
         ValidatePivotSetup();
-        SillyModelInstaller.Ensure(gameObject, "Models/Tanks/SillyPlayerTank", 6f, true);
+        SillyModelInstaller.Ensure(gameObject, "Models/Tanks/SillyPlayerTank", Mathf.Clamp(playerVisualScale, 2.5f, 3.5f), true);
     }
 
     private void Start()
@@ -174,14 +182,16 @@ public class TankController : MonoBehaviour
     {
         if (_rb == null) return;
 
+        _rb.mass = Mathf.Max(15000f, chassisMass);
+        centerOfMassOffset.y = Mathf.Min(centerOfMassOffset.y, -1f);
         _rb.centerOfMass = centerOfMassOffset;
         _rb.constraints = RigidbodyConstraints.None;
 
         _rb.interpolation = RigidbodyInterpolation.Interpolate;
         _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-        _rb.angularDamping = angularDamping;
+        _rb.angularDamping = Mathf.Max(4f, angularDamping);
         _rb.linearDamping = linearDamping;
-        _rb.maxAngularVelocity = 12f;
+        _rb.maxAngularVelocity = 5f;
     }
 
     private void AutoWireReferences()
@@ -276,6 +286,10 @@ public class TankController : MonoBehaviour
         _suspensionVisual?.RecordGroundNormal(groundInfo.normal, Time.fixedDeltaTime);
         _tankAudioController?.SetEngineStrain(EngineStrain);
         _wheeledSuspension?.ApplySuspension(_rb);
+        if (CheckRolloverDefeat())
+        {
+            return;
+        }
         HandleTrackDrive(groundInfo);
         ApplyTrackedGrip(groundInfo);
         ClampGroundSpeed(groundInfo);
@@ -283,6 +297,23 @@ public class TankController : MonoBehaviour
         {
             PreventTerrainPenetration();
         }
+    }
+
+    private bool CheckRolloverDefeat()
+    {
+        _rolloverController.rolloverAngle = rolloverDefeatAngle;
+        _rolloverController.defeatDelay = rolloverDefeatDelay;
+        if (!_rolloverController.Tick(RolloverAngle, Time.fixedDeltaTime))
+        {
+            return false;
+        }
+
+        _dead = true;
+        SetVelocity(Vector3.zero);
+        _rb.angularVelocity = Vector3.zero;
+        _damageStateController?.ApplyHealthRatio(0f);
+        BattlefieldDirector.Instance?.ForceDefeat("Player tank rolled over");
+        return true;
     }
 
     private void EnsureFocusedControllers()
@@ -312,7 +343,8 @@ public class TankController : MonoBehaviour
             TankOrbitCamera orbitCamera = gameplayCamera.GetComponent<TankOrbitCamera>();
             if (orbitCamera == null) orbitCamera = gameplayCamera.gameObject.AddComponent<TankOrbitCamera>();
             orbitCamera.target = transform;
-            orbitCamera.targetOffset = new Vector3(0f, 4.5f, 1.5f);
+            orbitCamera.targetOffset = new Vector3(0f, 2.6f, 1f);
+            orbitCamera.cameraHeight = 4.2f;
             orbitCamera.followDistance = 11f;
             TankBarrelScopeCamera scopeCamera = gameplayCamera.GetComponent<TankBarrelScopeCamera>();
             if (scopeCamera == null) scopeCamera = gameplayCamera.gameObject.AddComponent<TankBarrelScopeCamera>();
@@ -923,6 +955,7 @@ public class TankController : MonoBehaviour
     {
         enabled = true;
         _dead = false;
+        _rolloverController.Reset();
 
         if (_health <= 0f)
         {

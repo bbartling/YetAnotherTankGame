@@ -148,6 +148,11 @@ public class SillyModelInstaller : MonoBehaviour
 
         BindVisualPivot(InstalledVisual.transform.Find("Turret"), GetComponent<TankController>()?.turretYawPivot);
         BindVisualPivot(InstalledVisual.transform.Find("Turret_Damaged"), GetComponent<TankController>()?.turretYawPivot);
+        BindVisualPivot(InstalledVisual.transform.Find("GunMantlet"), GetComponent<TankController>()?.turretYawPivot);
+        BindVisualPivot(InstalledVisual.transform.Find("CommanderCupola"), GetComponent<TankController>()?.turretYawPivot);
+        BindVisualPivot(InstalledVisual.transform.Find("CommanderHelmet"), GetComponent<TankController>()?.turretYawPivot);
+        BindVisualPivot(InstalledVisual.transform.Find("Hatch"), GetComponent<TankController>()?.turretYawPivot);
+        BindVisualPivot(InstalledVisual.transform.Find("Antenna"), GetComponent<TankController>()?.turretYawPivot);
         BindVisualPivot(InstalledVisual.transform.Find("Barrel"), GetComponent<TankController>()?.barrelPitchPivot);
         BindVisualPivot(InstalledVisual.transform.Find("Barrel_Damaged"), GetComponent<TankController>()?.barrelPitchPivot);
     }

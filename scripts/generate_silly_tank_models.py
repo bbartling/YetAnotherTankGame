@@ -1,6 +1,7 @@
 import bpy
 import math
 import os
+import os
 
 
 REPO = r"C:\Users\ben\Documents\CannonPhysicsSim"
@@ -96,6 +97,7 @@ def save_and_export(blend_relative, fbx_relative):
 
 
 GREEN = material("CartoonOlive", (0.22, 0.32, 0.12), 0.25)
+TAN = material("PlayerMustardTan", (0.68, 0.46, 0.12), 0.3)
 DARK = material("TrackDark", (0.055, 0.065, 0.05), 0.35)
 METAL = material("ComicMetal", (0.28, 0.30, 0.26), 0.5)
 BLACK = material("EyeBlack", (0.015, 0.01, 0.01))
@@ -122,7 +124,10 @@ def make_tank(label, body_material, size, barrel_length, boss=False):
         cube(f"RightWheel_{axle}", (1.9 * size, y * size, 0.62 * size), (0.48 * size, 0.48 * size, 0.48 * size), DARK, model_root, 0.16)
     cube("LeftWheel_Damaged", (-1.95 * size, 0.65 * size, 0.55 * size), (0.46 * size, 0.46 * size, 0.46 * size), ORANGE, model_root, 0.1, (0.12, 0.04, 0.08))
     cube("RightWheel_Damaged", (1.95 * size, -0.65 * size, 0.55 * size), (0.46 * size, 0.46 * size, 0.46 * size), ORANGE, model_root, 0.1, (-0.1, -0.04, -0.08))
-    cube("Turret", (0, 0.15 * size, 2.05 * size), (1.25 * size, 1.25 * size, 0.48 * size), body_material, model_root, 0.2)
+    cylinder("TurretRing", (0, 0.15 * size, 1.72 * size), 1.05 * size, 0.22 * size, METAL, model_root, vertices=12)
+    cube("Turret", (0, 0.15 * size, 2.1 * size), (1.3 * size, 1.15 * size, 0.52 * size), body_material, model_root, 0.12)
+    cube("GunMantlet", (0, -1.03 * size, 2.15 * size), (0.62 * size, 0.18 * size, 0.48 * size), METAL, model_root, 0.1)
+    cylinder("CommanderCupola", (0.35 * size, 0.35 * size, 2.78 * size), 0.52 * size, 0.35 * size, body_material, model_root, vertices=12)
     cube("Turret_Damaged", (0, 0.1 * size, 2.0 * size), (1.2 * size, 1.2 * size, 0.42 * size), ORANGE, model_root, 0.12, (0.06, 0.1, 0))
     cylinder("Barrel", (0, -(1.2 + barrel_length * 0.5) * size, 2.15 * size), 0.22 * size, barrel_length * size, METAL, model_root, (math.radians(90), 0, 0))
     cylinder("Barrel_Damaged", (0.18 * size, -(1.2 + barrel_length * 0.45) * size, 2.0 * size), 0.2 * size, barrel_length * 0.85 * size, ORANGE, model_root, (math.radians(80), 0, math.radians(8)), 10)
@@ -140,7 +145,7 @@ def make_tank(label, body_material, size, barrel_length, boss=False):
 
 def generate_tanks():
     configs = [
-        ("SillyPlayerTank", GREEN, 1.0, 3.5, False),
+        ("SillyPlayerTank", TAN, 1.0, 3.5, False),
         ("SillyEnemyScout", BLUE, 0.8, 2.7, False),
         ("SillyEnemyStandard", RED, 1.0, 3.2, False),
         ("SillyEnemyCommander", PURPLE, 1.3, 4.0, True),
@@ -190,8 +195,12 @@ def generate_trees():
 
 
 ensure_dirs()
-generate_tanks()
-generate_castle()
-generate_turrets()
-generate_trees()
+if os.environ.get("SILLY_TANK_PLAYER_ONLY") == "1":
+    make_tank("SillyPlayerTank", TAN, 1.0, 3.5, False)
+    save_and_export("BlenderSource/Tanks/SillyPlayerTank.blend", "Assets/Resources/Models/Tanks/SillyPlayerTank.fbx")
+else:
+    generate_tanks()
+    generate_castle()
+    generate_turrets()
+    generate_trees()
 print("GENERATED_SILLY_TANK_MODEL_KIT")

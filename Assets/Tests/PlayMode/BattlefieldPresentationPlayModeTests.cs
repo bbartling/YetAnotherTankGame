@@ -132,6 +132,27 @@ public class BattlefieldPresentationPlayModeTests
     }
 
     [Test]
+    public void TankVisualAnimator_ForwardAndReverseRotateWheelsAroundAxleInOppositeDirections()
+    {
+        GameObject root = new GameObject("SignedWheelTank");
+        TankVisualAnimator animator = root.AddComponent<TankVisualAnimator>();
+        Transform wheel = new GameObject("Wheel").transform;
+        wheel.SetParent(root.transform, false);
+        animator.wheels = new[] { wheel };
+
+        animator.TickVisuals(0.1f, 2f, 0f);
+        Vector3 forwardAngles = wheel.localEulerAngles;
+        wheel.localRotation = Quaternion.identity;
+        animator.TickVisuals(0.1f, -2f, 0f);
+        Vector3 reverseAngles = wheel.localEulerAngles;
+
+        Assert.That(Mathf.Abs(Mathf.DeltaAngle(0f, forwardAngles.x)), Is.GreaterThan(1f));
+        Assert.That(Mathf.Abs(Mathf.DeltaAngle(0f, forwardAngles.y)), Is.LessThan(0.1f));
+        Assert.That(Mathf.Sign(Mathf.DeltaAngle(0f, forwardAngles.x)), Is.Not.EqualTo(Mathf.Sign(Mathf.DeltaAngle(0f, reverseAngles.x))));
+        Object.DestroyImmediate(root);
+    }
+
+    [Test]
     public void VisualPivotFollower_PreservesRestPoseAndFollowsTargetDelta()
     {
         GameObject root = new GameObject("PivotFollower");

@@ -26,11 +26,11 @@
 - Modify: `Assets/Scripts/GameplayTestApi.cs`
 - Modify: `Assets/Tests/PlayMode/TankCorePolicyPlayModeTests.cs`
 
-- [ ] Add failing tests requiring mass `>= 15000`, center of mass `<= -1.0m`, unconstrained rotation, and rollover only after `75 degrees` is sustained for `2 seconds`.
-- [ ] Run focused PlayMode tests and classify the expected failures as `SIMPLE`.
-- [ ] Add `TankRolloverController` with threshold/timer/reset behavior and a defeat callback.
-- [ ] Configure heavy Rigidbody values in `TankController` and connect rollover defeat to player death plus `BattlefieldDirector.ForceDefeat("Player tank rolled over")`.
-- [ ] Expose rollover angle/timer/state in `GameplayTestApi`.
+- [x] Add failing tests requiring mass `>= 15000`, center of mass `<= -1.0m`, unconstrained rotation, and rollover only after `75 degrees` is sustained for `2 seconds`.
+- [x] Run focused PlayMode tests and classify the expected failures as `SIMPLE`.
+- [x] Add `TankRolloverController` with threshold/timer/reset behavior and a defeat callback.
+- [x] Configure heavy Rigidbody values in `TankController` and connect rollover defeat to player death plus `BattlefieldDirector.ForceDefeat("Player tank rolled over")`.
+- [x] Expose rollover angle/timer/state in `GameplayTestApi`.
 
 ## Task 2: Correct Signed Wheel Animation
 
@@ -38,9 +38,9 @@
 - Modify: `Assets/Scripts/Visual/TankVisualAnimator.cs`
 - Modify: `Assets/Tests/PlayMode/BattlefieldPresentationPlayModeTests.cs`
 
-- [ ] Add failing tests proving forward/reverse signed speeds rotate wheels in opposite directions around local X without local Y rotation.
-- [ ] Run focused tests and classify failures as `SIMPLE`.
-- [ ] Derive signed forward speed from Rigidbody velocity and rotate authored wheels around local X.
+- [x] Add failing tests proving forward/reverse signed speeds rotate wheels in opposite directions around local X without local Y rotation.
+- [x] Run focused tests and classify failures as `SIMPLE`.
+- [x] Derive signed forward speed from Rigidbody velocity and rotate authored wheels around local X.
 
 ## Task 3: Proper Contrasting Player Turret
 
@@ -51,10 +51,10 @@
 - Modify: `Assets/Editor/ModelImportValidation.cs`
 - Modify: `Assets/Tests/EditMode/Editor/ModelImportValidationTests.cs`
 
-- [ ] Add failing validation requiring `TurretRing`, `GunMantlet`, and `CommanderCupola`.
-- [ ] Change only player material to mustard/tan and rebuild its turret silhouette while preserving binding names.
-- [ ] Regenerate only the player `.blend` and `.fbx`.
-- [ ] Verify non-zero bounds and required authored parts.
+- [x] Add failing validation requiring `TurretRing`, `GunMantlet`, and `CommanderCupola`.
+- [x] Change only player material to mustard/tan and rebuild its turret silhouette while preserving binding names.
+- [x] Regenerate only the player `.blend` and `.fbx`.
+- [x] Verify non-zero bounds and required authored parts.
 
 ## Task 4: War Thunder-Inspired Enemy Health Bars
 
@@ -62,9 +62,9 @@
 - Modify: `Assets/Scripts/EnemyHealthBar.cs`
 - Modify: `Assets/Tests/PlayMode/EnemyTankOperationsPlayModeTests.cs`
 
-- [ ] Add failing tests requiring green healthy fill, red damage background, and percentage text.
-- [ ] Implement fixed green remaining-health fill over red background.
-- [ ] Verify damage reduces fill while preserving percentage text.
+- [x] Add failing tests requiring green healthy fill, red damage background, and percentage text.
+- [x] Implement fixed green remaining-health fill over red background.
+- [x] Verify damage reduces fill while preserving percentage text.
 
 ## Task 5: Unity Gameplay-Test Checkpoint
 
@@ -74,9 +74,9 @@
 - Modify: `docs/TESTING_AND_VALIDATION.md`
 - Modify: this plan
 
-- [ ] Run all EditMode and PlayMode tests.
-- [ ] Inspect Unity console and require zero errors.
-- [ ] Inspect live player Rigidbody, model parts, enemy health UI, and screenshot.
-- [ ] Document the manual Unity gameplay checklist: stability, rollover defeat, wheel direction, turret silhouette/color contrast, and enemy health.
-- [ ] Commit the Unity gameplay-test checkpoint.
-- [ ] Stop without WebGL build or ZIP creation.
+- [x] Run all EditMode and PlayMode tests.
+- [x] Inspect Unity console and require zero errors.
+- [x] Inspect live player Rigidbody, model parts, enemy health UI, and screenshot.
+- [x] Document the manual Unity gameplay checklist: stability, rollover defeat, wheel direction, turret silhouette/color contrast, and enemy health.
+- [x] Commit the Unity gameplay-test checkpoint.
+- [x] Stop without WebGL build or ZIP creation.

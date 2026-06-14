@@ -10,7 +10,8 @@ public class TankCameraPlayModeTests
         GameObject cameraObject = new GameObject("ChaseCamera");
         TankOrbitCamera orbit = cameraObject.AddComponent<TankOrbitCamera>();
 
-        Assert.That(orbit.targetOffset.y, Is.GreaterThanOrEqualTo(4.2f));
+        Assert.That(orbit.targetOffset.y, Is.InRange(2f, 3.5f));
+        Assert.That(orbit.cameraHeight, Is.GreaterThanOrEqualTo(3.5f));
         Assert.That(orbit.followDistance, Is.GreaterThanOrEqualTo(10f));
         Object.DestroyImmediate(cameraObject);
     }

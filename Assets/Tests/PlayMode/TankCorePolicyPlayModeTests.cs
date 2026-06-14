@@ -84,5 +84,71 @@ public class TankCorePolicyPlayModeTests
 
         Object.Destroy(hull);
     }
+
+    [Test]
+    public void TankStability_UsesHeavyLowCenterOfMassWithoutRotationConstraints()
+    {
+        GameObject tankObject = new GameObject("HeavyTank");
+        tankObject.SetActive(false);
+        Rigidbody body = tankObject.AddComponent<Rigidbody>();
+        TankController tank = tankObject.AddComponent<TankController>();
+        typeof(TankController)
+            .GetField("_rb", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            .SetValue(tank, body);
+        typeof(TankController)
+            .GetMethod("ConfigureRigidbody", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            .Invoke(tank, null);
+
+        Assert.That(body.mass, Is.GreaterThanOrEqualTo(15000f));
+        Assert.That(body.centerOfMass.y, Is.LessThanOrEqualTo(-1f));
+        Assert.That(body.constraints, Is.EqualTo(RigidbodyConstraints.None));
+        Assert.That(body.angularDamping, Is.GreaterThanOrEqualTo(4f));
+        Object.DestroyImmediate(tankObject);
+    }
+
+    [Test]
+    public void TankPresentation_UsesRealVehicleScaleForPlayableCameraFraming()
+    {
+        GameObject tankObject = new GameObject("ScalePolicyTank");
+        tankObject.SetActive(false);
+        tankObject.AddComponent<Rigidbody>();
+        TankController tank = tankObject.AddComponent<TankController>();
+
+        Assert.That(tank.playerVisualScale, Is.InRange(2.5f, 3.5f));
+        Object.DestroyImmediate(tankObject);
+    }
+
+    [Test]
+    public void RolloverDefeat_RequiresSustainedOverturn()
+    {
+        TankRolloverController rollover = new TankRolloverController();
+
+        Assert.That(rollover.Tick(80f, 1.9f), Is.False);
+        Assert.That(rollover.Tick(20f, 0.1f), Is.False);
+        Assert.That(rollover.OverturnedSeconds, Is.Zero);
+        Assert.That(rollover.Tick(80f, 2.1f), Is.True);
+    }
+
+    [Test]
+    public void RolloverDefeat_MarksPlayerTankDestroyed()
+    {
+        GameObject tankObject = new GameObject("OverturnedPlayer");
+        tankObject.SetActive(false);
+        Rigidbody body = tankObject.AddComponent<Rigidbody>();
+        TankController tank = tankObject.AddComponent<TankController>();
+        tank.rolloverDefeatDelay = 0f;
+        tankObject.transform.rotation = Quaternion.Euler(0f, 0f, 90f);
+        typeof(TankController)
+            .GetField("_rb", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            .SetValue(tank, body);
+
+        bool defeated = (bool)typeof(TankController)
+            .GetMethod("CheckRolloverDefeat", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            .Invoke(tank, null);
+
+        Assert.That(defeated, Is.True);
+        Assert.That(tank.IsDestroyed, Is.True);
+        Object.DestroyImmediate(tankObject);
+    }
 }
 #endif

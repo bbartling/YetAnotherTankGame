@@ -13,6 +13,10 @@ This block is the authoritative feature contract. Update it in the same validate
 - Player vehicle reaches approximately `7.5 m/s` with gradual acceleration, never FPS-sprint movement.
 - Player vehicle must follow terrain into craters.
 - Player vehicle must lose traction on steep slopes and may realistically tip or roll.
+- Player chassis must use heavy, low-center-of-mass physics; sustained rollover ends gameplay.
+- Player wheels must rotate around their authored axle with forward/reverse direction preserved.
+- Player tank must visually contrast with terrain and retain a readable proper turret silhouette.
+- Enemy health bars must show green remaining health over a red damage background with percentage text.
 - Shift may provide low gear or aim stabilization, never sprint.
 
 ### Locked Weapons And Cameras

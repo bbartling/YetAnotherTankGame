@@ -29,9 +29,13 @@ Use the Unity Test Runner or Unity MCP. Classify results before processing:
 4. Fire a lobbed cannonball; confirm projectile camera activates, follows impact, and returns.
 5. Drive through an existing crater and rough terrain; confirm individual wheel suspension follows the surface instead of bridging over the depression.
 6. Cross a steep side slope; confirm the vehicle can naturally tip or roll and is not automatically forced upright.
-7. Confirm enemy tanks engage from range, stop to aim, reload, reposition, and avoid ramming.
-8. Damage a tank until smoke/fire/wreck states appear.
-9. Hit trees and castle pieces; confirm knockdown/crumble effects and bounded debris.
+7. Leave the tank overturned for two seconds; confirm the battle ends with rollover defeat.
+8. Confirm wheels rotate forward while driving forward and reverse while backing up.
+9. Confirm the tan player tank contrasts with terrain and its turret silhouette rotates correctly.
+10. Confirm enemy health starts green, shrinks over a red loss bar, and shows percentage.
+11. Confirm enemy tanks engage from range, stop to aim, reload, reposition, and avoid ramming.
+12. Damage a tank until smoke/fire/wreck states appear.
+13. Hit trees and castle pieces; confirm knockdown/crumble effects and bounded debris.
 
 ## Safari Manual Check
 
@@ -43,10 +47,12 @@ Use the Unity Test Runner or Unity MCP. Classify results before processing:
 
 ## Current Release Evidence
 
-- EditMode: `11/11` passed.
-- PlayMode: `50/50` passed.
+- EditMode: `12/12` passed.
+- PlayMode: `56/56` passed.
+- Unity-only June 14 gameplay checkpoint: heavy `18000 kg` chassis, low center of mass, delayed rollover defeat, signed wheel rotation, proper tan player turret, green-over-red enemy health, and elevated chase camera validated.
 - Local Flask smoke: `/`, `/Build/WebGL.loader.js`, and `/Build/WebGL.data` returned HTTP 200.
 - `/robots.txt` returned HTTP 200.
 - WebGL output: `61,487,783` bytes with `34` allowlisted Unity 6 deprecation warnings and zero errors.
 - PythonAnywhere ZIP: `18,914,770` bytes, SHA-256 `9836D9B8A7D9AC771B9F2D589C56C84291471677D0D0C31BE698A58BCD410D53`.
 - Automated local Chrome launch was blocked by the managed shell policy; direct Chrome and Safari play checks remain manual release checks.
+- WebGL and PythonAnywhere artifacts were intentionally not rebuilt for the June 14 Unity gameplay-test checkpoint.

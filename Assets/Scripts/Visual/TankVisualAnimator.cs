@@ -24,7 +24,7 @@ public class TankVisualAnimator : MonoBehaviour
 
     private void Update()
     {
-        float speed = _body != null ? Vector3.ProjectOnPlane(_body.linearVelocity, Vector3.up).magnitude : 0f;
+        float speed = _body != null ? Vector3.Dot(_body.linearVelocity, transform.forward) : 0f;
         TickVisuals(Time.deltaTime, speed, 0f);
     }
 
@@ -70,7 +70,7 @@ public class TankVisualAnimator : MonoBehaviour
         {
             for (int i = 0; i < wheels.Length; i++)
             {
-                if (wheels[i] != null) wheels[i].Rotate(0f, trackDegrees, 0f, Space.Self);
+                if (wheels[i] != null) wheels[i].Rotate(trackDegrees, 0f, 0f, Space.Self);
             }
         }
     }
