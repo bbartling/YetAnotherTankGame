@@ -10,6 +10,12 @@
 /[Bb]uilds/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
+pythonanywhere_flask/webgl/*
+!pythonanywhere_flask/webgl/.gitkeep
+pythonanywhere_flask/WEBGL_BUILD_MANIFEST.json
+tank_game_pythonanywhere.zip
+__pycache__/
+*.pyc
 *.log
 
 # By default unity supports Blender asset imports, *.blend1 blender files do not need to be commited to version control.
@@ -97,3 +103,9 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# Scratch screenshots superseded by the tracked upright model validation capture
+/Assets/Screenshots/silly-model-player-check.png*
+/Assets/Screenshots/silly-model-player-close.png*
+/Assets/Screenshots/silly-model-player-final.png*
+/Assets/Screenshots/silly-model-player-intact.png*

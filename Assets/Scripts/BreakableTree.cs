@@ -26,11 +26,14 @@ public class BreakableTree : MonoBehaviour
     private float _health;
     private bool _broken;
 
+    public bool IsBroken => _broken;
+
     private void Awake()
     {
         _rb = GetComponent<Rigidbody>();
         _audio = GetComponent<AudioSource>();
         _health = maxHealth;
+        SillyModelInstaller.Ensure(gameObject, "Models/Trees/SillyTreeKit", 1f, true);
 
         _rb.mass = Mathf.Max(0.5f, maxHealth * 0.06f);
         _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
@@ -141,6 +144,7 @@ public class BreakableTree : MonoBehaviour
         {
             GameObject piece = GameObject.CreatePrimitive(Random.value > 0.5f ? PrimitiveType.Cube : PrimitiveType.Sphere);
             piece.name = name + "_Shard";
+            BattlefieldEffectController.RegisterTemporary(piece, "Debris", 64);
             piece.transform.position = baseCenter + Random.insideUnitSphere * 0.45f;
             piece.transform.localScale = Vector3.one * Random.Range(0.12f, 0.32f);
 

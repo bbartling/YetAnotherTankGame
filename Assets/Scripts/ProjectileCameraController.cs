@@ -12,6 +12,7 @@ public class ProjectileCameraController : MonoBehaviour
     public bool enableCameraSwitching = true;
 
     public static ProjectileCameraController ActivePlayerProjectile { get; private set; }
+    public static int PlayerCameraActivationCount { get; private set; }
 
     [Header("Smooth Projectile Camera")]
     public Vector3 cameraOffset = new Vector3(0f, 3f, -9f);
@@ -69,6 +70,13 @@ public class ProjectileCameraController : MonoBehaviour
     void Start()
     {
         _audio = GetComponent<AudioSource>();
+        ProjectileAudioController projectileAudio = GetComponent<ProjectileAudioController>();
+        if (projectileAudio == null) projectileAudio = gameObject.AddComponent<ProjectileAudioController>();
+        projectileAudio.EnsureFallbackClip();
+        if (flyingShellSound == null) flyingShellSound = projectileAudio.whistleClip;
+        if (explosionSound == null) explosionSound = ProceduralBattlefieldAudio.CreateImpact();
+        _audio.clip = flyingShellSound;
+        if (!_audio.isPlaying) _audio.Play();
         _trailRenderer = GetComponent<TrailRenderer>();
         _rb = GetComponent<Rigidbody>();
 
@@ -100,6 +108,7 @@ public class ProjectileCameraController : MonoBehaviour
         if (enableCameraSwitching && projectileCamera != null && _tankCamera != null)
         {
             ActivePlayerProjectile = this;
+            PlayerCameraActivationCount++;
             _projCamTransform = projectileCamera.transform;
 
             projectileCamera.enabled = true;
@@ -148,6 +157,12 @@ public class ProjectileCameraController : MonoBehaviour
 
     void LateUpdate()
     {
+        if (ActivePlayerProjectile == this && Input.GetKeyDown(KeyCode.Escape))
+        {
+            CancelProjectileCamera();
+            return;
+        }
+
         UpdateProjectileCamera();
         HandleProximitySound();
         UpdateTrailColor();
@@ -379,6 +394,14 @@ public class ProjectileCameraController : MonoBehaviour
         if (!_isDestroying)
         {
             StartCoroutine(ExplosionSequence(false));
+        }
+    }
+
+    public void CancelProjectileCamera()
+    {
+        if (!_isDestroying)
+        {
+            StartCoroutine(ExplosionSequence(true));
         }
     }
 

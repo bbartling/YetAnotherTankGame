@@ -358,6 +358,7 @@ public class BattlefieldDirector : MonoBehaviour
         _state = BattleState.Victory;
         _battleEndTime = Time.time;
         Time.timeScale = fastAITestMode ? Mathf.Min(2f, fastTimeScale) : 1f;
+        LockResolvedPlayerInput();
         ShowEndOverlay("VICTORY", "Wave cleared");
     }
 
@@ -372,7 +373,20 @@ public class BattlefieldDirector : MonoBehaviour
         _battleEndTime = Time.time;
         Time.timeScale = 1f;
         AudioListener.volume = 1f;
+        LockResolvedPlayerInput();
         ShowEndOverlay("DEFEAT", reason);
+    }
+
+    private void LockResolvedPlayerInput()
+    {
+        TankController tank = playerTank != null ? playerTank.GetComponent<TankController>() : null;
+        if (tank != null)
+        {
+            tank.enabled = false;
+        }
+
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
     }
 
     private void ApplyTestModeSettings()

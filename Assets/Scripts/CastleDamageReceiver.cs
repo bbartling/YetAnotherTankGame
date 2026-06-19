@@ -21,10 +21,18 @@ public class CastleDamageReceiver : MonoBehaviour
 
     private float _health;
     private bool _collapsed;
+    private DamageStateController _damageStateController;
 
     private void Awake()
     {
         _health = maxHealth;
+        _damageStateController = GetComponent<DamageStateController>();
+        if (_damageStateController == null)
+        {
+            _damageStateController = gameObject.AddComponent<DamageStateController>();
+        }
+        _damageStateController.ApplyHealthRatio(1f);
+        SillyModelInstaller.Ensure(gameObject, "Models/Castle/SillyCastleKit", 1f, false);
     }
 
     public void ApplyImpact(Vector3 worldPoint, Vector3 worldNormal, float force)
@@ -38,6 +46,7 @@ public class CastleDamageReceiver : MonoBehaviour
             ? maxHealth / Mathf.Max(1, directCannonHitsToCollapse)
             : Mathf.Max(1f, force * damageScale);
         _health -= damage;
+        _damageStateController?.ApplyHealthRatio(maxHealth > 0f ? _health / maxHealth : 0f);
 
         SpawnImpactMark(worldPoint, worldNormal, force);
 
@@ -57,6 +66,7 @@ public class CastleDamageReceiver : MonoBehaviour
         GameObject mark = GameObject.CreatePrimitive(PrimitiveType.Quad);
         Destroy(mark.GetComponent<Collider>());
         mark.name = "CastleImpactMark";
+        BattlefieldEffectController.RegisterTemporary(mark, "ImpactMarks", 24);
         mark.transform.SetParent(transform, true);
         mark.transform.position = worldPoint + worldNormal * 0.03f;
         mark.transform.rotation = Quaternion.LookRotation(worldNormal);
@@ -111,6 +121,10 @@ public class CastleDamageReceiver : MonoBehaviour
     private void CollapseCastle()
     {
         _collapsed = true;
+        _damageStateController?.ApplyHealthRatio(0f);
+        DestructionAnimator animator = GetComponent<DestructionAnimator>();
+        if (animator == null) animator = gameObject.AddComponent<DestructionAnimator>();
+        animator.BeginCollapse();
         StartCoroutine(CollapseCastleSequence());
     }
 
@@ -151,6 +165,7 @@ public class CastleDamageReceiver : MonoBehaviour
         {
             GameObject piece = GameObject.CreatePrimitive(Random.value > 0.4f ? PrimitiveType.Cube : PrimitiveType.Sphere);
             piece.name = name + "_Debris";
+            BattlefieldEffectController.RegisterTemporary(piece, "Debris", 64);
             piece.transform.position = origin + Random.insideUnitSphere * 1.25f;
             piece.transform.localScale = Vector3.one * Random.Range(0.18f, 0.7f);
 
@@ -199,12 +214,25 @@ public bool IsCollapsed
         get { return maxHealth > 0f ? Mathf.Clamp01(_health / maxHealth) * 100f : 0f; }
     }
 
+    public string CurrentDamageState
+    {
+        get
+        {
+            if (_collapsed || _health <= 0f) return "Collapsed";
+            float ratio = maxHealth > 0f ? _health / maxHealth : 0f;
+            if (ratio <= collapseThreshold) return "HeavilyDamaged";
+            if (ratio < 1f) return "Cracked";
+            return "Intact";
+        }
+    }
+
 
 public void ResetForBattle()
     {
         StopAllCoroutines();
         _health = maxHealth;
         _collapsed = false;
+        _damageStateController?.ApplyHealthRatio(1f);
 
         Collider[] colliders = GetComponentsInChildren<Collider>(true);
         for (int i = 0; i < colliders.Length; i++)

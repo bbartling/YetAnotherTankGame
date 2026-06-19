@@ -9,8 +9,8 @@ public class EnemyHealthBar : MonoBehaviour
     public Vector3 worldOffset = new Vector3(0f, 3.2f, 0f);
     public Vector2 barSize = new Vector2(1.25f, 0.12f);
     public float maxVisibleDistance = 260f;
-    public Color healthyColor = new Color(1f, 0.15f, 0.1f, 0.92f);
-    public Color damagedColor = new Color(1f, 0.78f, 0.12f, 0.92f);
+    public Color healthyColor = new Color(0.12f, 0.9f, 0.2f, 0.95f);
+    public Color damageBackgroundColor = new Color(0.8f, 0.05f, 0.04f, 0.9f);
 
     private Canvas _canvas;
     private Image _fill;
@@ -64,7 +64,7 @@ public class EnemyHealthBar : MonoBehaviour
         if (_fill != null)
         {
             _fill.fillAmount = normalized;
-            _fill.color = Color.Lerp(damagedColor, healthyColor, normalized);
+            _fill.color = healthyColor;
         }
 
         if (_label != null)
@@ -92,7 +92,7 @@ public class EnemyHealthBar : MonoBehaviour
         bgRect.anchorMax = new Vector2(0.5f, 0.5f);
         bgRect.pivot = new Vector2(0.5f, 0.5f);
         bgRect.sizeDelta = new Vector2(128f, 10f);
-        bg.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.72f);
+        bg.GetComponent<Image>().color = damageBackgroundColor;
 
         GameObject fill = new GameObject("Fill", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
         fill.transform.SetParent(bg.transform, false);

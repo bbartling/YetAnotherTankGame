@@ -39,6 +39,40 @@ public class GameplayTestApi : MonoBehaviour
     private bool _hasInitialPlayerTransform;
     private bool _fallThroughDetected;
     private bool _playerFellThroughMap;
+
+    public float PlayerTankSpeed => playerTank != null ? playerTank.CurrentGroundSpeed : 0f;
+    public float PlayerTankSlopeAngle => playerTank != null ? playerTank.CurrentSlopeAngle : 0f;
+    public bool PlayerTankGrounded => playerTank != null && playerTank.IsGrounded;
+    public int PlayerGroundedWheelCount => playerTank != null ? playerTank.GroundedWheelCount : 0;
+    public float PlayerRolloverAngle => playerTank != null ? playerTank.RolloverAngle : 0f;
+    public float PlayerRolloverSeconds => playerTank != null ? playerTank.RolloverSeconds : 0f;
+    public bool PlayerOverturned => playerTank != null && playerTank.IsOverturned;
+    public bool ProjectileCameraActive => ProjectileCameraController.ActivePlayerProjectile != null;
+    public int ProjectileCameraActivationCount => ProjectileCameraController.PlayerCameraActivationCount;
+    public float EnemyDistanceToPlayer
+    {
+        get
+        {
+            EnemyTankAI enemy = FindNearestLiveEnemy();
+            return enemy != null ? enemy.CurrentDistanceToPlayer : float.PositiveInfinity;
+        }
+    }
+    public bool EnemyHasLineOfSight
+    {
+        get
+        {
+            EnemyTankAI enemy = FindNearestLiveEnemy();
+            return enemy != null && enemy.CurrentHasLineOfSight;
+        }
+    }
+    public string EnemyCurrentState
+    {
+        get
+        {
+            EnemyTankAI enemy = FindNearestLiveEnemy();
+            return enemy != null ? enemy.CurrentOperationalState : "None";
+        }
+    }
     private string _fallThroughMessage = string.Empty;
 
     private void Awake()
@@ -81,6 +115,7 @@ public class GameplayTestApi : MonoBehaviour
     public void StartBattle(int enemyCount)
     {
         ResolveReferences();
+        CaptureCurrentPlayerTransform();
         ResetBattle();
 
         if (enemySpawner != null)
@@ -111,22 +146,6 @@ public class GameplayTestApi : MonoBehaviour
         {
             Vector3 resetPosition = _hasInitialPlayerTransform ? _initialPlayerPosition : playerTank.transform.position;
             Quaternion resetRotation = _hasInitialPlayerTransform ? _initialPlayerRotation : playerTank.transform.rotation;
-            if (enemySpawner != null)
-            {
-                if (TryGetHighestPlayerFootprintGround(resetPosition, out float highestGroundY))
-                {
-                    float lift = GetPlayerGroundLift();
-                    resetPosition = new Vector3(resetPosition.x, highestGroundY + lift, resetPosition.z);
-                }
-                else
-                {
-                    resetPosition.y = Mathf.Max(resetPosition.y, 20f);
-                }
-            }
-            else
-            {
-                resetPosition.y = Mathf.Max(resetPosition.y, 20f);
-            }
             playerTank.ResetForBattle(resetPosition, resetRotation);
         }
 
@@ -274,6 +293,15 @@ public class GameplayTestApi : MonoBehaviour
         builder.AppendFormat("\"elapsedTime\":{0:0.0},", director != null ? director.ElapsedBattleTime : 0f);
         builder.AppendFormat("\"playerAlive\":{0},", playerTank != null && !playerTank.IsDestroyed ? "true" : "false");
         builder.AppendFormat("\"playerHealth\":{0:0.0},", playerTank != null ? playerTank.HealthPercent : 0f);
+        builder.AppendFormat("\"playerTankSpeed\":{0:0.00},", PlayerTankSpeed);
+        builder.AppendFormat("\"playerTankSlopeAngle\":{0:0.00},", PlayerTankSlopeAngle);
+        builder.AppendFormat("\"playerTankGrounded\":{0},", PlayerTankGrounded ? "true" : "false");
+        builder.AppendFormat("\"playerGroundedWheelCount\":{0},", PlayerGroundedWheelCount);
+        builder.AppendFormat("\"playerRolloverAngle\":{0:0.00},", PlayerRolloverAngle);
+        builder.AppendFormat("\"playerRolloverSeconds\":{0:0.00},", PlayerRolloverSeconds);
+        builder.AppendFormat("\"playerOverturned\":{0},", PlayerOverturned ? "true" : "false");
+        builder.AppendFormat("\"projectileCameraActive\":{0},", ProjectileCameraActive ? "true" : "false");
+        builder.AppendFormat("\"projectileCameraActivationCount\":{0},", ProjectileCameraActivationCount);
         builder.AppendFormat("\"castleHealth\":{0:0.0},", castle != null ? castle.HealthPercent : 0f);
         builder.AppendFormat("\"enemyCount\":{0},", enemies != null ? enemies.Length : 0);
         builder.Append("\"enemies\":[");
@@ -563,6 +591,18 @@ private void MonitorPlayerFallThrough()
         }
 
         if (playerTank.transform.position.y < fallThroughWorldY)
+        {
+            return;
+        }
+
+        _initialPlayerPosition = playerTank.transform.position;
+        _initialPlayerRotation = playerTank.transform.rotation;
+        _hasInitialPlayerTransform = true;
+    }
+
+    private void CaptureCurrentPlayerTransform()
+    {
+        if (playerTank == null || playerTank.transform.position.y < fallThroughWorldY)
         {
             return;
         }
