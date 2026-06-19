@@ -67,6 +67,61 @@ public class TankCorePolicyPlayModeTests
     }
 
     [Test]
+    public void TankAimController_ProvidesKeyboardElevationInputForQAndE()
+    {
+        GameObject tankObject = new GameObject("AimInputTank");
+        Transform barrel = new GameObject("BarrelPitchPivot").transform;
+        barrel.SetParent(tankObject.transform, false);
+        TankAimController aim = tankObject.AddComponent<TankAimController>();
+        aim.Bind(barrel, 0f, -8f, 35f);
+
+        System.Reflection.MethodInfo inputMethod = typeof(TankAimController).GetMethod("ApplyKeyboardElevationInput");
+        Assert.That(inputMethod, Is.Not.Null);
+
+        inputMethod.Invoke(aim, new object[] { 1f, 1f });
+        Assert.That(aim.ElevationDegrees, Is.GreaterThan(0f));
+
+        inputMethod.Invoke(aim, new object[] { -1f, 1f });
+        Assert.That(aim.ElevationDegrees, Is.LessThan(35f));
+
+        Object.DestroyImmediate(tankObject);
+    }
+
+    [Test]
+    public void PrepareForGameplay_AlignsTankUpToSlopedGroundNormal()
+    {
+        GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        ground.name = "SlopedGround";
+        ground.transform.position = Vector3.zero;
+        ground.transform.rotation = Quaternion.Euler(0f, 0f, 18f);
+        ground.transform.localScale = new Vector3(24f, 1f, 24f);
+
+        GameObject tankObject = new GameObject("SlopeAlignedPlayer");
+        tankObject.AddComponent<Rigidbody>();
+        tankObject.AddComponent<BoxCollider>();
+        tankObject.transform.position = new Vector3(0f, 8f, 0f);
+        Transform turret = new GameObject("TurretYawPivot").transform;
+        turret.SetParent(tankObject.transform, false);
+        Transform barrel = new GameObject("BarrelPivot").transform;
+        barrel.SetParent(turret, false);
+        Transform firePoint = new GameObject("FirePoint").transform;
+        firePoint.SetParent(barrel, false);
+        TankController tank = tankObject.AddComponent<TankController>();
+        tank.turretYawPivot = turret;
+        tank.barrelPitchPivot = barrel;
+        tank.cannonFirePoint = firePoint;
+
+        tank.PrepareForGameplay();
+
+        Vector3 expectedNormal = ground.transform.up;
+        Assert.That(Vector3.Angle(tank.transform.up, expectedNormal), Is.LessThan(3f));
+        Assert.That(tank.RigidbodyComponent.isKinematic, Is.True);
+
+        Object.DestroyImmediate(tankObject);
+        Object.DestroyImmediate(ground);
+    }
+
+    [Test]
     public void Turret_RotatesIndependentOfHull()
     {
         GameObject hull = new GameObject("Hull");

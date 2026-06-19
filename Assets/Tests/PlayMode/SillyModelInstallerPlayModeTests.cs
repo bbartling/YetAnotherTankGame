@@ -53,5 +53,32 @@ public class SillyModelInstallerPlayModeTests
         Assert.That(barrelFollower.target, Is.SameAs(tank.barrelPitchPivot));
         Object.DestroyImmediate(root);
     }
+
+    [Test]
+    public void VisualPivotFollower_KeepsBarrelVisualAttachedToMovingPitchPivot()
+    {
+        GameObject root = new GameObject("VisualFollowerRoot");
+        Transform pitchPivot = new GameObject("BarrelPitchPivot").transform;
+        pitchPivot.SetParent(root.transform, false);
+        pitchPivot.localPosition = new Vector3(0f, 1.25f, 0.6f);
+        pitchPivot.localRotation = Quaternion.identity;
+
+        GameObject visualObject = new GameObject("BarrelVisual");
+        visualObject.transform.SetParent(root.transform, false);
+        visualObject.transform.position = pitchPivot.position;
+        visualObject.transform.rotation = pitchPivot.rotation;
+
+        VisualPivotFollower follower = visualObject.AddComponent<VisualPivotFollower>();
+        follower.Bind(pitchPivot);
+
+        pitchPivot.localPosition = new Vector3(0.45f, 1.25f, 0.85f);
+        pitchPivot.localRotation = Quaternion.Euler(-8f, 35f, 0f);
+        follower.SendMessage("LateUpdate");
+
+        Assert.That(Vector3.Distance(visualObject.transform.position, pitchPivot.position), Is.LessThan(0.01f));
+        Assert.That(Quaternion.Angle(visualObject.transform.rotation, pitchPivot.rotation), Is.LessThan(0.01f));
+
+        Object.DestroyImmediate(root);
+    }
 }
 #endif

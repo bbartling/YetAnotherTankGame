@@ -32153,7 +32153,7 @@ MonoBehaviour:
   maxAssistedSlopeAngle: 62
   maxDriveSlopeAngle: 74
   brakeDrag: 8
-  centerOfMassOffset: {x: 0, y: -0.55, z: 0}
+  centerOfMassOffset: {x: 0, y: -1.15, z: 0}
   uprightAssist: 12
   angularDamping: 4.5
   linearDamping: 0.9

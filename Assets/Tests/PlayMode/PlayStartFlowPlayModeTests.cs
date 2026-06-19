@@ -80,6 +80,45 @@ public class PlayStartFlowPlayModeTests
     }
 
     [Test]
+    public void PrepareForGameplay_SettlesHighSpawnOntoGroundBeforeDriveInput()
+    {
+        GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        ground.name = "Ground";
+        ground.transform.position = Vector3.zero;
+        ground.transform.localScale = new Vector3(20f, 1f, 20f);
+
+        GameObject tankRoot = CreateTank(out TankController tank);
+        tankRoot.transform.position = new Vector3(0f, 8f, 0f);
+        tank.terrainSurfaceSkin = 0.18f;
+
+        tank.PrepareForGameplay();
+
+        Collider tankCollider = tankRoot.GetComponent<Collider>();
+        float groundTop = ground.GetComponent<Collider>().bounds.max.y;
+        float clearance = tankCollider.bounds.min.y - groundTop;
+
+        Assert.That(clearance, Is.GreaterThanOrEqualTo(0.16f));
+        Assert.That(clearance, Is.LessThan(0.35f));
+        Assert.That(tank.RigidbodyComponent.isKinematic, Is.True);
+
+        Object.DestroyImmediate(tankRoot);
+        Object.DestroyImmediate(ground);
+    }
+
+    [Test]
+    public void PrepareForGameplay_CanBeCalledTwiceWithoutKinematicVelocityErrors()
+    {
+        GameObject tankRoot = CreateTank(out TankController tank);
+
+        tank.PrepareForGameplay();
+        tank.PrepareForGameplay();
+
+        Assert.That(tank.RigidbodyComponent.isKinematic, Is.True);
+
+        Object.DestroyImmediate(tankRoot);
+    }
+
+    [Test]
     public void DeterministicOneEnemyBattle_CanReachVictory()
     {
         GameObject directorObject = new GameObject("BattlefieldDirector");
