@@ -20,6 +20,32 @@ public class TankCorePolicyPlayModeTests
     }
 
     [Test]
+    public void TankMovement_UsesContinuousTerrainClearanceByDefault()
+    {
+        GameObject tankObject = new GameObject("GroundedPolicyTank");
+        tankObject.SetActive(false);
+        tankObject.AddComponent<Rigidbody>();
+        TankController tank = tankObject.AddComponent<TankController>();
+
+        Assert.That(tank.continuousTerrainSnapEnabled, Is.True);
+
+        Object.DestroyImmediate(tankObject);
+    }
+
+    [Test]
+    public void TankSuspension_UsesDistributedVehicleWeightInsteadOfExcessiveLift()
+    {
+        GameObject tankObject = new GameObject("SuspensionPolicyTank");
+        WheeledSuspensionController suspension = tankObject.AddComponent<WheeledSuspensionController>();
+
+        Assert.That(suspension.suspensionTravel, Is.InRange(0.55f, 1.1f));
+        Assert.That(suspension.springStrength, Is.InRange(2.4f, 3.6f));
+        Assert.That(suspension.damperStrength, Is.InRange(0.8f, 1.8f));
+
+        Object.DestroyImmediate(tankObject);
+    }
+
+    [Test]
     public void TankMovement_UpgradesLegacySerializedValuesToWheeledPolicy()
     {
         GameObject tankObject = new GameObject("LegacyFastTank");
@@ -95,7 +121,6 @@ public class TankCorePolicyPlayModeTests
         ground.transform.position = Vector3.zero;
         ground.transform.rotation = Quaternion.Euler(0f, 0f, 18f);
         ground.transform.localScale = new Vector3(24f, 1f, 24f);
-
         GameObject tankObject = new GameObject("SlopeAlignedPlayer");
         tankObject.AddComponent<Rigidbody>();
         tankObject.AddComponent<BoxCollider>();
@@ -110,12 +135,18 @@ public class TankCorePolicyPlayModeTests
         tank.turretYawPivot = turret;
         tank.barrelPitchPivot = barrel;
         tank.cannonFirePoint = firePoint;
+        typeof(TankController)
+            .GetField("_terrainCollider", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            .SetValue(tank, ground.GetComponent<Collider>());
+        typeof(TankController)
+            .GetField("_terrainRenderer", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            .SetValue(tank, ground.GetComponent<Renderer>());
 
         tank.PrepareForGameplay();
 
         Vector3 expectedNormal = ground.transform.up;
         Assert.That(Vector3.Angle(tank.transform.up, expectedNormal), Is.LessThan(3f));
-        Assert.That(tank.RigidbodyComponent.isKinematic, Is.True);
+        Assert.That(tank.RigidbodyComponent.isKinematic, Is.False);
 
         Object.DestroyImmediate(tankObject);
         Object.DestroyImmediate(ground);
@@ -170,6 +201,25 @@ public class TankCorePolicyPlayModeTests
         TankController tank = tankObject.AddComponent<TankController>();
 
         Assert.That(tank.playerVisualScale, Is.InRange(2.5f, 3.5f));
+        Object.DestroyImmediate(tankObject);
+    }
+
+    [Test]
+    public void Cannon_DefaultsToFullPowerAndSupportsKeyboardPowerAdjustment()
+    {
+        GameObject tankObject = new GameObject("PowerPolicyTank");
+        tankObject.SetActive(false);
+        tankObject.AddComponent<Rigidbody>();
+        TankController tank = tankObject.AddComponent<TankController>();
+
+        Assert.That(tank.powerPercentage, Is.EqualTo(100f).Within(0.01f));
+        Assert.That(typeof(TankController).GetMethod("AdjustPower"), Is.Not.Null);
+
+        tank.AdjustPower(-15f);
+        Assert.That(tank.powerPercentage, Is.EqualTo(85f).Within(0.01f));
+        tank.AdjustPower(30f);
+        Assert.That(tank.powerPercentage, Is.EqualTo(100f).Within(0.01f));
+
         Object.DestroyImmediate(tankObject);
     }
 

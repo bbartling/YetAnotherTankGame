@@ -43,7 +43,7 @@ public class TankController : MonoBehaviour
     public float terrainProbeHeight = 35f;
     public float terrainProbeDistance = 90f;
     public float startTerrainClearance = 1.5f;
-    public bool continuousTerrainSnapEnabled;
+    public bool continuousTerrainSnapEnabled = true;
 
     [Header("Tracked Vehicle Grounding")]
     public float trackHalfWidth = 0.42f;
@@ -87,7 +87,8 @@ public class TankController : MonoBehaviour
     [Header("Cannon")]
     public GameObject shellPrefab;
     public float maxPower = 75f;
-    [Range(0f, 100f)] public float powerPercentage = 65f;
+    [Range(0f, 100f)] public float powerPercentage = 100f;
+    public float powerAdjustStep = 5f;
     public float cannonCooldown = 0.45f;
     public KeyCode cannonKey = KeyCode.Space;
     public bool leftClickFiresCannon = true;
@@ -279,6 +280,7 @@ public class TankController : MonoBehaviour
         if (_dead) return;
 
         HandleTurretAndBarrelInput();
+        HandlePowerInput();
         HandleCannonInput();
         UpdateOptionalUi();
     }
@@ -299,13 +301,14 @@ public class TankController : MonoBehaviour
             _rb.WakeUp();
         }
 
+        int groundedWheelCount = _wheeledSuspension != null ? _wheeledSuspension.ApplySuspension(_rb) : 0;
         TrackGroundInfo groundInfo = ProbeTrackGround();
+        ApplyWheelGroundFallback(ref groundInfo, groundedWheelCount);
         float slopeAngle = groundInfo.grounded ? Vector3.Angle(groundInfo.normal, Vector3.up) : 0f;
         ReadDriveInput(out float telemetryThrottle, out _, out _);
         _driveController?.RecordGroundState(groundInfo.grounded, slopeAngle, telemetryThrottle);
         _suspensionVisual?.RecordGroundNormal(groundInfo.normal, Time.fixedDeltaTime);
         _tankAudioController?.SetEngineStrain(EngineStrain);
-        _wheeledSuspension?.ApplySuspension(_rb);
         AlignHullToTrackGrade(groundInfo);
         if (CheckRolloverDefeat())
         {
@@ -318,6 +321,20 @@ public class TankController : MonoBehaviour
         {
             PreventTerrainPenetration();
         }
+    }
+
+    private void ApplyWheelGroundFallback(ref TrackGroundInfo groundInfo, int groundedWheelCount)
+    {
+        if (groundInfo.grounded || _wheeledSuspension == null || groundedWheelCount < 2)
+        {
+            return;
+        }
+
+        groundInfo.grounded = true;
+        groundInfo.normal = _wheeledSuspension.LastGroundNormal.sqrMagnitude > 0.0001f
+            ? _wheeledSuspension.LastGroundNormal
+            : Vector3.up;
+        groundInfo.hitCount = Mathf.Clamp(groundedWheelCount, 1, groundInfo.hits != null ? groundInfo.hits.Length : groundedWheelCount);
     }
 
     private bool CheckRolloverDefeat()
@@ -379,12 +396,20 @@ public class TankController : MonoBehaviour
             TankOrbitCamera orbitCamera = gameplayCamera.GetComponent<TankOrbitCamera>();
             if (orbitCamera == null) orbitCamera = gameplayCamera.gameObject.AddComponent<TankOrbitCamera>();
             orbitCamera.target = transform;
-            orbitCamera.targetOffset = new Vector3(0f, 2.6f, 1f);
-            orbitCamera.cameraHeight = 4.2f;
-            orbitCamera.followDistance = 11f;
+            orbitCamera.aimDirectionSource = cannonFirePoint != null ? cannonFirePoint : turretYawPivot;
+            orbitCamera.targetOffset = new Vector3(0f, 7.5f, 2.5f);
+            orbitCamera.cameraHeight = 10f;
+            orbitCamera.followDistance = 26f;
             TankBarrelScopeCamera scopeCamera = gameplayCamera.GetComponent<TankBarrelScopeCamera>();
             if (scopeCamera == null) scopeCamera = gameplayCamera.gameObject.AddComponent<TankBarrelScopeCamera>();
             scopeCamera.sight = cannonFirePoint;
+
+            SniperRangeFinder rangeFinder = GetComponent<SniperRangeFinder>();
+            if (rangeFinder != null)
+            {
+                rangeFinder.tank = this;
+                rangeFinder.aimCamera = gameplayCamera;
+            }
         }
 
         maxForwardSpeed = _driveController.maxForwardSpeed;
@@ -927,6 +952,24 @@ public class TankController : MonoBehaviour
         _nextCannonTime = Time.time + cannonCooldown;
     }
 
+    private void HandlePowerInput()
+    {
+        if (Input.GetKeyDown(KeyCode.Equals) || Input.GetKeyDown(KeyCode.KeypadPlus))
+        {
+            AdjustPower(powerAdjustStep);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Minus) || Input.GetKeyDown(KeyCode.KeypadMinus))
+        {
+            AdjustPower(-powerAdjustStep);
+        }
+    }
+
+    public void AdjustPower(float deltaPercent)
+    {
+        powerPercentage = Mathf.Clamp(powerPercentage + deltaPercent, 1f, 100f);
+    }
+
     public void FireCannon()
     {
         if (shellPrefab == null || cannonFirePoint == null)
@@ -1021,9 +1064,8 @@ public class TankController : MonoBehaviour
         _rb.isKinematic = false;
         SetVelocity(Vector3.zero);
         _rb.angularVelocity = Vector3.zero;
-        _awaitingDriveInput = true;
-        _rb.isKinematic = true;
-        _rb.Sleep();
+        _awaitingDriveInput = false;
+        _rb.WakeUp();
     }
 
     private void AlignHullToGroundSurface()

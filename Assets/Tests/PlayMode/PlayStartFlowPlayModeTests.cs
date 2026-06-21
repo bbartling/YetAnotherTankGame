@@ -32,8 +32,7 @@ public class PlayStartFlowPlayModeTests
         Assert.That(Quaternion.Angle(rotationBefore, tank.transform.rotation), Is.LessThan(0.01f));
         Assert.That(Quaternion.Angle(turretBefore, tank.turretYawPivot.localRotation), Is.LessThan(0.01f));
         Assert.That(Quaternion.Angle(barrelBefore, tank.barrelPitchPivot.localRotation), Is.LessThan(0.01f));
-        Assert.That(tank.RigidbodyComponent.IsSleeping(), Is.True);
-        Assert.That(tank.RigidbodyComponent.isKinematic, Is.True);
+        Assert.That(tank.RigidbodyComponent.isKinematic, Is.False);
 
         Object.DestroyImmediate(menu.playButton.gameObject);
         Object.DestroyImmediate(menu.mainPanel);
@@ -99,7 +98,7 @@ public class PlayStartFlowPlayModeTests
 
         Assert.That(clearance, Is.GreaterThanOrEqualTo(0.16f));
         Assert.That(clearance, Is.LessThan(0.35f));
-        Assert.That(tank.RigidbodyComponent.isKinematic, Is.True);
+        Assert.That(tank.RigidbodyComponent.isKinematic, Is.False);
 
         Object.DestroyImmediate(tankRoot);
         Object.DestroyImmediate(ground);
@@ -113,7 +112,7 @@ public class PlayStartFlowPlayModeTests
         tank.PrepareForGameplay();
         tank.PrepareForGameplay();
 
-        Assert.That(tank.RigidbodyComponent.isKinematic, Is.True);
+        Assert.That(tank.RigidbodyComponent.isKinematic, Is.False);
 
         Object.DestroyImmediate(tankRoot);
     }

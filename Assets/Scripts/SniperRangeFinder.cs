@@ -283,14 +283,20 @@ public class SniperRangeFinder : MonoBehaviour
 
     private float EstimateBallisticRange()
     {
-        if (tank == null || tank.firePoint == null)
+        Transform muzzle = tank != null ? tank.cannonFirePoint : null;
+        if (muzzle == null && tank != null)
+        {
+            muzzle = tank.firePoint;
+        }
+
+        if (muzzle == null)
         {
             return 0f;
         }
 
-        Vector3 origin = tank.firePoint.position;
+        Vector3 origin = muzzle.position;
         float muzzleSpeed = TankBallistics.GetMuzzleSpeed(tank.maxPower, tank.powerPercentage);
-        Vector3 velocity = tank.firePoint.forward * muzzleSpeed + GetTankVelocity();
+        Vector3 velocity = muzzle.forward * muzzleSpeed + GetTankVelocity();
         Vector3 current = origin;
         float traveled = 0f;
         float step = Mathf.Max(0.02f, simulationStep);

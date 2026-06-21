@@ -209,7 +209,12 @@ public class EnemyTankSpawner : MonoBehaviour
 
     public static float GetSafeGroundLift(float requestedGroundLift)
     {
-        return Mathf.Max(2.5f, requestedGroundLift);
+        return Mathf.Max(0.35f, requestedGroundLift);
+    }
+
+    public static float CalculateGroundSnapDelta(float colliderBottomY, float groundY, float skin)
+    {
+        return groundY + Mathf.Max(0.02f, skin) - colliderBottomY;
     }
 
     private GameObject SpawnEnemyAt(Vector3 spawnPosition, Quaternion rotation, int index, int totalCount)
@@ -225,6 +230,8 @@ public class EnemyTankSpawner : MonoBehaviour
             body.linearVelocity = Vector3.zero;
             body.angularVelocity = Vector3.zero;
         }
+
+        SnapEnemyToGround(enemy, body);
 
         EnemyTankAI ai = enemy.GetComponent<EnemyTankAI>();
         if (ai != null)
@@ -248,6 +255,50 @@ public class EnemyTankSpawner : MonoBehaviour
         }
 
         return enemy;
+    }
+
+    private void SnapEnemyToGround(GameObject enemy, Rigidbody body)
+    {
+        if (enemy == null)
+        {
+            return;
+        }
+
+        Vector3 ground = SampleGround(enemy.transform.position + Vector3.up * spawnHeight);
+        if (ground == Vector3.zero)
+        {
+            return;
+        }
+
+        Physics.SyncTransforms();
+        Collider[] colliders = enemy.GetComponentsInChildren<Collider>(true);
+        float bottom = float.MaxValue;
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider collider = colliders[i];
+            if (collider == null || !collider.enabled || collider.isTrigger)
+            {
+                continue;
+            }
+
+            bottom = Mathf.Min(bottom, collider.bounds.min.y);
+        }
+
+        if (bottom == float.MaxValue)
+        {
+            return;
+        }
+
+        Vector3 adjusted = enemy.transform.position + Vector3.up * CalculateGroundSnapDelta(bottom, ground.y, 0.05f);
+        enemy.transform.position = adjusted;
+        if (body != null)
+        {
+            body.position = adjusted;
+            body.linearVelocity = Vector3.zero;
+            body.angularVelocity = Vector3.zero;
+        }
+
+        Physics.SyncTransforms();
     }
 
     private void ResolveReferences()

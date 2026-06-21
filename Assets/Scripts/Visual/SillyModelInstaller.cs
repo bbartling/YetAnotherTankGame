@@ -57,6 +57,7 @@ public class SillyModelInstaller : MonoBehaviour
         InstalledVisual.transform.localPosition = Vector3.zero;
         InstalledVisual.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
         InstalledVisual.transform.localScale = Vector3.one * visualScale;
+        LowerVisualIfItFloatsAboveCollider();
         ConfigureInitialVariants();
         BindTankVisualAnimator();
     }
@@ -155,6 +156,51 @@ public class SillyModelInstaller : MonoBehaviour
         BindVisualPivot(InstalledVisual.transform.Find("Antenna"), GetComponent<TankController>()?.turretYawPivot);
         BindVisualPivot(InstalledVisual.transform.Find("Barrel"), GetComponent<TankController>()?.barrelPitchPivot);
         BindVisualPivot(InstalledVisual.transform.Find("Barrel_Damaged"), GetComponent<TankController>()?.barrelPitchPivot);
+    }
+
+    private void LowerVisualIfItFloatsAboveCollider()
+    {
+        if (InstalledVisual == null)
+        {
+            return;
+        }
+
+        float colliderBottom = float.MaxValue;
+        Collider[] colliders = GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider collider = colliders[i];
+            if (collider == null || !collider.enabled || collider.isTrigger || collider.transform.IsChildOf(InstalledVisual.transform))
+            {
+                continue;
+            }
+
+            colliderBottom = Mathf.Min(colliderBottom, collider.bounds.min.y);
+        }
+
+        float renderBottom = float.MaxValue;
+        Renderer[] renderers = InstalledVisual.GetComponentsInChildren<Renderer>(true);
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            Renderer renderer = renderers[i];
+            if (renderer == null || renderer is LineRenderer || renderer is ParticleSystemRenderer)
+            {
+                continue;
+            }
+
+            renderBottom = Mathf.Min(renderBottom, renderer.bounds.min.y);
+        }
+
+        if (colliderBottom == float.MaxValue || renderBottom == float.MaxValue)
+        {
+            return;
+        }
+
+        float floatingGap = renderBottom - colliderBottom;
+        if (floatingGap > 0.1f)
+        {
+            InstalledVisual.transform.position += Vector3.down * floatingGap;
+        }
     }
 
     private static void BindVisualPivot(Transform visual, Transform pivot)

@@ -66,6 +66,8 @@ public class ProjectileCameraController : MonoBehaviour
 
     private Vector3 _cameraVelocity;
     private Vector3 _lastGoodFlightDirection;
+    private Vector3 _impactLookPoint;
+    private bool _holdingImpactView;
 
     void Start()
     {
@@ -152,7 +154,11 @@ public class ProjectileCameraController : MonoBehaviour
             _audio.clip = flyingShellSound;
         }
 
-        Invoke(nameof(SelfDestruct), GetSelfDestructSeconds());
+        float selfDestructSeconds = GetSelfDestructSeconds();
+        if (!float.IsPositiveInfinity(selfDestructSeconds))
+        {
+            Invoke(nameof(SelfDestruct), selfDestructSeconds);
+        }
     }
 
     void LateUpdate()
@@ -175,8 +181,23 @@ public class ProjectileCameraController : MonoBehaviour
 
     private void UpdateProjectileCamera()
     {
-        if (_projCamTransform == null || _isDestroying)
+        if (_projCamTransform == null)
             return;
+
+        if (_holdingImpactView)
+        {
+            Vector3 impactLookDir = _impactLookPoint - _projCamTransform.position;
+            if (impactLookDir.sqrMagnitude > 0.001f)
+            {
+                Quaternion impactRotation = Quaternion.LookRotation(impactLookDir.normalized, Vector3.up);
+                _projCamTransform.rotation = Quaternion.Slerp(
+                    _projCamTransform.rotation,
+                    impactRotation,
+                    Time.deltaTime * rotationSmoothSpeed);
+            }
+
+            return;
+        }
 
         Vector3 flightDir = GetFlightDirection();
 
@@ -244,9 +265,7 @@ public class ProjectileCameraController : MonoBehaviour
 
     private float GetSelfDestructSeconds()
     {
-        float powerT = Mathf.InverseLerp(50f, 100f, launchPowerPercentage);
-        float multiplier = Mathf.Lerp(1f, 2f, powerT);
-        return baseSelfDestructSeconds * multiplier;
+        return float.PositiveInfinity;
     }
 
     private void UpdateTrailColor()
@@ -288,7 +307,7 @@ public class ProjectileCameraController : MonoBehaviour
         BattlefieldWind wind = BattlefieldWind.Instance;
         if (wind == null)
         {
-            wind = Object.FindFirstObjectByType<BattlefieldWind>();
+            wind = Object.FindAnyObjectByType<BattlefieldWind>();
         }
 
         if (wind == null)
@@ -316,6 +335,8 @@ public class ProjectileCameraController : MonoBehaviour
         }
 
         ContactPoint contact = collision.GetContact(0);
+        _impactLookPoint = contact.point;
+        _holdingImpactView = true;
         float impactForce = Mathf.Max(1f, _rb != null ? _rb.mass * GetRigidbodyVelocity().magnitude : 1f);
 
         CraterTerrain craterTerrain = collision.collider.GetComponentInParent<CraterTerrain>();
@@ -486,16 +507,49 @@ public class ProjectileCameraController : MonoBehaviour
         else
             yield return new WaitForSeconds(explosionLingerTime);
 
-        if (projectileCamera != null)
-            projectileCamera.enabled = false;
+        EnsureReturnCamera();
 
         if (_tankCamera != null)
             _tankCamera.enabled = true;
+
+        if (projectileCamera != null && projectileCamera != _tankCamera)
+            projectileCamera.enabled = false;
 
         if (_cannonLineRenderer != null)
             _cannonLineRenderer.enabled = true;
 
         Destroy(gameObject);
+    }
+
+    private void EnsureReturnCamera()
+    {
+        if (_tankCamera != null)
+        {
+            return;
+        }
+
+        if (trackingBase != null)
+        {
+            _tankCamera = trackingBase.GetComponentInChildren<Camera>(true);
+        }
+
+        if (_tankCamera == null)
+        {
+            _tankCamera = Camera.main;
+        }
+
+        if (_tankCamera == null)
+        {
+            Camera[] cameras = Object.FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            for (int i = 0; i < cameras.Length; i++)
+            {
+                if (cameras[i] != null && cameras[i] != projectileCamera)
+                {
+                    _tankCamera = cameras[i];
+                    return;
+                }
+            }
+        }
     }
 
     void OnDestroy()

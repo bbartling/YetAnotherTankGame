@@ -4,7 +4,7 @@ using UnityEngine;
 public class TankBarrelScopeCamera : MonoBehaviour
 {
     public Transform sight;
-    public Vector3 localSightOffset = new Vector3(0.45f, 0.35f, -0.6f);
+    public Vector3 localSightOffset = new Vector3(0.35f, 0.25f, 0.75f);
     public float scopeFieldOfView = 16f;
     public float normalFieldOfView = 58f;
 

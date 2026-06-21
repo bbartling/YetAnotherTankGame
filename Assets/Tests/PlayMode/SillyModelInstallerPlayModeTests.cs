@@ -35,6 +35,28 @@ public class SillyModelInstallerPlayModeTests
     }
 
     [Test]
+    public void Installer_HidesLegacyPrimitiveRenderersWhenUsingBlenderModel()
+    {
+        GameObject root = new GameObject("LegacyVisualRoot");
+        GameObject legacyBlock = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        legacyBlock.name = "LegacyBlockTankVisual";
+        legacyBlock.transform.SetParent(root.transform, false);
+        MeshRenderer legacyRenderer = legacyBlock.GetComponent<MeshRenderer>();
+
+        SillyModelInstaller installer = SillyModelInstaller.Ensure(
+            root,
+            "Models/Tanks/SillyPlayerTank",
+            1f,
+            true);
+
+        Assert.That(installer.InstalledVisual, Is.Not.Null);
+        Assert.That(installer.InstalledVisual.transform.Find("Hull"), Is.Not.Null);
+        Assert.That(legacyRenderer.enabled, Is.False);
+
+        Object.DestroyImmediate(root);
+    }
+
+    [Test]
     public void Installer_BindsVisibleTurretAndBarrelToGameplayPivots()
     {
         GameObject root = new GameObject("PivotInstallRoot");

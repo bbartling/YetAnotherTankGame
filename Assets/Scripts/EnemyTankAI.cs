@@ -31,6 +31,11 @@ public class EnemyTankAI : MonoBehaviour
     public float searchTurnTorque = 28f;
     public float ambushRadius = 18f;
 
+    [Header("Pathing")]
+    public float slopeProbeDistance = 7f;
+    public float slopeProbeHeight = 5f;
+    public float slopeSideProbeOffset = 5f;
+
     [Header("Patrol")]
     public Transform patrolCenter;
     public float patrolRadius = 56f;
@@ -457,7 +462,7 @@ private EnemyState GetState()
             return;
         }
 
-        Vector3 desiredDir = toTarget.normalized;
+        Vector3 desiredDir = GetSlopeAwareDirection(toTarget.normalized);
         Vector3 forward = transform.forward;
         forward.y = 0f;
         if (forward.sqrMagnitude < 0.001f)
@@ -492,6 +497,48 @@ private EnemyState GetState()
             float pressure = Mathf.Sin(Time.time * 1.05f + transform.position.x * 0.03f + transform.position.z * 0.02f) * 0.65f;
             _rb.AddForce(lateral * (pressure * strafeForce), ForceMode.Acceleration);
         }
+    }
+
+    private Vector3 GetSlopeAwareDirection(Vector3 desiredDir)
+    {
+        InitializePoliciesIfNeeded();
+        Vector3 planarDesired = Vector3.ProjectOnPlane(desiredDir, Vector3.up);
+        if (planarDesired.sqrMagnitude < 0.0001f)
+        {
+            return transform.forward;
+        }
+
+        planarDesired.Normalize();
+        Vector3 right = Vector3.Cross(Vector3.up, planarDesired).normalized;
+        float forwardSlope = ProbeSlope(planarDesired, Vector3.zero);
+        float leftSlope = ProbeSlope(planarDesired, -right * slopeSideProbeOffset);
+        float rightSlope = ProbeSlope(planarDesired, right * slopeSideProbeOffset);
+        return _pathingBrain.ChooseSlopeAwareDirection(planarDesired, right, forwardSlope, leftSlope, rightSlope);
+    }
+
+    private float ProbeSlope(Vector3 direction, Vector3 lateralOffset)
+    {
+        Vector3 origin = transform.position + lateralOffset + direction.normalized * Mathf.Max(0.1f, slopeProbeDistance) + Vector3.up * Mathf.Max(0.1f, slopeProbeHeight);
+        RaycastHit[] hits = Physics.RaycastAll(origin, Vector3.down, slopeProbeHeight * 3f, ~0, QueryTriggerInteraction.Ignore);
+        float nearestDistance = float.MaxValue;
+        RaycastHit nearest = default;
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Transform hitTransform = hits[i].transform;
+            if (hitTransform == null || hitTransform == transform || hitTransform.IsChildOf(transform))
+            {
+                continue;
+            }
+
+            if (hits[i].distance < nearestDistance)
+            {
+                nearestDistance = hits[i].distance;
+                nearest = hits[i];
+            }
+        }
+
+        return nearest.collider != null ? Vector3.Angle(nearest.normal, Vector3.up) : 0f;
     }
 
     private void HandleAudio(TankCombatBrain.State state)

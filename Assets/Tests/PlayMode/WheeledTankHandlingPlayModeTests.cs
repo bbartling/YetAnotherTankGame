@@ -53,7 +53,7 @@ public class WheeledTankHandlingPlayModeTests
     }
 
     [Test]
-    public void TankController_NormalDrivingDoesNotUseHighestCornerTerrainSnap()
+    public void TankController_NormalDrivingKeepsContinuousTerrainClearanceEnabled()
     {
         GameObject root = new GameObject("CraterFollower");
         root.SetActive(false);
@@ -70,7 +70,7 @@ public class WheeledTankHandlingPlayModeTests
         tank.cannonFirePoint = firePoint.transform;
         root.SetActive(true);
 
-        Assert.That(tank.continuousTerrainSnapEnabled, Is.False);
+        Assert.That(tank.continuousTerrainSnapEnabled, Is.True);
 
         Object.DestroyImmediate(root);
     }

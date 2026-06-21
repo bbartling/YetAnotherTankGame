@@ -12,7 +12,7 @@ public class MenuManager : MonoBehaviour
     public TMP_InputField enemyCountInput;
 
     [TextArea(4, 12)]
-    public string controlsCopy = "Controls:\nW/S or arrows - heavy forward/reverse drive\nA/D or arrows - steer tracks\nShift - low gear / stabilized creeping\nMouse X - rotate turret\nMouse wheel - elevate barrel\nPageUp / PageDown - fine barrel elevation\nRight click - scope/rangefinder\nLeft click / Space - fire cannon\nF - machine gun\nC - controls during game";
+    public string controlsCopy = "Controls:\nW/S or arrows - heavy forward/reverse drive\nA/D or arrows - steer tracks\nShift - low gear / stabilized creeping\nMouse X - rotate turret\nQ/E - lower/raise cannon barrel\nMouse wheel or PageUp/PageDown - fine barrel elevation\n+/- - adjust cannon power from 100% default\nRight click - scope/rangefinder\nLeft click / Space - fire cannon\nF - machine gun\nC - controls during game";
     public int defaultEnemyCount = 5;
 
     private void Start()

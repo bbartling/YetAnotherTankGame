@@ -7,14 +7,22 @@ public class WheeledSuspensionController : MonoBehaviour
     public float frontOffset = 0.85f;
     public float wheelSpacing = 0.57f;
     public float probeHeight = 1.2f;
-    public float suspensionTravel = 2.2f;
+    public float suspensionTravel = 1f;
     public float wheelRadius = 0.34f;
-    public float springStrength = 30f;
-    public float damperStrength = 8f;
+    public float springStrength = 3f;
+    public float damperStrength = 1.2f;
     public LayerMask groundMask = ~0;
 
     public int WheelCount => 8;
     public int GroundedWheelCount { get; private set; }
+    public Vector3 LastGroundNormal { get; private set; } = Vector3.up;
+
+    private void OnEnable()
+    {
+        suspensionTravel = Mathf.Clamp(suspensionTravel, 0.55f, 1.1f);
+        springStrength = Mathf.Clamp(springStrength, 2.4f, 3.6f);
+        damperStrength = Mathf.Clamp(damperStrength, 0.8f, 1.8f);
+    }
 
     public Vector3 GetLocalWheelMount(int index)
     {
@@ -33,8 +41,10 @@ public class WheeledSuspensionController : MonoBehaviour
     public int ApplySuspension(Rigidbody body)
     {
         GroundedWheelCount = 0;
+        Vector3 normalSum = Vector3.zero;
         if (body == null)
         {
+            LastGroundNormal = Vector3.up;
             return 0;
         }
 
@@ -52,10 +62,14 @@ public class WheeledSuspensionController : MonoBehaviour
             float compression = Mathf.Clamp01(1f - travelDistance / Mathf.Max(0.01f, suspensionTravel));
             float contactVelocity = Vector3.Dot(body.GetPointVelocity(hit.point), hit.normal);
             float force = CalculateSpringForce(compression, springStrength, contactVelocity, damperStrength);
-            body.AddForceAtPosition(hit.normal * (force / WheelCount), hit.point, ForceMode.Acceleration);
+            body.AddForceAtPosition(hit.normal * force, hit.point, ForceMode.Acceleration);
             GroundedWheelCount++;
+            normalSum += hit.normal;
         }
 
+        LastGroundNormal = GroundedWheelCount > 0 && normalSum.sqrMagnitude > 0.0001f
+            ? normalSum.normalized
+            : Vector3.up;
         return GroundedWheelCount;
     }
 
