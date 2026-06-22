@@ -3,17 +3,17 @@ using UnityEngine;
 public class TankDriveController : MonoBehaviour
 {
     [Header("Locked Heavy Movement")]
-    public float maxForwardSpeed = 7.5f;
-    public float maxReverseSpeed = 3.5f;
-    public float accelerationSeconds = 4f;
-    public float brakingSeconds = 2f;
+    public float maxForwardSpeed = 8.5f;
+    public float maxReverseSpeed = 4.2f;
+    public float accelerationSeconds = 1.2f;
+    public float brakingSeconds = 1.6f;
     [Range(0.1f, 1f)] public float highSpeedSteeringMultiplier = 0.45f;
     [Range(0.1f, 1f)] public float lowGearSpeedMultiplier = 0.55f;
 
     [Header("Slope Traction")]
-    public float tractionLossSlopeDegrees = 24f;
-    public float maxClimbSlopeDegrees = 42f;
-    [Range(0f, 1f)] public float minimumUphillSpeedMultiplier = 0.18f;
+    public float tractionLossSlopeDegrees = 40f;
+    public float maxClimbSlopeDegrees = 55f;
+    [Range(0f, 1f)] public float minimumUphillSpeedMultiplier = 0.2f;
 
     public float CurrentSlopeAngle { get; private set; }
     public bool IsGrounded { get; private set; }
@@ -26,11 +26,14 @@ public class TankDriveController : MonoBehaviour
 
     private void OnEnable()
     {
-        maxForwardSpeed = 7.5f;
-        maxReverseSpeed = 3.5f;
-        accelerationSeconds = 4f;
-        brakingSeconds = 2f;
+        maxForwardSpeed = 8.5f;
+        maxReverseSpeed = 4.2f;
+        accelerationSeconds = 1.2f;
+        brakingSeconds = 1.6f;
         highSpeedSteeringMultiplier = 0.45f;
+        tractionLossSlopeDegrees = 40f;
+        maxClimbSlopeDegrees = 55f;
+        minimumUphillSpeedMultiplier = 0.2f;
     }
 
     public void ReadInput(out float throttle, out float steer, out bool lowGear)
@@ -65,6 +68,11 @@ public class TankDriveController : MonoBehaviour
 
     public float GetSlopeSpeedMultiplier(float slopeAngle)
     {
+        if (slopeAngle >= maxClimbSlopeDegrees)
+        {
+            return 0f;
+        }
+
         if (slopeAngle <= tractionLossSlopeDegrees)
         {
             return 1f;
@@ -83,8 +91,13 @@ public class TankDriveController : MonoBehaviour
 
     public float GetAccelerationLimit(bool reversing, float slopeAngle)
     {
+        if (slopeAngle >= maxClimbSlopeDegrees)
+        {
+            return 0f;
+        }
+
         float speed = reversing ? maxReverseSpeed : maxForwardSpeed;
-        return speed / Mathf.Max(0.1f, accelerationSeconds) * Mathf.Max(0.15f, GetSlopeSpeedMultiplier(slopeAngle));
+        return speed / Mathf.Max(0.1f, accelerationSeconds);
     }
 
     public float GetBrakingResponse()

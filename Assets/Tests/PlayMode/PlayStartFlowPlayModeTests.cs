@@ -88,7 +88,7 @@ public class PlayStartFlowPlayModeTests
 
         GameObject tankRoot = CreateTank(out TankController tank);
         tankRoot.transform.position = new Vector3(0f, 8f, 0f);
-        tank.terrainSurfaceSkin = 0.18f;
+        tank.terrainSurfaceSkin = 0.08f;
 
         tank.PrepareForGameplay();
 
@@ -96,8 +96,8 @@ public class PlayStartFlowPlayModeTests
         float groundTop = ground.GetComponent<Collider>().bounds.max.y;
         float clearance = tankCollider.bounds.min.y - groundTop;
 
-        Assert.That(clearance, Is.GreaterThanOrEqualTo(0.16f));
-        Assert.That(clearance, Is.LessThan(0.35f));
+        Assert.That(clearance, Is.GreaterThanOrEqualTo(0.06f));
+        Assert.That(clearance, Is.LessThan(0.2f));
         Assert.That(tank.RigidbodyComponent.isKinematic, Is.False);
 
         Object.DestroyImmediate(tankRoot);

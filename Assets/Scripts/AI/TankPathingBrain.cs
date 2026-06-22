@@ -10,7 +10,7 @@ public sealed class TankPathingBrain
     }
 
     public float MaxTravelSpeed { get; set; } = 2.25f;
-    public float MaxSlopeDegrees { get; set; } = 35f;
+    public float MaxSlopeDegrees { get; set; } = 55f;
 
     public Motion DecideMotion(float distance, float preferredDistance, float retreatDistance)
     {

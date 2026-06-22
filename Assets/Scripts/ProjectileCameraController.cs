@@ -43,6 +43,8 @@ public class ProjectileCameraController : MonoBehaviour
     public GameObject explosionVFX;
     public float explosionRadius = 10f;
     public float explosionForce = 0.7f;
+    public float playerTankImpactDamageMultiplier = 1f;
+    public float playerTankExplosionDamageMultiplier = 1f;
     
     [Header("Impact")]
     public float groundImpactMultiplier = 4.5f;
@@ -362,7 +364,15 @@ public class ProjectileCameraController : MonoBehaviour
         TankController tank = collision.collider.GetComponentInParent<TankController>();
         if (tank != null)
         {
-            tank.ApplyProjectileDamage(Mathf.Max(15f, impactForce * 1.4f), contact.point, contact.normal);
+            float damage = Mathf.Max(15f, impactForce * 1.4f) * Mathf.Max(0f, playerTankImpactDamageMultiplier);
+            if (playerTankImpactDamageMultiplier < 0.999f)
+            {
+                tank.ApplyBulletDamage(damage, contact.point, contact.normal);
+            }
+            else
+            {
+                tank.ApplyProjectileDamage(damage, contact.point, contact.normal);
+            }
             return;
         }
 
@@ -461,8 +471,15 @@ public class ProjectileCameraController : MonoBehaviour
                 {
                     float distance = Vector3.Distance(transform.position, tank.transform.position);
                     float falloff = 1f - Mathf.Clamp01(distance / Mathf.Max(0.01f, explosionRadius));
-                    float damage = Mathf.Max(10f, explosionForce * 70f * falloff + GetRigidbodyVelocity().magnitude * 0.6f);
-                    tank.ApplyExplosionDamage(damage, transform.position, Vector3.up, falloff);
+                    float damage = Mathf.Max(10f, explosionForce * 70f * falloff + GetRigidbodyVelocity().magnitude * 0.6f) * Mathf.Max(0f, playerTankExplosionDamageMultiplier);
+                    if (playerTankExplosionDamageMultiplier < 0.999f)
+                    {
+                        tank.ApplyBulletDamage(damage, transform.position, Vector3.up);
+                    }
+                    else
+                    {
+                        tank.ApplyExplosionDamage(damage, transform.position, Vector3.up, falloff);
+                    }
                     continue;
                 }
 

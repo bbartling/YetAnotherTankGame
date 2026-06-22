@@ -82,11 +82,11 @@ public class EnemyTankOperationsPlayModeTests
     [Test]
     public void EnemyPathing_ChoosesSideRouteWhenForwardSlopeIsTooSteep()
     {
-        TankPathingBrain pathing = new TankPathingBrain { MaxSlopeDegrees = 35f };
+        TankPathingBrain pathing = new TankPathingBrain { MaxSlopeDegrees = 55f };
         MethodInfo method = typeof(TankPathingBrain).GetMethod("ChooseSlopeAwareDirection", BindingFlags.Instance | BindingFlags.Public);
 
         Assert.That(method, Is.Not.Null);
-        Vector3 chosen = (Vector3)method.Invoke(pathing, new object[] { Vector3.forward, Vector3.right, 48f, 18f, 52f });
+        Vector3 chosen = (Vector3)method.Invoke(pathing, new object[] { Vector3.forward, Vector3.right, 64f, 48f, 68f });
 
         Assert.That(Vector3.Dot(chosen.normalized, -Vector3.right), Is.GreaterThan(0.65f));
     }

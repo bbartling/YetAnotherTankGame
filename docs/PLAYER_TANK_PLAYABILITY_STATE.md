@@ -20,12 +20,17 @@ Updated: 2026-06-21
 ## Current Locked Gameplay Settings
 
 - Player cannon power defaults to `100%`.
-- Tank road speed policy remains `7.5 m/s` max forward and `3.5 m/s` max reverse.
-- Tank drive acceleration remains deliberate at `4 s` to target speed.
+- Tank road speed policy is `8.5 m/s` max forward and `4.2 m/s` max reverse.
+- Tank drive acceleration remains deliberate, now `1.2 s` to target speed so the tank can climb normal hills and tank-height bumps.
+- Maximum sustained climb angle is `55 degrees`; this replaced the earlier `17`, `28`, and `38 degree` caps because normal crater-terrain hills were being treated as unclimbable.
+- Uphill speed starts dropping above `40 degrees` and reaches `0` at the climb cap; tanks can stall, slide, tip, or roll on cliff-like faces and should route around them.
 - Continuous terrain clearance is enabled on the player tank.
 - Wheel suspension uses `1.0 m` travel, `3.0` spring acceleration, and `1.2` damping so eight wheel contacts do not over-lift the chassis.
 - Wheel suspension contacts are allowed to mark the tank grounded when the narrower track probe misses terrain.
 - Enemy spawn ground lift is `0.35 m`, with collider-bottom snapping to terrain plus `0.05 m` skin.
+- Enemy AI pathing rejects travel slopes over about `55 degrees` and evaluates side routes before driving straight into steep terrain.
+- Enemy shell damage against the player is scaled through non-fatal damage paths so enemy ranged fire remains dangerous without one-shotting via the player cannon direct-hit minimum.
+- Current objective remains defensive: destroy the active enemy tank wave to defend the castle. Castle destruction exists as a damage state, but castle destruction is not the current victory condition.
 
 ## Camera And Scope State
 
@@ -37,8 +42,13 @@ Updated: 2026-06-21
 ## Validation Snapshot
 
 - Forward-drive runtime smoke: tank moved about `65 m` over terrain with all 8 wheels grounded.
+- Runtime drive test after the grade cap: player drove about `60 m`, stayed grounded on all 8 wheels, and stalled when telemetry slope exceeded the `17 degree` climb cap.
+- Runtime steep-slope test: player turned onto a `68 degree` face, slowed to about `0.13 m/s`, retained partial/then full wheel contact, and did not fall through.
 - Player visual bottom measured about `0.31 m` above sampled terrain after suspension tuning.
 - Enemy visual bottom measured about `0.23 m` above sampled terrain after spawn snapping and model alignment.
+- Fresh six-enemy spawn audit after continuous enemy snap: enemy collider gaps measured about `-0.02 m` to `0.32 m`; enemy render gaps measured about `0.10 m` to `0.29 m` on the crater ground mesh.
 - Scope alignment runtime check: dot product to cannon direction `1.000`, forward offset `0.75 m`.
 - Projectile fired at enemy activated projectile camera and resolved a one-enemy battle to Victory.
 - Fresh kill path confirmed enemy health reached `0%` and battle state advanced to Victory.
+- Focused PlayMode regression suite passed after the grade and grounding updates: `8 / 8` tests.
+- No-input six-enemy battle remains lethal to a stationary player; this is expected pressure, not a pass condition for player survivability.

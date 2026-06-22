@@ -442,9 +442,9 @@ public class EnemyTankSpawner : MonoBehaviour
         ai.turnTorque = Mathf.Min(ai.turnTorque, 32f);
         ai.strafeForce = 0f;
         ai.shellPower = Mathf.Max(145f, ai.shellPower * Mathf.Lerp(1f, 1.2f, difficulty - 1f));
-        ai.fireCooldown = Mathf.Max(6f, ai.fireCooldown / Mathf.Lerp(1f, 1.08f, difficulty - 1f));
+        ai.fireCooldown = Mathf.Max(12f, ai.fireCooldown / Mathf.Lerp(1f, 1.04f, difficulty - 1f));
         ai.aimSpeed = Mathf.Min(ai.aimSpeed, 1.5f);
-        ai.accuracy = Mathf.Clamp01(ai.accuracy + 0.04f * difficulty + (0.03f * normalizedCount));
+        ai.accuracy = Mathf.Clamp(ai.accuracy + 0.015f * difficulty + (0.015f * normalizedCount), 0.25f, 0.44f);
         ai.lastKnownMemorySeconds = Mathf.Clamp(ai.lastKnownMemorySeconds + difficulty * 0.6f, 5f, 12f);
         ai.searchOrbitSpeed *= Mathf.Lerp(1f, 1.18f, normalizedCount);
         ai.searchMoveForce = Mathf.Min(ai.searchMoveForce, 20f);

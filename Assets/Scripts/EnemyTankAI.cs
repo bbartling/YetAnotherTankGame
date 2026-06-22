@@ -21,9 +21,9 @@ public class EnemyTankAI : MonoBehaviour
     public float turnTorque = 32f;
     public float strafeForce = 0f;
     public float shellPower = 145f;
-    public float fireCooldown = 8f;
+    public float fireCooldown = 12f;
     public float aimSpeed = 1.25f;
-    public float accuracy = 0.72f;
+    public float accuracy = 0.42f;
     public float visibilityHeight = 0.55f;
     public float lastKnownMemorySeconds = 5.5f;
     public float searchOrbitSpeed = 0.8f;
@@ -221,6 +221,100 @@ private void FixedUpdate()
         }
 
         _rb.linearVelocity = _pathingBrain.ClampPlanarVelocity(_rb.linearVelocity);
+        SnapToGroundSurface();
+    }
+
+    private void SnapToGroundSurface()
+    {
+        if (_rb == null)
+        {
+            return;
+        }
+
+        if (!TryGetGroundSurface(transform.position, out RaycastHit groundHit))
+        {
+            return;
+        }
+
+        Collider[] colliders = GetComponentsInChildren<Collider>(true);
+        float bottom = float.MaxValue;
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider collider = colliders[i];
+            if (collider == null || !collider.enabled || collider.isTrigger)
+            {
+                continue;
+            }
+
+            bottom = Mathf.Min(bottom, collider.bounds.min.y);
+        }
+
+        if (bottom == float.MaxValue)
+        {
+            return;
+        }
+
+        const float skin = 0.05f;
+        const float maxCorrection = 0.35f;
+        float desiredBottom = groundHit.point.y + skin;
+        float delta = Mathf.Clamp(desiredBottom - bottom, -maxCorrection, maxCorrection);
+        if (Mathf.Abs(delta) <= 0.02f)
+        {
+            return;
+        }
+
+        Vector3 corrected = _rb.position + Vector3.up * delta;
+        _rb.position = corrected;
+        transform.position = corrected;
+
+        Vector3 velocity = _rb.linearVelocity;
+        if (delta < 0f && velocity.y > 0f)
+        {
+            velocity.y = 0f;
+            _rb.linearVelocity = velocity;
+        }
+
+        Physics.SyncTransforms();
+    }
+
+    private bool TryGetGroundSurface(Vector3 position, out RaycastHit groundHit)
+    {
+        groundHit = default;
+        CraterTerrain terrain = Object.FindFirstObjectByType<CraterTerrain>();
+        Collider terrainCollider = terrain != null ? terrain.GetComponent<Collider>() : null;
+        Renderer terrainRenderer = terrain != null ? terrain.GetComponent<Renderer>() : null;
+
+        if (terrainCollider != null || terrainRenderer != null)
+        {
+            Bounds bounds = terrainCollider != null ? terrainCollider.bounds : terrainRenderer.bounds;
+            Vector3 origin = new Vector3(position.x, bounds.max.y + 30f, position.z);
+            float distance = bounds.size.y + 160f;
+
+            if (terrainCollider != null && terrainCollider.Raycast(new Ray(origin, Vector3.down), out groundHit, distance))
+            {
+                return true;
+            }
+        }
+
+        Vector3 fallbackOrigin = position + Vector3.up * Mathf.Max(10f, slopeProbeHeight);
+        RaycastHit[] hits = Physics.RaycastAll(fallbackOrigin, Vector3.down, slopeProbeHeight + 80f, ~0, QueryTriggerInteraction.Ignore);
+        float nearestDistance = float.MaxValue;
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider hitCollider = hits[i].collider;
+            if (hitCollider == null || hitCollider.transform == transform || hitCollider.transform.IsChildOf(transform))
+            {
+                continue;
+            }
+
+            if (hits[i].distance < nearestDistance)
+            {
+                nearestDistance = hits[i].distance;
+                groundHit = hits[i];
+            }
+        }
+
+        return groundHit.collider != null;
     }
 
     private void AutoWireReferences()
@@ -335,7 +429,7 @@ private EnemyState GetState()
         _pathingBrain = new TankPathingBrain
         {
             MaxTravelSpeed = 2.25f,
-            MaxSlopeDegrees = 35f
+            MaxSlopeDegrees = 55f
         };
     }
 
@@ -738,6 +832,8 @@ private EnemyState GetState()
             cameraController.enableCameraSwitching = false;
             cameraController.applyWindDrift = false;
             cameraController.launchPowerPercentage = 100f;
+            cameraController.playerTankImpactDamageMultiplier = 0.05f;
+            cameraController.playerTankExplosionDamageMultiplier = 0.05f;
         }
 
         Rigidbody rb = shell.GetComponent<Rigidbody>();

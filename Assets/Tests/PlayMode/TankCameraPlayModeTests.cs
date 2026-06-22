@@ -83,5 +83,17 @@ public class TankCameraPlayModeTests
 
         Object.DestroyImmediate(projectile);
     }
+
+    [Test]
+    public void ProjectileCamera_DefaultsToFullPlayerTankDamageForPlayerShells()
+    {
+        GameObject projectile = new GameObject("PlayerDamageProjectile");
+        ProjectileCameraController controller = projectile.AddComponent<ProjectileCameraController>();
+
+        Assert.That(controller.playerTankImpactDamageMultiplier, Is.EqualTo(1f).Within(0.001f));
+        Assert.That(controller.playerTankExplosionDamageMultiplier, Is.EqualTo(1f).Within(0.001f));
+
+        Object.DestroyImmediate(projectile);
+    }
 }
 #endif

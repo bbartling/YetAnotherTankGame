@@ -30222,8 +30222,8 @@ MonoBehaviour:
   trackDownforce: 34
   slopeAlignmentTorque: 58
   slopeAlignmentDamping: 9
-  maxAssistedSlopeAngle: 62
-  maxDriveSlopeAngle: 74
+  maxAssistedSlopeAngle: 17
+  maxDriveSlopeAngle: 17
   brakeDrag: 8
   playerVisualScale: 3
   chassisMass: 18000
@@ -30952,9 +30952,9 @@ MonoBehaviour:
   brakingSeconds: 2
   highSpeedSteeringMultiplier: 0.35
   lowGearSpeedMultiplier: 0.55
-  tractionLossSlopeDegrees: 24
-  maxClimbSlopeDegrees: 42
-  minimumUphillSpeedMultiplier: 0.18
+  tractionLossSlopeDegrees: 10
+  maxClimbSlopeDegrees: 17
+  minimumUphillSpeedMultiplier: 0
 --- !u!114 &396673844
 MonoBehaviour:
   m_ObjectHideFlags: 0

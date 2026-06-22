@@ -10,7 +10,7 @@ This block is the authoritative feature contract. Update it in the same validate
 
 - Working title: `SILLY TANK HILL WAR`.
 - The target feel is silly cartoon armored vehicles with deliberate War Thunder-ish combat pacing.
-- Player vehicle reaches approximately `7.5 m/s` with gradual acceleration, never FPS-sprint movement.
+- Player vehicle reaches approximately `8.5 m/s` with gradual acceleration, never FPS-sprint movement.
 - Player vehicle must follow terrain into craters.
 - Player vehicle must lose traction on steep slopes and may realistically tip or roll.
 - Player chassis must use heavy, low-center-of-mass physics; sustained rollover ends gameplay.

@@ -28,9 +28,53 @@ public static class BattlefieldEffectController
         shape.angle = 18f;
         shape.radius = 0.35f;
 
+        ParticleSystemRenderer renderer = effect.GetComponent<ParticleSystemRenderer>();
+        if (renderer != null)
+        {
+            renderer.sharedMaterial = CreateParticleMaterial(effectName, color);
+        }
+
         particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         effect.SetActive(false);
         return effect;
+    }
+
+    private static Material CreateParticleMaterial(string effectName, Color color)
+    {
+        Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+        if (shader == null)
+        {
+            shader = Shader.Find("Particles/Standard Unlit");
+        }
+
+        if (shader == null)
+        {
+            shader = Shader.Find("Sprites/Default");
+        }
+
+        if (shader == null)
+        {
+            shader = Shader.Find("Unlit/Transparent");
+        }
+
+        if (shader == null)
+        {
+            shader = Shader.Find("Unlit/Color");
+        }
+
+        Material material = shader != null ? new Material(shader) : new Material(Shader.Find("Standard"));
+        material.name = effectName + "Material";
+        if (material.HasProperty("_BaseColor"))
+        {
+            material.SetColor("_BaseColor", color);
+        }
+
+        if (material.HasProperty("_Color"))
+        {
+            material.SetColor("_Color", color);
+        }
+
+        return material;
     }
 
     public static void RegisterTemporary(GameObject effect, string category, int maxActive)

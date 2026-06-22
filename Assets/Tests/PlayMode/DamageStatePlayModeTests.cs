@@ -183,6 +183,12 @@ public class DamageStatePlayModeTests
         Assert.That(states.smokeEffect.GetComponent<ParticleSystem>().main.maxParticles, Is.LessThanOrEqualTo(32));
         Assert.That(states.fireEffect.GetComponent<ParticleSystem>().main.maxParticles, Is.LessThanOrEqualTo(32));
 
+        ParticleSystemRenderer fireRenderer = states.fireEffect.GetComponent<ParticleSystemRenderer>();
+        Assert.That(fireRenderer, Is.Not.Null);
+        Assert.That(fireRenderer.sharedMaterial, Is.Not.Null);
+        Assert.That(fireRenderer.sharedMaterial.shader, Is.Not.Null);
+        Assert.That(fireRenderer.sharedMaterial.shader.name, Does.Not.Contain("Error"));
+
         Object.DestroyImmediate(root);
     }
 }

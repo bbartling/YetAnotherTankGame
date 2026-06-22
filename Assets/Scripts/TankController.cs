@@ -39,7 +39,7 @@ public class TankController : MonoBehaviour
     public float headingGrip = 14f;
     public float groundCheckDistance = 1.4f;
     public LayerMask groundMask = ~0;
-    public float terrainSurfaceSkin = 0.18f;
+    public float terrainSurfaceSkin = 0.08f;
     public float terrainProbeHeight = 35f;
     public float terrainProbeDistance = 90f;
     public float startTerrainClearance = 1.5f;
@@ -56,8 +56,8 @@ public class TankController : MonoBehaviour
     public float trackDownforce = 26f;
     public float slopeAlignmentTorque = 52f;
     public float slopeAlignmentDamping = 7f;
-    public float maxAssistedSlopeAngle = 62f;
-    public float maxDriveSlopeAngle = 74f;
+    public float maxAssistedSlopeAngle = 55f;
+    public float maxDriveSlopeAngle = 55f;
     public float brakeDrag = 7f;
 
     [Header("Tank Stability")]
@@ -303,6 +303,7 @@ public class TankController : MonoBehaviour
 
         int groundedWheelCount = _wheeledSuspension != null ? _wheeledSuspension.ApplySuspension(_rb) : 0;
         TrackGroundInfo groundInfo = ProbeTrackGround();
+        RejectUnclimbableRayGround(ref groundInfo, groundedWheelCount);
         ApplyWheelGroundFallback(ref groundInfo, groundedWheelCount);
         float slopeAngle = groundInfo.grounded ? Vector3.Angle(groundInfo.normal, Vector3.up) : 0f;
         ReadDriveInput(out float telemetryThrottle, out _, out _);
@@ -335,6 +336,23 @@ public class TankController : MonoBehaviour
             ? _wheeledSuspension.LastGroundNormal
             : Vector3.up;
         groundInfo.hitCount = Mathf.Clamp(groundedWheelCount, 1, groundInfo.hits != null ? groundInfo.hits.Length : groundedWheelCount);
+    }
+
+    private void RejectUnclimbableRayGround(ref TrackGroundInfo groundInfo, int groundedWheelCount)
+    {
+        if (!groundInfo.grounded || groundedWheelCount >= 2)
+        {
+            return;
+        }
+
+        if (Vector3.Angle(groundInfo.normal, Vector3.up) <= GetMaximumDriveSlope())
+        {
+            return;
+        }
+
+        groundInfo.grounded = false;
+        groundInfo.normal = Vector3.up;
+        groundInfo.hitCount = 0;
     }
 
     private bool CheckRolloverDefeat()
@@ -737,13 +755,18 @@ public class TankController : MonoBehaviour
 
     private void PreventTerrainPenetration()
     {
-        SnapToTerrainClearance(terrainSurfaceSkin, false);
+        SnapToTerrainClearance(terrainSurfaceSkin, true, false);
     }
 
     private void SnapToTerrainClearance(float clearance, bool allowDownwardCorrection)
     {
+        SnapToTerrainClearance(clearance, allowDownwardCorrection, true);
+    }
+
+    private void SnapToTerrainClearance(float clearance, bool allowDownwardCorrection, bool sampleFootprintCorners)
+    {
         Physics.SyncTransforms();
-        if (TryGetTerrainCorrection(clearance, allowDownwardCorrection, out Vector3 correctedPosition))
+        if (TryGetTerrainCorrection(clearance, allowDownwardCorrection, sampleFootprintCorners, out Vector3 correctedPosition))
         {
             if (_rb != null)
             {
@@ -763,7 +786,7 @@ public class TankController : MonoBehaviour
         }
     }
 
-    private bool TryGetTerrainCorrection(float clearance, bool allowDownwardCorrection, out Vector3 correctedPosition)
+    private bool TryGetTerrainCorrection(float clearance, bool allowDownwardCorrection, bool sampleFootprintCorners, out Vector3 correctedPosition)
     {
         correctedPosition = transform.position;
         Collider[] colliders = GetComponentsInChildren<Collider>();
@@ -781,10 +804,13 @@ public class TankController : MonoBehaviour
             Bounds bounds = tankCollider.bounds;
             lowestBottom = Mathf.Min(lowestBottom, bounds.min.y);
             SampleTerrainAtXZ(bounds.center.x, bounds.center.z, ref highestGround);
-            SampleTerrainAtXZ(bounds.min.x, bounds.min.z, ref highestGround);
-            SampleTerrainAtXZ(bounds.min.x, bounds.max.z, ref highestGround);
-            SampleTerrainAtXZ(bounds.max.x, bounds.min.z, ref highestGround);
-            SampleTerrainAtXZ(bounds.max.x, bounds.max.z, ref highestGround);
+            if (sampleFootprintCorners)
+            {
+                SampleTerrainAtXZ(bounds.min.x, bounds.min.z, ref highestGround);
+                SampleTerrainAtXZ(bounds.min.x, bounds.max.z, ref highestGround);
+                SampleTerrainAtXZ(bounds.max.x, bounds.min.z, ref highestGround);
+                SampleTerrainAtXZ(bounds.max.x, bounds.max.z, ref highestGround);
+            }
         }
 
         if (highestGround == float.MinValue || lowestBottom == float.MaxValue)
@@ -1291,9 +1317,11 @@ public class TankController : MonoBehaviour
     {
         if (_dead) return;
 
-        _health -= Mathf.Max(0.01f, amount);
+        float appliedDamage = Mathf.Max(0.01f, amount);
+        _health -= appliedDamage;
+        BattlefieldDirector.Instance?.RegisterDamageTaken(appliedDamage);
 
-        if (fatalImpactAllowed && amount >= maxHealth * fatalImpactThreshold)
+        if (fatalImpactAllowed && appliedDamage >= maxHealth * fatalImpactThreshold)
         {
             _health = 0f;
         }
@@ -1316,7 +1344,10 @@ public class TankController : MonoBehaviour
 
         if (_rb != null)
         {
-            _rb.AddExplosionForce(Mathf.Max(200f, force * 8f), worldPoint, 8f, 1f, ForceMode.Impulse);
+            SetVelocity(Vector3.zero);
+            _rb.angularVelocity = Vector3.zero;
+            _rb.isKinematic = true;
+            _rb.Sleep();
         }
     }
 
