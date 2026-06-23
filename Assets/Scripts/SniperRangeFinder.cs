@@ -12,6 +12,7 @@ public class SniperRangeFinder : MonoBehaviour
     public Canvas targetCanvas;
 
     [Header("Range")]
+    public bool allowScope = true;
     public float maxRange = 1200f;
     public float tickSpacing = 50f;
     public float majorTickSpacing = 100f;
@@ -71,7 +72,7 @@ public class SniperRangeFinder : MonoBehaviour
 
     private void Update()
     {
-        bool sniping = Input.GetMouseButton(1);
+        bool sniping = allowScope && Input.GetMouseButton(1);
         if (_root != null)
         {
             _root.gameObject.SetActive(sniping);

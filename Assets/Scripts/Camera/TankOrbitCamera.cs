@@ -24,6 +24,12 @@ public class TankOrbitCamera : MonoBehaviour
             return;
         }
 
+        TankBarrelScopeCamera scopeCamera = GetComponent<TankBarrelScopeCamera>();
+        if (scopeCamera != null && scopeCamera.allowScope && Input.GetMouseButton(1))
+        {
+            return;
+        }
+
         Vector3 aimForward = aimDirectionSource != null ? aimDirectionSource.forward : target.forward;
         Vector3 flatAimForward = Vector3.ProjectOnPlane(aimForward, Vector3.up);
         if (flatAimForward.sqrMagnitude < 0.001f)

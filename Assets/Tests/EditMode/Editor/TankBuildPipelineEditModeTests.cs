@@ -28,6 +28,12 @@ public class TankBuildPipelineEditModeTests
         Assert.That(
             EditorBuildSettings.scenes.Any(scene => scene.enabled && scene.path == "Assets/Scenes/Practice.unity"),
             Is.True);
+        Assert.That(
+            EditorBuildSettings.scenes.Any(scene => scene.enabled && scene.path == "Assets/Scenes/TankDrivingPractice.unity"),
+            Is.True);
+        Assert.That(
+            EditorBuildSettings.scenes.Any(scene => scene.enabled && scene.path == "Assets/Scenes/TankTargetPractice.unity"),
+            Is.True);
         Assert.That(TankWebGLBuildPipeline.BuildOutputDirectory, Is.EqualTo("Builds/WebGL"));
         Assert.That(TankWebGLBuildPipeline.BuildManifestPath, Is.EqualTo("Builds/WebGL_BUILD_MANIFEST.json"));
         Assert.That(TankWebGLBuildPipeline.DeploymentWebGLDirectory, Is.EqualTo("pythonanywhere_flask/webgl"));
@@ -40,6 +46,13 @@ public class TankBuildPipelineEditModeTests
     {
         Assert.That(TankWebGLBuildPipeline.ShouldIncludeDeploymentFile("pythonanywhere_flask/flask_app.py"), Is.True);
         Assert.That(TankWebGLBuildPipeline.ShouldIncludeDeploymentFile("pythonanywhere_flask/__pycache__/flask_app.pyc"), Is.False);
+    }
+
+    [Test]
+    public void DedicatedPracticeSceneAssetsExist()
+    {
+        Assert.That(File.Exists("Assets/Scenes/TankDrivingPractice.unity"), Is.True);
+        Assert.That(File.Exists("Assets/Scenes/TankTargetPractice.unity"), Is.True);
     }
 }
 #endif

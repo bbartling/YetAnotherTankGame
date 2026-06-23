@@ -19,6 +19,12 @@ public class CastleDamageReceiver : MonoBehaviour
     public float markScale = 1.2f;
     public Color scorchColor = new Color(0.18f, 0.13f, 0.08f, 0.95f);
 
+    [Header("Practice Targets")]
+    public bool skipModelInstaller = false;
+    public bool practiceTargetExplosion = false;
+    public int practiceExplosionPieces = 48;
+    public float practiceExplosionForce = 42f;
+
     private float _health;
     private bool _collapsed;
     private DamageStateController _damageStateController;
@@ -32,7 +38,10 @@ public class CastleDamageReceiver : MonoBehaviour
             _damageStateController = gameObject.AddComponent<DamageStateController>();
         }
         _damageStateController.ApplyHealthRatio(1f);
-        SillyModelInstaller.Ensure(gameObject, "Models/Castle/SillyCastleKit", 1f, false);
+        if (!skipModelInstaller)
+        {
+            SillyModelInstaller.Ensure(gameObject, "Models/Castle/SillyCastleKit", 1f, false);
+        }
     }
 
     public void ApplyImpact(Vector3 worldPoint, Vector3 worldNormal, float force)
@@ -122,10 +131,87 @@ public class CastleDamageReceiver : MonoBehaviour
     {
         _collapsed = true;
         _damageStateController?.ApplyHealthRatio(0f);
+        if (practiceTargetExplosion)
+        {
+            SpawnPracticeExplosion(transform.position);
+            StartCoroutine(HidePracticeTarget());
+            return;
+        }
+
         DestructionAnimator animator = GetComponent<DestructionAnimator>();
         if (animator == null) animator = gameObject.AddComponent<DestructionAnimator>();
         animator.BeginCollapse();
         StartCoroutine(CollapseCastleSequence());
+    }
+
+    private IEnumerator HidePracticeTarget()
+    {
+        Collider[] colliders = GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            colliders[i].enabled = false;
+        }
+
+        Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            renderers[i].enabled = false;
+        }
+
+        yield return null;
+    }
+
+    private void SpawnPracticeExplosion(Vector3 origin)
+    {
+        int count = Mathf.Max(12, practiceExplosionPieces);
+        float force = practiceExplosionForce;
+        SpawnCrumblePieces(origin, origin, count);
+
+        for (int i = 0; i < 8; i++)
+        {
+            GameObject flash = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            flash.name = name + "_Flash";
+            BattlefieldEffectController.RegisterTemporary(flash, "Debris", 32);
+            flash.transform.position = origin + Random.insideUnitSphere * 0.6f;
+            flash.transform.localScale = Vector3.one * Random.Range(0.35f, 1.1f);
+            Destroy(flash.GetComponent<Collider>());
+            Renderer flashRenderer = flash.GetComponent<Renderer>();
+            if (flashRenderer != null)
+            {
+                Material material = new Material(Shader.Find("Unlit/Color"));
+                material.color = Color.Lerp(new Color(1f, 0.55f, 0.12f, 1f), new Color(1f, 0.92f, 0.45f, 1f), Random.value);
+                flashRenderer.material = material;
+            }
+
+            Destroy(flash, Random.Range(0.12f, 0.35f));
+        }
+
+        for (int i = 0; i < count / 3; i++)
+        {
+            GameObject shard = GameObject.CreatePrimitive(Random.value > 0.5f ? PrimitiveType.Cube : PrimitiveType.Sphere);
+            shard.name = name + "_Shard";
+            BattlefieldEffectController.RegisterTemporary(shard, "Debris", 64);
+            shard.transform.position = origin + Random.onUnitSphere * Random.Range(0.4f, 2.2f);
+            shard.transform.localScale = Vector3.one * Random.Range(0.25f, 0.95f);
+            Destroy(shard.GetComponent<Collider>());
+            Renderer shardRenderer = shard.GetComponent<Renderer>();
+            if (shardRenderer != null)
+            {
+                Material material = new Material(Shader.Find("Standard"));
+                material.color = Color.Lerp(new Color(0.95f, 0.22f, 0.08f, 1f), new Color(0.35f, 0.28f, 0.22f, 1f), Random.value);
+                material.SetColor("_EmissionColor", new Color(0.85f, 0.35f, 0.05f, 1f) * 0.65f);
+                material.EnableKeyword("_EMISSION");
+                shardRenderer.material = material;
+            }
+
+            Rigidbody rb = shard.AddComponent<Rigidbody>();
+            rb.mass = Random.Range(0.08f, 0.35f);
+            rb.useGravity = true;
+            Vector3 toss = Random.onUnitSphere + Vector3.up * 1.35f;
+            rb.AddForce(toss.normalized * Random.Range(force * 0.45f, force * 1.15f), ForceMode.Impulse);
+            rb.AddTorque(Random.insideUnitSphere * force * 0.12f, ForceMode.Impulse);
+            Destroy(shard, Random.Range(4f, 8f));
+        }
     }
 
     private IEnumerator CollapseCastleSequence()

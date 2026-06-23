@@ -261,6 +261,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.001837
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -964,6 +966,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.757053
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -1440,6 +1444,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.255968
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -2693,6 +2699,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.585175
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -2899,6 +2907,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.51408
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -3555,6 +3565,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.171413
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -4063,6 +4075,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.692875
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -4449,6 +4463,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.033628
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -4655,6 +4671,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.339869
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -4861,6 +4879,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.605085
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -5157,6 +5177,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.885166
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -5363,6 +5385,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.335564
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -5569,6 +5593,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.169891
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -5775,6 +5801,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.155624
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -6341,6 +6369,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.306572
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -6547,6 +6577,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.38683
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -6753,6 +6785,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.561705
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -6959,6 +6993,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.067524
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -7165,6 +7201,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.553905
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -7598,6 +7636,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.03447
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -7804,6 +7844,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.76914
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -8010,6 +8052,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.47543
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -8486,6 +8530,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.908627
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -8692,6 +8738,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.63515
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -8988,6 +9036,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.532066
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -9194,6 +9244,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.570795
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -10313,6 +10365,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.734592
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -10622,6 +10676,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.50062
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -10918,6 +10974,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.054228
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -11441,6 +11499,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.746723
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -11647,6 +11707,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.708
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -11943,6 +12005,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.661163
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -12149,6 +12213,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.091064
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -12445,6 +12511,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.9951
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -12921,6 +12989,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.75374
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -13397,6 +13467,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.809227
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -13783,6 +13855,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.12706
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -14079,6 +14153,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.233122
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -14735,6 +14811,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.88573
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -14941,6 +15019,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.945965
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -15417,6 +15497,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.221962
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -15803,6 +15885,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.315874
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -16009,6 +16093,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.812098
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -16456,6 +16542,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.976908
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -17060,6 +17148,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.30505
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -18383,6 +18473,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.874243
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -18589,6 +18681,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.250391
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -20058,6 +20152,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.078154
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -20596,6 +20692,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.259869
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -20802,6 +20900,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.903587
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -21008,6 +21108,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.888124
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -21214,6 +21316,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.633759
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -21420,6 +21524,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.59503
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -21626,6 +21732,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.924643
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -22282,6 +22390,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.84447
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -22488,6 +22598,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.468483
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -22694,6 +22806,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.311756
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -22990,6 +23104,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.90214
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -23670,6 +23786,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.728672
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -24193,6 +24311,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.073292
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -24489,6 +24609,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.73732
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -24898,6 +25020,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.938286
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -25498,6 +25622,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.225483
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -26093,6 +26219,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.359577
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -26569,6 +26697,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.358677
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -27523,6 +27653,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.474485
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -27909,6 +28041,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.769728
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -28115,6 +28249,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.376968
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -28501,6 +28637,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.455564
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -28797,6 +28935,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.378397
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -29395,6 +29535,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.593847
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -29601,6 +29743,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.324064
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -29987,6 +30131,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.152672
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -30250,6 +30396,10 @@ MonoBehaviour:
   cannonKey: 32
   leftClickFiresCannon: 1
   playerFireSound: {fileID: 0}
+  allowDrivingInput: 1
+  allowTurretInput: 1
+  allowCannonInput: 1
+  allowPowerInput: 1
   elevationText: {fileID: 0}
   angleText: {fileID: 0}
   powerText: {fileID: 2071441283}
@@ -30825,6 +30975,7 @@ MonoBehaviour:
   tank: {fileID: 396673828}
   aimCamera: {fileID: 963194227}
   targetCanvas: {fileID: 753014809}
+  allowScope: 1
   maxRange: 1200
   tickSpacing: 50
   majorTickSpacing: 100
@@ -30840,6 +30991,8 @@ MonoBehaviour:
   majorTickColor: {r: 1, g: 1, b: 1, a: 0.95}
   indicatorColor: {r: 1, g: 0.87, b: 0.2, a: 1}
   fontSize: 24
+  scopePanelOffset: {x: 360, y: 0}
+  centerCrosshairSize: {x: 34, y: 34}
 --- !u!114 &396673838
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30857,6 +31010,7 @@ MonoBehaviour:
   audioSource: {fileID: 0}
   machineGunSound: {fileID: 0}
   fireKey: 304
+  allowInputFire: 1
   roundsPerSecond: 14
   damage: 2.5
   range: 95
@@ -31140,6 +31294,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.8332
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -31346,6 +31502,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.18381
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -31642,6 +31800,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.653208
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -31848,6 +32008,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.310545
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -32324,6 +32486,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.280474
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -32710,6 +32874,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.055443
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -33186,6 +33352,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.364048
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -34090,6 +34258,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.439157
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -34296,6 +34466,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.76329
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -34747,6 +34919,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.438946
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -34953,6 +35127,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.1042
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -35339,6 +35515,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.857203
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -35545,6 +35723,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.923975
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -36021,6 +36201,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.345003
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -36266,6 +36448,10 @@ MonoBehaviour:
   deathDelay: 2.8
   crumblePieceCount: 48
   crumbleForce: 38
+  randomizeDeathRendererBursts: 1
+  deathRendererBatchMin: 2
+  deathRendererBatchMax: 5
+  deathRendererBurstWindow: 0.42
   machineGunDamageScale: 1
   tankKillCraterForce: 82
   tankKillBlastRadius: 12
@@ -36540,6 +36726,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.911564
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -37400,6 +37588,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.841042
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -37876,6 +38066,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.558035
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -38622,6 +38814,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.744446
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -39008,6 +39202,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.448692
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -39214,6 +39410,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.23887
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -39780,6 +39978,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.870562
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -40548,6 +40748,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.71196
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -40844,6 +41046,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.300869
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -41283,6 +41487,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.551023
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -41669,6 +41875,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.390594
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -41965,6 +42173,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.32568
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -42171,6 +42381,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.566793
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -42377,6 +42589,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.234396
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -42794,6 +43008,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.301544
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -43587,6 +43803,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.12478
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -43973,6 +44191,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.861969
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -44975,6 +45195,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.305721
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -45451,6 +45673,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.378922
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -45747,6 +45971,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.082586
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -46899,6 +47125,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.892582
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -47465,6 +47693,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.274117
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -47671,6 +47901,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.340893
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -48507,6 +48739,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.92731
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -48983,6 +49217,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.856415
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -49369,6 +49605,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.251032
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -49575,6 +49813,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.27345
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -49781,6 +50021,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.062456
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -50549,6 +50791,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.053492
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -50755,6 +50999,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.242193
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -50961,6 +51207,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.853584
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -51423,6 +51671,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.543646
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -51629,6 +51879,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.00138
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -51835,6 +52087,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.357279
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -52289,6 +52543,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.169842
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -52495,6 +52751,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.89929
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -53079,6 +53337,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.191715
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -53375,6 +53635,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.247137
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -53851,6 +54113,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.512312
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -54147,6 +54411,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.381771
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -54713,6 +54979,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.880434
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -54919,6 +55187,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.979395
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -55125,6 +55395,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.281305
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -55511,6 +55783,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.869667
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -55807,6 +56081,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.922892
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -56193,6 +56469,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.688833
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -56601,6 +56879,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.287622
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -57108,6 +57388,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.236353
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -57501,6 +57783,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.226957
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -57797,6 +58081,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.606432
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -58093,6 +58379,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.55086
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -58976,6 +59264,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.31783
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -59618,6 +59908,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.00807
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -59824,6 +60116,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.3941
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -60030,6 +60324,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.887129
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -60506,6 +60802,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.418991
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -61029,6 +61327,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.169188
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -61235,6 +61535,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.44926
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -61441,6 +61743,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.456474
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -61739,6 +62043,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.809973
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -61945,6 +62251,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.208292
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -62151,6 +62459,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.866116
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -62357,6 +62667,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.174534
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -63345,6 +63657,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.802845
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -63641,6 +63955,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.351295
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -64027,6 +64343,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.083677
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -64308,6 +64626,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.325615
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -64514,6 +64834,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.164127
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -65170,6 +65492,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.031727
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -65556,6 +65880,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.057419
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -65762,6 +66088,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.044582
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -67310,6 +67638,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.874813
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -67516,6 +67846,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.66182
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -68254,6 +68586,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.95103
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -68460,6 +68794,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.744019
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -68756,6 +69092,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.45172
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -69322,6 +69660,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.58316
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -69528,6 +69868,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.213726
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -69734,6 +70076,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.59223
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -69940,6 +70284,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.105934
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -70146,6 +70492,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.41717
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -70352,6 +70700,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.388226
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -70558,6 +70908,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.291128
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -71312,6 +71664,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.521896
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -71698,6 +72052,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.839417
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -71904,6 +72260,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.129057
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -72110,6 +72468,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.388092
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -72316,6 +72676,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.562775
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -73152,6 +73514,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.55255
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -73606,6 +73970,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.063519
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -74082,6 +74448,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.822008
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -74842,6 +75210,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.886992
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -75251,6 +75621,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.152311
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -75774,6 +76146,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.714653
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -76873,6 +77247,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92c66b8f6993b4a4189081414fe7e995, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankBarrelScopeCamera
+  allowScope: 1
   sight: {fileID: 390513095}
   localSightOffset: {x: 0.35, y: 0.25, z: 0.75}
   scopeFieldOfView: 16
@@ -77232,6 +77607,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.573526
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -77438,6 +77815,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.202076
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -77824,6 +78203,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.55785
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -78437,6 +78818,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.512367
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -79003,6 +79386,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.243418
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -79209,6 +79594,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.077293
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -79415,6 +79802,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.628073
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -79711,6 +80100,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.387089
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -80097,6 +80488,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.127895
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -81011,6 +81404,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.177946
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -81587,6 +81982,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.905869
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -82920,6 +83317,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.752258
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -84173,6 +84572,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.862997
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -84469,6 +84870,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.26966
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -84765,6 +85168,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.51196
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -84971,6 +85376,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.382742
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -85177,6 +85584,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.025679
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -85563,6 +85972,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.497627
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -85949,6 +86360,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.987852
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -86245,6 +86658,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.538334
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -86541,6 +86956,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.459845
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -86747,6 +87164,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.20877
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -87360,6 +87779,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.284449
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -87656,6 +88077,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.654701
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -88244,6 +88667,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.371117
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -88450,6 +88875,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.852695
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -88709,6 +89136,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.657606
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -89005,6 +89434,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.319572
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -89494,6 +89925,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.710588
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -90533,6 +90966,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.190067
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -91099,6 +91534,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.395782
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -93321,6 +93758,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.449352
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -93707,6 +94146,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.54869
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -94093,6 +94534,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.636868
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -94299,6 +94742,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.064987
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -94685,6 +95130,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.087944
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -96059,6 +96506,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.89918
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -96467,6 +96916,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.491379
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -97072,6 +97523,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.639534
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -97638,6 +98091,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.174568
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -98678,6 +99133,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.326714
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -98974,6 +99431,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.600243
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -99270,6 +99729,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.501606
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -99656,6 +100117,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.314693
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -99862,6 +100325,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.256868
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -100143,6 +100608,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.112736
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -100349,6 +100816,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.229874
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -100555,6 +101024,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.28172
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -100761,6 +101232,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.09125
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -101057,6 +101530,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.3978
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -101263,6 +101738,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.340937
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -101696,6 +102173,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.35033
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -102356,6 +102835,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.258139
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -102562,6 +103043,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.943937
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -102858,6 +103341,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.264448
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -103604,6 +104089,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.09182
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -104080,6 +104567,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.555964
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -104826,6 +105315,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.940052
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -105302,6 +105793,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.385836
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -105508,6 +106001,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.34512
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -105879,6 +106374,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.278015
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -106175,6 +106672,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.91259
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -106471,6 +106970,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.047878
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -106677,6 +107178,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.203644
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -107063,6 +107566,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.485842
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -107633,6 +108138,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.580626
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -108074,6 +108581,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.541225
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -108687,6 +109196,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.492374
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -110131,6 +110642,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.217316
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -110337,6 +110850,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.560108
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -110633,6 +111148,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.057873
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -111124,6 +111641,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.122402
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -111600,6 +112119,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.372002
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -111896,6 +112417,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.424435
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -112102,6 +112625,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.90604
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -112308,6 +112833,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.898773
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -112784,6 +113311,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.286495
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -113170,6 +113699,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.889505
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -113556,6 +114087,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.674889
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -113762,6 +114295,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.677193
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -114404,6 +114939,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.674706
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -114610,6 +115147,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.574862
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -115464,6 +116003,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.283615
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -115918,6 +116459,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.360554
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -116289,6 +116832,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.735783
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -116585,6 +117130,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.320608
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -116881,6 +117428,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.240055
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -117087,6 +117636,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.761286
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -117639,6 +118190,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.351974
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -118483,6 +119036,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.359428
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -118869,6 +119424,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.78756
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -119075,6 +119632,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.82437
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -119261,10 +119820,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MenuManager
   mainPanel: {fileID: 827740496}
   playButton: {fileID: 1810815009}
+  drivingPracticeButton: {fileID: 0}
+  cannonPracticeButton: {fileID: 0}
+  warButton: {fileID: 0}
   playerTank: {fileID: 396673828}
   enemyTankSpawner: {fileID: 1506984515}
   instructionsText: {fileID: 0}
+  modeTutorialText: {fileID: 0}
   enemyCountInput: {fileID: 0}
+  drivingPracticeSceneName: TankDrivingPractice
+  cannonPracticeSceneName: TankTargetPractice
+  warSceneName: Practice
+  loadDedicatedPracticeScenes: 1
   controlsCopy: 'Controls:
 
     W/S or arrows - heavy forward/reverse drive
@@ -119290,6 +119857,18 @@ MonoBehaviour:
     F - machine gun
 
     C - controls during game'
+  drivingPracticeCopy: 'DRIVING PRACTICE
+
+    Obstacle course only. Climb ramps,
+    cross bumps, test craters, and feel traction loss without enemies.'
+  cannonPracticeCopy: 'CANNON PRACTICE
+
+    Target range only. Use normal fire up
+    close, then right-click scope to dial far shots with range/elevation/time-of-flight.'
+  warCopy: 'WAR
+
+    Random battle setup. Enemies spawn at range, use line of sight,
+    and pressure the castle.'
   defaultEnemyCount: 6
 --- !u!4 &1506984514
 Transform:
@@ -119383,6 +119962,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.417728
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -120181,6 +120762,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.255766
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -121503,6 +122086,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.941498
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -121709,6 +122294,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.05826
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -121915,6 +122502,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.227861
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -122348,6 +122937,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.87116
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -122914,6 +123505,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.78339
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -123120,6 +123713,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.73085
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -123416,6 +124011,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.608572
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -123802,6 +124399,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.0279
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -125029,6 +125628,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.477617
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -125446,6 +126047,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.097115
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -125742,6 +126345,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.96364
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -126085,6 +126690,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.250135
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -126561,6 +127168,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.60272
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -127219,6 +127828,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.483845
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -127425,6 +128036,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.639566
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -127721,6 +128334,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.524113
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -128514,6 +129129,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.710249
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -130451,6 +131068,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.208164
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -131017,6 +131636,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.380388
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -131223,6 +131844,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.067528
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -131910,6 +132533,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.652771
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -132206,6 +132831,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.434994
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -132412,6 +133039,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.087019
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -132708,6 +133337,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.732655
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -132914,6 +133545,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.94802
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -133120,6 +133753,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.668854
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -133326,6 +133961,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.499546
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -133622,6 +134259,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.117214
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -133918,6 +134557,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.706606
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -134124,6 +134765,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.613993
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -134420,6 +135063,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.820135
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -134626,6 +135271,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.000252
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -134922,6 +135569,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.952526
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -135294,6 +135943,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.92405
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -135590,6 +136241,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.183039
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -136023,6 +136676,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.105797
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -136589,6 +137244,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.327606
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -136885,6 +137542,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.83601
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -137181,6 +137840,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.756226
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -137764,6 +138425,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.62568
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -137970,6 +138633,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.155355
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -138229,6 +138894,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.65382
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -138435,6 +139102,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.908104
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -138897,6 +139566,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.886202
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -139744,6 +140415,10 @@ MonoBehaviour:
   deathDelay: 2.8
   crumblePieceCount: 48
   crumbleForce: 38
+  randomizeDeathRendererBursts: 1
+  deathRendererBatchMin: 2
+  deathRendererBatchMax: 5
+  deathRendererBurstWindow: 0.42
   machineGunDamageScale: 1
   tankKillCraterForce: 82
   tankKillBlastRadius: 12
@@ -139928,6 +140603,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.430891
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -140134,6 +140811,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.345793
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -140340,6 +141019,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.66599
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -140546,6 +141227,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.237436
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -140881,6 +141564,10 @@ MonoBehaviour:
   deathDelay: 2.8
   crumblePieceCount: 48
   crumbleForce: 38
+  randomizeDeathRendererBursts: 1
+  deathRendererBatchMin: 2
+  deathRendererBatchMax: 5
+  deathRendererBurstWindow: 0.42
   machineGunDamageScale: 1
   tankKillCraterForce: 82
   tankKillBlastRadius: 12
@@ -141515,6 +142202,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.994707
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -141974,6 +142663,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.182718
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -142180,6 +142871,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.586487
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -142768,6 +143461,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.702246
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -142974,6 +143669,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.351194
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -143270,6 +143967,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.501244
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -143476,6 +144175,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.864143
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -143772,6 +144473,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.600857
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -143978,6 +144681,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.763626
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -144220,6 +144925,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.50437
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -144606,6 +145313,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.26854
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -144812,6 +145521,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.956501
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -145018,6 +145729,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.148174
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -145224,6 +145937,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.789434
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -145520,6 +146235,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.282372
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -146223,6 +146940,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.241312
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -146429,6 +147148,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.23196
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -146995,6 +147716,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.403631
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -147201,6 +147924,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.433071
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -147810,6 +148535,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.991943
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -148016,6 +148743,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.90553
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -148312,6 +149041,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.465014
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -148698,6 +149429,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.988066
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -149468,6 +150201,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.142962
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -149674,6 +150409,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.16396
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -150330,6 +151067,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.219097
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -150536,6 +151275,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.62838
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -151087,6 +151828,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.358665
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -151293,6 +152036,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.27983
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -151499,6 +152244,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.674849
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -151775,6 +152522,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.237823
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -151981,6 +152730,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.055191
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -152187,6 +152938,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.135145
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -152393,6 +153146,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.07831
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -152959,6 +153714,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.339863
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -153345,6 +154102,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.55328
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -154663,6 +155422,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.942348
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -154869,6 +155630,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.408348
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -155435,6 +156198,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.847456
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -155731,6 +156496,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.581459
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -156102,6 +156869,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.24283
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -156308,6 +157077,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.231676
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -156604,6 +157375,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.007204
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -156900,6 +157673,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.269978
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -157286,6 +158061,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.239578
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -157672,6 +158449,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.83256
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -157878,6 +158657,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.441298
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -158084,6 +158865,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.683422
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -158290,6 +159073,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.274057
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -158676,6 +159461,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.07517
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -159477,6 +160264,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.512436
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -160313,6 +161102,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.346754
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -160767,6 +161558,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.019154
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -161513,6 +162306,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 19.247633
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -161809,6 +162604,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.191786
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -162810,6 +163607,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.24463
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -163016,6 +163815,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 20.484808
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -163359,6 +164160,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.498451
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -164302,6 +165105,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.17074
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -164508,6 +165313,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 22.265789
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12
@@ -165546,6 +166353,8 @@ MonoBehaviour:
   smashSound: {fileID: 0}
   maxHealth: 21.142607
   tankCollisionDamage: 4
+  tankFlattenDamage: 28
+  tankFlattenSpeed: 1.8
   shellCollisionDamage: 12
   destroyDelay: 4
   tankPushForce: 12

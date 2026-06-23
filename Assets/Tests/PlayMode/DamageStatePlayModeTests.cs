@@ -111,6 +111,47 @@ public class DamageStatePlayModeTests
     }
 
     [Test]
+    public void TreeFieldSpawner_GeneratesFlattenableTreesWithFallbackSounds()
+    {
+        GameObject terrainObject = new GameObject("TreeAuditTerrain");
+        terrainObject.SetActive(false);
+        terrainObject.AddComponent<MeshFilter>();
+        terrainObject.AddComponent<MeshRenderer>();
+        terrainObject.AddComponent<MeshCollider>();
+        CraterTerrain terrain = terrainObject.AddComponent<CraterTerrain>();
+        terrain.xSegments = 8;
+        terrain.zSegments = 8;
+        terrain.terrainWidth = 160f;
+        terrain.terrainLength = 160f;
+        terrain.seedRandomCraters = false;
+        terrain.seedRandomHills = false;
+        terrain.randomizeSeedEachRun = false;
+        terrainObject.SetActive(true);
+
+        GameObject spawnerObject = new GameObject("TreeAuditSpawner");
+        TreeFieldSpawner spawner = spawnerObject.AddComponent<TreeFieldSpawner>();
+        spawner.generateOnAwake = false;
+        spawner.terrainSource = terrain;
+        spawner.treeCount = 6;
+        spawner.clearRadiusFromPlayer = 0f;
+        spawner.clearRadiusFromCastle = 0f;
+        spawner.treeSmashSound = null;
+
+        spawner.SpawnTrees();
+
+        BreakableTree[] trees = spawnerObject.GetComponentsInChildren<BreakableTree>(true);
+        Assert.That(trees.Length, Is.EqualTo(6));
+        for (int i = 0; i < trees.Length; i++)
+        {
+            Assert.That(trees[i].SmashClipForTest, Is.Not.Null);
+            Assert.That(trees[i].tankFlattenDamage, Is.LessThanOrEqualTo(trees[i].maxHealth * 1.5f));
+        }
+
+        Object.DestroyImmediate(spawnerObject);
+        Object.DestroyImmediate(terrainObject);
+    }
+
+    [Test]
     public void EffectPool_DeactivatesOldestBeyondBudget()
     {
         GameObject root = new GameObject("EffectPool");

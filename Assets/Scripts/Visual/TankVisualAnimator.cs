@@ -16,15 +16,28 @@ public class TankVisualAnimator : MonoBehaviour
     private Quaternion _antennaRestRotation = Quaternion.identity;
     private float _recoil;
     private Rigidbody _body;
+    private TankController _tank;
+    private TankDriveController _drive;
 
     private void Awake()
     {
         _body = GetComponent<Rigidbody>();
+        _tank = GetComponent<TankController>();
+        _drive = GetComponent<TankDriveController>();
     }
 
     private void Update()
     {
         float speed = _body != null ? Vector3.Dot(_body.linearVelocity, transform.forward) : 0f;
+        if (_tank != null && _tank.IsOverturned && _drive != null)
+        {
+            _drive.ReadInput(out float throttle, out _, out _);
+            if (Mathf.Abs(throttle) > 0.01f)
+            {
+                speed = throttle * _drive.maxForwardSpeed;
+            }
+        }
+
         TickVisuals(Time.deltaTime, speed, 0f);
     }
 

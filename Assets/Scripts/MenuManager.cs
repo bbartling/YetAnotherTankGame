@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class MenuManager : MonoBehaviour
@@ -21,6 +22,10 @@ public class MenuManager : MonoBehaviour
     public TextMeshProUGUI instructionsText;
     public TextMeshProUGUI modeTutorialText;
     public TMP_InputField enemyCountInput;
+    public string drivingPracticeSceneName = "TankDrivingPractice";
+    public string cannonPracticeSceneName = "TankTargetPractice";
+    public string warSceneName = "Practice";
+    public bool loadDedicatedPracticeScenes = true;
 
     [TextArea(4, 12)]
     public string controlsCopy = "Controls:\nW/S or arrows - heavy forward/reverse drive\nA/D or arrows - steer tracks\nShift - low gear / stabilized creeping\nMouse X - rotate turret\nQ/E - lower/raise cannon barrel\nMouse wheel or PageUp/PageDown - fine barrel elevation\n+/- - adjust cannon power from 100% default\nRight click - scope/rangefinder\nLeft click / Space - fire cannon\nF - machine gun\nC - controls during game";
@@ -76,6 +81,12 @@ public class MenuManager : MonoBehaviour
     private void StartMode(GameplayMode mode)
     {
         SelectedMode = mode;
+
+        if (loadDedicatedPracticeScenes && TryLoadDedicatedSceneForMode(mode))
+        {
+            return;
+        }
+
         int enemyCount = GetDesiredEnemyCount();
         GameplayTestApi gameplayTestApi = Object.FindAnyObjectByType<GameplayTestApi>();
 
@@ -111,6 +122,31 @@ public class MenuManager : MonoBehaviour
 
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
+    }
+
+    private bool TryLoadDedicatedSceneForMode(GameplayMode mode)
+    {
+        string targetScene = mode switch
+        {
+            GameplayMode.DrivingPractice => drivingPracticeSceneName,
+            GameplayMode.CannonPractice => cannonPracticeSceneName,
+            GameplayMode.War => warSceneName,
+            _ => string.Empty
+        };
+
+        if (string.IsNullOrWhiteSpace(targetScene))
+        {
+            return false;
+        }
+
+        Scene activeScene = SceneManager.GetActiveScene();
+        if (activeScene.name == targetScene || activeScene.path.EndsWith("/" + targetScene + ".unity"))
+        {
+            return false;
+        }
+
+        SceneManager.LoadScene(targetScene);
+        return true;
     }
 
     private void ShowMain()

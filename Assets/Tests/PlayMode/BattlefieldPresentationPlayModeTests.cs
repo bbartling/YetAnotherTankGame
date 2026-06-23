@@ -54,6 +54,9 @@ public class BattlefieldPresentationPlayModeTests
 
         Assert.That(audio.engineSource.clip, Is.Not.Null);
         Assert.That(audio.engineSource.clip.name, Does.Contain("Silly"));
+        Assert.That(audio.idleVolume, Is.GreaterThanOrEqualTo(0.4f));
+        Assert.That(audio.engineSource.spatialBlend, Is.EqualTo(0f).Within(0.001f));
+        Assert.That(audio.engineSource.loop, Is.True);
         Object.DestroyImmediate(root);
     }
 

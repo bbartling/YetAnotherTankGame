@@ -19,9 +19,11 @@ This block is the authoritative feature contract. Update it in the same validate
 - Enemy health bars must show green remaining health over a red damage background with percentage text.
 - Shift may provide low gear or aim stabilization, never sprint.
 - Main menu must keep three gameplay entries: Driving Practice, Cannon Practice, and WAR.
-- Only WAR may start the ranged enemy battle/randomized generated map flow.
-- Driving Practice is a bounded hard-coded obstacle course for tank handling, climbing, traction, rollover, and future AI route testing.
-- Cannon Practice is a bounded target range for normal cannon fire and right-click scope/rangefinder dialing.
+- `Assets/Scenes/Practice.unity` remains the WAR scene and is the only main-menu path that may start the ranged enemy battle/randomized generated map flow.
+- `Assets/Scenes/TankDrivingPractice.unity` is a small fixed indoor-stadium obstacle course for tank handling, climbing, traction, rollover, and future AI route testing.
+- `Assets/Scenes/TankDrivingPractice.unity` must lock out turret input, cannon firing, cannon power, machine gun, and sniper scope while preserving tank drive input.
+- `Assets/Scenes/TankTargetPractice.unity` is a small fixed tank shooting range for normal cannon fire and right-click scope/rangefinder dialing.
+- `Assets/Scenes/TankTargetPractice.unity` must lock out WASD/arrow driving and machine gun while preserving turret, cannon, cannon power, and sniper scope/rangefinder.
 - Defeat screen must allow gameplay restart with left click.
 
 ### Locked Weapons And Cameras
@@ -48,6 +50,8 @@ This block is the authoritative feature contract. Update it in the same validate
 
 - Terrain crater effects must remain.
 - Trees must remain damageable and knockdown-capable.
+- Procedurally generated trees must include `BreakableTree`, flatten from tank collision, and have a fallback tree-flatten sound.
+- Player tank engine audio must remain audible through the procedural fallback loop; do not reduce idle volume below `0.4` without replacing it with a tested authored loop/mix.
 - Castle, turrets, player tank, and enemy tanks must have damage/destruction states.
 - Destruction must be WebGL-safe and bounded. Do not add unbounded runtime debris, primitives, materials, projectiles, impact marks, or crater meshes.
 

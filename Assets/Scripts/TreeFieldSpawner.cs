@@ -269,7 +269,7 @@ public class TreeFieldSpawner : MonoBehaviour
         audio.spatialBlend = 0f;
 
         BreakableTree breakable = tree.AddComponent<BreakableTree>();
-        breakable.smashSound = treeSmashSound;
+        breakable.smashSound = treeSmashSound != null ? treeSmashSound : ProceduralBattlefieldAudio.CreateTreeFlatten();
         breakable.maxHealth = 16f + height * 2f;
 
         GameObject trunk = GameObject.CreatePrimitive(PrimitiveType.Cylinder);

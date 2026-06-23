@@ -71,6 +71,7 @@ public class TankController : MonoBehaviour
     public float rolloverDefeatDelay = 2f;
     public float rolloverStartupGraceSeconds = 6f;
     public float rolloverStableArmSeconds = 2f;
+    public bool disableRolloverDefeat = false;
 
     [Header("Mouse Turret")]
     [Tooltip("Mouse X yaws the turret left/right. This is intentionally local to turretYawPivot so the turret does not orbit the map.")]
@@ -93,6 +94,12 @@ public class TankController : MonoBehaviour
     public KeyCode cannonKey = KeyCode.Space;
     public bool leftClickFiresCannon = true;
     public AudioClip playerFireSound;
+
+    [Header("Practice Input Locks")]
+    public bool allowDrivingInput = true;
+    public bool allowTurretInput = true;
+    public bool allowCannonInput = true;
+    public bool allowPowerInput = true;
 
     [Header("Optional UI")]
     public TextMeshProUGUI elevationText;
@@ -357,6 +364,13 @@ public class TankController : MonoBehaviour
 
     private bool CheckRolloverDefeat()
     {
+        if (disableRolloverDefeat)
+        {
+            _rolloverController.rolloverAngle = rolloverDefeatAngle;
+            _rolloverController.Tick(RolloverAngle, Time.fixedDeltaTime);
+            return false;
+        }
+
         if (!_rolloverArmed)
         {
             _rolloverController.Reset();
@@ -443,6 +457,14 @@ public class TankController : MonoBehaviour
 
     private void ReadDriveInput(out float throttle, out float steer, out bool lowGear)
     {
+        if (!allowDrivingInput)
+        {
+            throttle = 0f;
+            steer = 0f;
+            lowGear = false;
+            return;
+        }
+
         if (_driveController != null)
         {
             _driveController.ReadInput(out throttle, out steer, out lowGear);
@@ -925,6 +947,11 @@ public class TankController : MonoBehaviour
 
     private void HandleTurretAndBarrelInput()
     {
+        if (!allowTurretInput)
+        {
+            return;
+        }
+
         if (_turretController != null && _aimController != null)
         {
             _turretController.TickPlayerInput(Time.deltaTime);
@@ -967,6 +994,11 @@ public class TankController : MonoBehaviour
 
     private void HandleCannonInput()
     {
+        if (!allowCannonInput)
+        {
+            return;
+        }
+
         bool pressedSpace = Input.GetKeyDown(cannonKey);
         bool pressedMouse = leftClickFiresCannon && Input.GetMouseButtonDown(0);
         if (!pressedSpace && !pressedMouse) return;
@@ -980,6 +1012,11 @@ public class TankController : MonoBehaviour
 
     private void HandlePowerInput()
     {
+        if (!allowPowerInput || !allowCannonInput)
+        {
+            return;
+        }
+
         if (Input.GetKeyDown(KeyCode.Equals) || Input.GetKeyDown(KeyCode.KeypadPlus))
         {
             AdjustPower(powerAdjustStep);
@@ -998,6 +1035,11 @@ public class TankController : MonoBehaviour
 
     public void FireCannon()
     {
+        if (!allowCannonInput)
+        {
+            return;
+        }
+
         if (shellPrefab == null || cannonFirePoint == null)
         {
             Debug.LogWarning("[TankController] Cannot fire cannon. shellPrefab or cannonFirePoint is missing.");
