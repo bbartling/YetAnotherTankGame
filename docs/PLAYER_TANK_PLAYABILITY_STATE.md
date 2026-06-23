@@ -17,6 +17,13 @@ Updated: 2026-06-21
 - Right mouse: scope / rangefinder.
 - Left mouse or Space: fire cannon.
 
+## Current Main Menu Modes
+
+- `Driving Practice`: no enemy wave; starts a bounded hard-coded obstacle course for handling, climbing, bumps, narrow bridge, traction loss, and rollover testing.
+- `Cannon Practice`: no enemy wave; starts a bounded target range for normal cannon fire and far scope/rangefinder dialing.
+- `WAR`: starts the enemy battle flow; this is the only main-menu mode that spawns the ranged enemy wave and uses the generated/randomized battle setup.
+- On Defeat, left mouse restarts the current selected mode.
+
 ## Current Locked Gameplay Settings
 
 - Player cannon power defaults to `100%`.
@@ -37,6 +44,7 @@ Updated: 2026-06-21
 - Chase camera follows behind the current cannon direction, not only the hull.
 - When blocked behind the tank, chase camera slides into a low forward view instead of moving overhead and looking straight down.
 - Scope camera uses the cannon fire point direction exactly and sits `0.75 m` forward from the fire point.
+- Scope UI keeps the true cannon-aim crosshair centered and places the range ladder/readout off to the right side.
 - Projectile camera remains enabled for player shells, follows the projectile, counts activations, and returns after impact linger.
 
 ## Validation Snapshot

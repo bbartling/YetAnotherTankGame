@@ -28,8 +28,8 @@ public class CombatSoundSlots : MonoBehaviour
         if (enemyCannonShot == null) enemyCannonShot = ProceduralBattlefieldAudio.CreateCannonBoom();
         if (turretShot == null) turretShot = ProceduralBattlefieldAudio.CreateCannonBoom();
         if (enemyCannonNearMiss == null) enemyCannonNearMiss = ProceduralBattlefieldAudio.CreateShellWhistle();
-        if (cannonGroundExplosion == null) cannonGroundExplosion = ProceduralBattlefieldAudio.CreateImpact();
+        if (cannonGroundExplosion == null) cannonGroundExplosion = ProceduralBattlefieldAudio.CreateCannonballExplosion();
         if (machineGunMetalRicochet == null) machineGunMetalRicochet = ProceduralBattlefieldAudio.CreateImpact();
-        if (enemyTankKill == null) enemyTankKill = ProceduralBattlefieldAudio.CreateImpact();
+        if (enemyTankKill == null) enemyTankKill = ProceduralBattlefieldAudio.CreateTankExplosion();
     }
 }

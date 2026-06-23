@@ -53,7 +53,26 @@ public class BattlefieldPresentationPlayModeTests
         audio.EnsureFallbackClips();
 
         Assert.That(audio.engineSource.clip, Is.Not.Null);
+        Assert.That(audio.engineSource.clip.name, Does.Contain("Silly"));
         Object.DestroyImmediate(root);
+    }
+
+    [Test]
+    public void ProceduralBattlefieldAudio_ProvidesDistinctExplosionAndTreeFlattenClips()
+    {
+        AudioClip cannonExplosion = ProceduralBattlefieldAudio.CreateCannonballExplosion();
+        AudioClip tankExplosion = ProceduralBattlefieldAudio.CreateTankExplosion();
+        AudioClip treeFlatten = ProceduralBattlefieldAudio.CreateTreeFlatten();
+
+        Assert.That(cannonExplosion, Is.Not.Null);
+        Assert.That(tankExplosion, Is.Not.Null);
+        Assert.That(treeFlatten, Is.Not.Null);
+        Assert.That(cannonExplosion.name, Is.Not.EqualTo(tankExplosion.name));
+        Assert.That(treeFlatten.name, Does.Contain("Tree"));
+
+        Object.DestroyImmediate(cannonExplosion);
+        Object.DestroyImmediate(tankExplosion);
+        Object.DestroyImmediate(treeFlatten);
     }
 
     [Test]
@@ -212,6 +231,8 @@ public class BattlefieldPresentationPlayModeTests
         Assert.That(slots.playerCannonShot, Is.SameAs(authored));
         Assert.That(slots.enemyCannonShot, Is.Not.Null);
         Assert.That(slots.cannonGroundExplosion, Is.Not.Null);
+        Assert.That(slots.cannonGroundExplosion.name, Does.Contain("CannonballExplosion"));
+        Assert.That(slots.enemyTankKill.name, Does.Contain("TankExplosion"));
         Object.DestroyImmediate(root);
         Object.DestroyImmediate(authored);
     }

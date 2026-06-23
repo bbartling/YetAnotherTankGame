@@ -160,6 +160,12 @@ public class BattlefieldDirector : MonoBehaviour
         ApplyTestModeSettings();
         UpdateObjectiveUI();
 
+        if (_state == BattleState.Defeat && Input.GetMouseButtonDown(0))
+        {
+            RestartCurrentModeAfterDefeat();
+            return;
+        }
+
         if (_state != BattleState.Running)
         {
             return;
@@ -375,6 +381,20 @@ public class BattlefieldDirector : MonoBehaviour
         AudioListener.volume = 1f;
         LockResolvedPlayerInput();
         ShowEndOverlay("DEFEAT", reason);
+    }
+
+    private void RestartCurrentModeAfterDefeat()
+    {
+        GameplayTestApi api = GameplayTestApi.Instance;
+        if (api == null)
+        {
+            api = Object.FindAnyObjectByType<GameplayTestApi>();
+        }
+
+        if (api != null)
+        {
+            api.RestartCurrentMode();
+        }
     }
 
     private void LockResolvedPlayerInput()

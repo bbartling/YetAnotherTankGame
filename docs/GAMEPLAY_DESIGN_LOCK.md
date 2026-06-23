@@ -8,7 +8,7 @@ The game is a silly cartoon armored-vehicle battle with deliberate War Thunder-i
 
 ## Locked Player Experience
 
-- Player wheeled vehicle reaches approximately `7.5 m/s` with gradual acceleration and braking, never FPS-sprint movement.
+- Player wheeled vehicle reaches approximately `8.5 m/s` with gradual acceleration and braking, never FPS-sprint movement.
 - Reverse is slower than forward.
 - Low-speed turning is possible but heavy.
 - High-speed turning is wide and limited.
@@ -24,7 +24,16 @@ The game is a silly cartoon armored-vehicle battle with deliberate War Thunder-i
 - Left click fires the player cannonball; firing is not hitscan.
 - Right click enters a useful scope/rangefinder aligned with actual aiming.
 - Scope reports distance, elevation, and estimated time of flight.
+- Scope keeps a centered aim crosshair aligned with actual cannon aim while the range ladder/readout is offset to the right.
 - Shift is low gear or aim stabilization, never sprint.
+
+## Locked Menu And Practice Modes
+
+- Main menu must expose `Driving Practice`, `Cannon Practice`, and `WAR`.
+- `WAR` is the only mode that starts the enemy wave and randomized generated battlefield flow.
+- `Driving Practice` is a bounded hard-coded obstacle course for tank climb, bump, bridge, traction, and rollover testing.
+- `Cannon Practice` is a bounded target range for normal cannon fire and far right-click scope/rangefinder dialing.
+- Defeat screen must support left-click restart into the current selected mode.
 
 ## Locked Camera Experience
 

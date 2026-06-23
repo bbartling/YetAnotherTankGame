@@ -78,7 +78,7 @@ public class ProjectileCameraController : MonoBehaviour
         if (projectileAudio == null) projectileAudio = gameObject.AddComponent<ProjectileAudioController>();
         projectileAudio.EnsureFallbackClip();
         if (flyingShellSound == null) flyingShellSound = projectileAudio.whistleClip;
-        if (explosionSound == null) explosionSound = ProceduralBattlefieldAudio.CreateImpact();
+        if (explosionSound == null) explosionSound = ProceduralBattlefieldAudio.CreateCannonballExplosion();
         _audio.clip = flyingShellSound;
         if (!_audio.isPlaying) _audio.Play();
         _trailRenderer = GetComponent<TrailRenderer>();

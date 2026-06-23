@@ -27,8 +27,11 @@ public class SniperRangeFinder : MonoBehaviour
     public Color majorTickColor = new Color(1f, 1f, 1f, 0.95f);
     public Color indicatorColor = new Color(1f, 0.87f, 0.2f, 1f);
     public int fontSize = 24;
+    public Vector2 scopePanelOffset = new Vector2(360f, 0f);
+    public Vector2 centerCrosshairSize = new Vector2(34f, 34f);
 
     private RectTransform _root;
+    private RectTransform _crosshairRoot;
     private RectTransform _ticksRoot;
     private Image _indicator;
     private TextMeshProUGUI _rangeLabel;
@@ -38,6 +41,9 @@ public class SniperRangeFinder : MonoBehaviour
     private float _lastRange;
     private TankBallistics.Solution _lastSolution;
     private bool _hasSolution;
+
+    public Vector2 ScopePanelAnchoredPosition => _root != null ? _root.anchoredPosition : scopePanelOffset;
+    public Vector2 CrosshairAnchoredPosition => _crosshairRoot != null ? _crosshairRoot.anchoredPosition : Vector2.zero;
 
     private void Awake()
     {
@@ -70,6 +76,10 @@ public class SniperRangeFinder : MonoBehaviour
         {
             _root.gameObject.SetActive(sniping);
         }
+        if (_crosshairRoot != null)
+        {
+            _crosshairRoot.gameObject.SetActive(sniping);
+        }
 
         if (!sniping)
         {
@@ -97,7 +107,7 @@ public class SniperRangeFinder : MonoBehaviour
         _root.anchorMax = new Vector2(0.5f, 0.5f);
         _root.pivot = new Vector2(0.5f, 0.5f);
         _root.sizeDelta = new Vector2(panelWidth, panelHeight);
-        _root.anchoredPosition = new Vector2(0f, 0f);
+        _root.anchoredPosition = scopePanelOffset;
 
         Image background = rootGo.GetComponent<Image>();
         background.color = panelColor;
@@ -114,8 +124,13 @@ public class SniperRangeFinder : MonoBehaviour
         CreateTicks();
         CreateIndicator();
         CreateHint();
+        CreateCenterCrosshair();
 
         _root.gameObject.SetActive(false);
+        if (_crosshairRoot != null)
+        {
+            _crosshairRoot.gameObject.SetActive(false);
+        }
     }
 
     private void CreateLabels()
@@ -160,6 +175,41 @@ public class SniperRangeFinder : MonoBehaviour
         _hintLabel.fontSize = fontSize - 7;
         _hintLabel.color = new Color(1f, 1f, 1f, 0.65f);
         _hintLabel.text = "RMB range finder";
+    }
+
+    private void CreateCenterCrosshair()
+    {
+        if (targetCanvas == null)
+        {
+            return;
+        }
+
+        GameObject crosshairGo = new GameObject("SniperCenterCrosshair", typeof(RectTransform));
+        crosshairGo.transform.SetParent(targetCanvas.transform, false);
+        _crosshairRoot = crosshairGo.GetComponent<RectTransform>();
+        _crosshairRoot.anchorMin = new Vector2(0.5f, 0.5f);
+        _crosshairRoot.anchorMax = new Vector2(0.5f, 0.5f);
+        _crosshairRoot.pivot = new Vector2(0.5f, 0.5f);
+        _crosshairRoot.anchoredPosition = Vector2.zero;
+        _crosshairRoot.sizeDelta = centerCrosshairSize;
+
+        CreateCrosshairLine("Vertical", _crosshairRoot, new Vector2(2f, centerCrosshairSize.y), Vector2.zero);
+        CreateCrosshairLine("Horizontal", _crosshairRoot, new Vector2(centerCrosshairSize.x, 2f), Vector2.zero);
+    }
+
+    private void CreateCrosshairLine(string name, Transform parent, Vector2 size, Vector2 anchoredPosition)
+    {
+        GameObject lineGo = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        lineGo.transform.SetParent(parent, false);
+        RectTransform rt = lineGo.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.sizeDelta = size;
+        rt.anchoredPosition = anchoredPosition;
+        Image image = lineGo.GetComponent<Image>();
+        image.color = new Color(1f, 1f, 1f, 0.86f);
+        image.raycastTarget = false;
     }
 
     private void CreateTicks()

@@ -4,16 +4,35 @@ using UnityEngine.UI;
 
 public class MenuManager : MonoBehaviour
 {
+    public enum GameplayMode
+    {
+        DrivingPractice,
+        CannonPractice,
+        War
+    }
+
     public GameObject mainPanel;
     public Button playButton;
+    public Button drivingPracticeButton;
+    public Button cannonPracticeButton;
+    public Button warButton;
     public TankController playerTank;
     public EnemyTankSpawner enemyTankSpawner;
     public TextMeshProUGUI instructionsText;
+    public TextMeshProUGUI modeTutorialText;
     public TMP_InputField enemyCountInput;
 
     [TextArea(4, 12)]
     public string controlsCopy = "Controls:\nW/S or arrows - heavy forward/reverse drive\nA/D or arrows - steer tracks\nShift - low gear / stabilized creeping\nMouse X - rotate turret\nQ/E - lower/raise cannon barrel\nMouse wheel or PageUp/PageDown - fine barrel elevation\n+/- - adjust cannon power from 100% default\nRight click - scope/rangefinder\nLeft click / Space - fire cannon\nF - machine gun\nC - controls during game";
+    [TextArea(3, 8)]
+    public string drivingPracticeCopy = "DRIVING PRACTICE\nObstacle course only. Climb ramps, cross bumps, test craters, and feel traction loss without enemies.";
+    [TextArea(3, 8)]
+    public string cannonPracticeCopy = "CANNON PRACTICE\nTarget range only. Use normal fire up close, then right-click scope to dial far shots with range/elevation/time-of-flight.";
+    [TextArea(3, 8)]
+    public string warCopy = "WAR\nRandom battle setup. Enemies spawn at range, use line of sight, and pressure the castle.";
     public int defaultEnemyCount = 5;
+
+    public GameplayMode SelectedMode { get; private set; } = GameplayMode.War;
 
     private void Start()
     {
@@ -23,39 +42,60 @@ public class MenuManager : MonoBehaviour
         }
 
         EnsureEnemyCountInput();
+        EnsureModeButtons();
 
         if (playButton != null)
         {
             playButton.onClick.RemoveAllListeners();
-            playButton.onClick.AddListener(PlayGame);
+            playButton.onClick.AddListener(StartWar);
         }
 
         EnsureInstructionsText();
+        EnsureModeTutorialText();
         ShowMain();
 
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
     }
 
-    private void PlayGame()
+    public void StartDrivingPractice()
     {
+        StartMode(GameplayMode.DrivingPractice);
+    }
+
+    public void StartCannonPractice()
+    {
+        StartMode(GameplayMode.CannonPractice);
+    }
+
+    public void StartWar()
+    {
+        StartMode(GameplayMode.War);
+    }
+
+    private void StartMode(GameplayMode mode)
+    {
+        SelectedMode = mode;
         int enemyCount = GetDesiredEnemyCount();
-        GameplayTestApi gameplayTestApi = Object.FindFirstObjectByType<GameplayTestApi>();
+        GameplayTestApi gameplayTestApi = Object.FindAnyObjectByType<GameplayTestApi>();
 
         if (gameplayTestApi != null)
         {
-            gameplayTestApi.StartBattle(enemyCount);
+            gameplayTestApi.StartMode(mode, enemyCount);
             return;
         }
 
-        if (enemyTankSpawner == null)
+        if (mode == GameplayMode.War)
         {
-            enemyTankSpawner = Object.FindFirstObjectByType<EnemyTankSpawner>();
-        }
+            if (enemyTankSpawner == null)
+            {
+                enemyTankSpawner = Object.FindAnyObjectByType<EnemyTankSpawner>();
+            }
 
-        if (enemyTankSpawner != null)
-        {
-            enemyTankSpawner.SpawnEnemyTanks(enemyCount);
+            if (enemyTankSpawner != null)
+            {
+                enemyTankSpawner.SpawnEnemyTanks(enemyCount);
+            }
         }
 
         if (mainPanel != null)
@@ -86,6 +126,8 @@ public class MenuManager : MonoBehaviour
             instructionsText.text = controlsCopy;
         }
 
+        EnsureModeTutorialText();
+        UpdateModeTutorial();
         EnsureEnemyCountInput();
         if (enemyCountInput != null && string.IsNullOrWhiteSpace(enemyCountInput.text))
         {
@@ -139,6 +181,166 @@ public class MenuManager : MonoBehaviour
         instructionsText.textWrappingMode = TextWrappingModes.Normal;
         instructionsText.text = controlsCopy;
         instructionsText.raycastTarget = false;
+    }
+
+    private void EnsureModeTutorialText()
+    {
+        if (modeTutorialText != null)
+        {
+            return;
+        }
+
+        if (mainPanel == null)
+        {
+            return;
+        }
+
+        Transform existing = mainPanel.transform.Find("ModeTutorialText");
+        if (existing != null)
+        {
+            modeTutorialText = existing.GetComponent<TextMeshProUGUI>();
+            if (modeTutorialText != null)
+            {
+                return;
+            }
+        }
+
+        GameObject textGo = new GameObject("ModeTutorialText", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+        textGo.transform.SetParent(mainPanel.transform, false);
+
+        RectTransform rt = textGo.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.5f, 0f);
+        rt.anchorMax = new Vector2(0.5f, 0f);
+        rt.pivot = new Vector2(0.5f, 0f);
+        rt.anchoredPosition = new Vector2(0f, 112f);
+        rt.sizeDelta = new Vector2(760f, 180f);
+
+        modeTutorialText = textGo.GetComponent<TextMeshProUGUI>();
+        modeTutorialText.fontSize = 16f;
+        modeTutorialText.alignment = TextAlignmentOptions.Center;
+        modeTutorialText.color = new Color(1f, 0.94f, 0.78f, 1f);
+        modeTutorialText.enableAutoSizing = true;
+        modeTutorialText.fontSizeMin = 12f;
+        modeTutorialText.fontSizeMax = 16f;
+        modeTutorialText.textWrappingMode = TextWrappingModes.Normal;
+        modeTutorialText.raycastTarget = false;
+    }
+
+    private void EnsureModeButtons()
+    {
+        if (mainPanel == null)
+        {
+            return;
+        }
+
+        drivingPracticeButton = drivingPracticeButton != null
+            ? drivingPracticeButton
+            : FindOrCreateModeButton("DrivingPracticeButton", "DRIVE", new Vector2(-220f, 42f));
+        cannonPracticeButton = cannonPracticeButton != null
+            ? cannonPracticeButton
+            : FindOrCreateModeButton("CannonPracticeButton", "CANNON", new Vector2(0f, 42f));
+        warButton = warButton != null
+            ? warButton
+            : playButton != null
+                ? playButton
+                : FindOrCreateModeButton("WarButton", "WAR", new Vector2(220f, 42f));
+        if (warButton != null)
+        {
+            warButton.gameObject.name = "WarButton";
+            RectTransform warRt = warButton.GetComponent<RectTransform>();
+            if (warRt != null)
+            {
+                warRt.anchorMin = new Vector2(0.5f, 0f);
+                warRt.anchorMax = new Vector2(0.5f, 0f);
+                warRt.pivot = new Vector2(0.5f, 0.5f);
+                warRt.anchoredPosition = new Vector2(220f, 42f);
+                warRt.sizeDelta = new Vector2(190f, 56f);
+            }
+            SetButtonLabel(warButton, "WAR");
+        }
+
+        HookModeButton(drivingPracticeButton, GameplayMode.DrivingPractice);
+        HookModeButton(cannonPracticeButton, GameplayMode.CannonPractice);
+        HookModeButton(warButton, GameplayMode.War);
+        if (playButton == null)
+        {
+            playButton = warButton;
+        }
+    }
+
+    private Button FindOrCreateModeButton(string name, string label, Vector2 anchoredPosition)
+    {
+        Transform existing = mainPanel.transform.Find(name);
+        if (existing != null && existing.TryGetComponent(out Button existingButton))
+        {
+            SetButtonLabel(existingButton, label);
+            return existingButton;
+        }
+
+        GameObject buttonGo = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
+        buttonGo.transform.SetParent(mainPanel.transform, false);
+        RectTransform rt = buttonGo.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.5f, 0f);
+        rt.anchorMax = new Vector2(0.5f, 0f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = anchoredPosition;
+        rt.sizeDelta = new Vector2(190f, 56f);
+
+        Image image = buttonGo.GetComponent<Image>();
+        image.color = new Color(0.16f, 0.19f, 0.23f, 0.96f);
+
+        Button button = buttonGo.GetComponent<Button>();
+        SetButtonLabel(button, label);
+        return button;
+    }
+
+    private void SetButtonLabel(Button button, string label)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        TextMeshProUGUI text = button.GetComponentInChildren<TextMeshProUGUI>(true);
+        if (text == null)
+        {
+            GameObject textGo = new GameObject("Label", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+            textGo.transform.SetParent(button.transform, false);
+            RectTransform rt = textGo.GetComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+            text = textGo.GetComponent<TextMeshProUGUI>();
+            text.alignment = TextAlignmentOptions.Center;
+            text.fontSize = 20f;
+            text.fontStyle = FontStyles.Bold;
+            text.color = Color.white;
+            text.raycastTarget = false;
+        }
+
+        text.text = label;
+    }
+
+    private void HookModeButton(Button button, GameplayMode mode)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        button.onClick.RemoveAllListeners();
+        button.onClick.AddListener(() => StartMode(mode));
+    }
+
+    private void UpdateModeTutorial()
+    {
+        if (modeTutorialText == null)
+        {
+            return;
+        }
+
+        modeTutorialText.text = drivingPracticeCopy + "\n\n" + cannonPracticeCopy + "\n\n" + warCopy;
     }
 
     private void EnsureEnemyCountInput()

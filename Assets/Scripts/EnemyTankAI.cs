@@ -60,6 +60,10 @@ public class EnemyTankAI : MonoBehaviour
     public float deathDelay = 2.8f;
     public int crumblePieceCount = 48;
     public float crumbleForce = 38f;
+    public bool randomizeDeathRendererBursts = true;
+    public int deathRendererBatchMin = 2;
+    public int deathRendererBatchMax = 5;
+    public float deathRendererBurstWindow = 0.42f;
     public float machineGunDamageScale = 1f;
     public float tankKillCraterForce = 82f;
     public float tankKillBlastRadius = 12f;
@@ -1045,7 +1049,7 @@ public void ApplyExplosionDamage(float explosionForce, Vector3 explosionPoint, V
         SpawnKillBlast(worldPoint, worldNormal, force);
         PlayKillSound(worldPoint);
         SpawnCrumblePieces(worldPoint, worldNormal, force * 0.65f, crumblePieceCount);
-        yield return HideRenderersGradually(worldPoint, worldNormal, force);
+        yield return HideRenderersInRandomBursts(worldPoint, worldNormal, force);
 
         if (worldNormal.sqrMagnitude > 0.001f && _rb != null)
         {
@@ -1163,23 +1167,70 @@ public void ApplyExplosionDamage(float explosionForce, Vector3 explosionPoint, V
         }
     }
 
-    private IEnumerator HideRenderersGradually(Vector3 worldPoint, Vector3 worldNormal, float force)
+    private IEnumerator HideRenderersInRandomBursts(Vector3 worldPoint, Vector3 worldNormal, float force)
     {
         Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
-        float stepDelay = renderers.Length > 0 ? deathDelay / Mathf.Max(1, renderers.Length) : deathDelay;
-
-        for (int i = 0; i < renderers.Length; i++)
+        if (renderers.Length == 0)
         {
-            Renderer renderer = renderers[i];
-            if (renderer == null || !renderer.enabled)
+            yield break;
+        }
+
+        if (randomizeDeathRendererBursts)
+        {
+            ShuffleRenderers(renderers);
+        }
+
+        int index = 0;
+        int batchMin = Mathf.Max(1, deathRendererBatchMin);
+        int batchMax = Mathf.Max(batchMin, deathRendererBatchMax);
+        float burstWindow = Mathf.Max(0.02f, deathRendererBurstWindow);
+
+        while (index < renderers.Length)
+        {
+            int batchSize = randomizeDeathRendererBursts ? Random.Range(batchMin, batchMax + 1) : 1;
+            int hiddenThisBatch = 0;
+
+            for (int i = 0; i < batchSize && index < renderers.Length; i++, index++)
             {
-                continue;
+                Renderer renderer = renderers[index];
+                if (renderer == null || !renderer.enabled)
+                {
+                    continue;
+                }
+
+                Bounds bounds = renderer.bounds;
+                Vector3 burstPoint = bounds.center + Random.insideUnitSphere * Mathf.Max(0.1f, bounds.extents.magnitude * 0.35f);
+                SpawnCrumblePieces(
+                    burstPoint,
+                    worldNormal.sqrMagnitude > 0.001f ? worldNormal : Vector3.up,
+                    Mathf.Max(8f, force * Random.Range(0.16f, 0.34f)),
+                    Random.Range(2, 6));
+                renderer.enabled = false;
+                hiddenThisBatch++;
             }
 
-            Bounds bounds = renderer.bounds;
-            SpawnCrumblePieces(bounds.center, worldNormal.sqrMagnitude > 0.001f ? worldNormal : Vector3.up, Mathf.Max(8f, force * 0.25f), 4);
-            renderer.enabled = false;
-            yield return new WaitForSeconds(Mathf.Clamp(stepDelay, 0.05f, 0.22f));
+            if (index < renderers.Length && hiddenThisBatch > 0)
+            {
+                float delay = randomizeDeathRendererBursts
+                    ? Random.Range(0.025f, burstWindow)
+                    : Mathf.Clamp(deathDelay / Mathf.Max(1, renderers.Length), 0.05f, 0.22f);
+                yield return new WaitForSeconds(delay);
+            }
+            else
+            {
+                yield return null;
+            }
+        }
+    }
+
+    private void ShuffleRenderers(Renderer[] renderers)
+    {
+        for (int i = renderers.Length - 1; i > 0; i--)
+        {
+            int swapIndex = Random.Range(0, i + 1);
+            Renderer temp = renderers[i];
+            renderers[i] = renderers[swapIndex];
+            renderers[swapIndex] = temp;
         }
     }
 

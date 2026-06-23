@@ -18,6 +18,11 @@ This block is the authoritative feature contract. Update it in the same validate
 - Player tank must visually contrast with terrain and retain a readable proper turret silhouette.
 - Enemy health bars must show green remaining health over a red damage background with percentage text.
 - Shift may provide low gear or aim stabilization, never sprint.
+- Main menu must keep three gameplay entries: Driving Practice, Cannon Practice, and WAR.
+- Only WAR may start the ranged enemy battle/randomized generated map flow.
+- Driving Practice is a bounded hard-coded obstacle course for tank handling, climbing, traction, rollover, and future AI route testing.
+- Cannon Practice is a bounded target range for normal cannon fire and right-click scope/rangefinder dialing.
+- Defeat screen must allow gameplay restart with left click.
 
 ### Locked Weapons And Cameras
 
@@ -28,6 +33,7 @@ This block is the authoritative feature contract. Update it in the same validate
 - Right-click scope/rangefinder must remain and must be aligned with actual aiming.
 - Scope/rangefinder must report useful ballistic information.
 - Trajectory preview or equivalent aim assistance must remain available.
+- Scope/rangefinder must keep the aim-aligned crosshair centered while the range scale/readout sits off to the right side.
 
 ### Locked Enemy Behavior
 

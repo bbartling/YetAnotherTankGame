@@ -136,6 +136,70 @@ public class PlayStartFlowPlayModeTests
         Object.DestroyImmediate(directorObject);
     }
 
+    [Test]
+    public void MenuModes_ExposeDrivingCannonAndWarStarts()
+    {
+        MenuManager menu = new GameObject("MenuManager").AddComponent<MenuManager>();
+
+        Assert.That(typeof(MenuManager).GetMethod("StartDrivingPractice"), Is.Not.Null);
+        Assert.That(typeof(MenuManager).GetMethod("StartCannonPractice"), Is.Not.Null);
+        Assert.That(typeof(MenuManager).GetMethod("StartWar"), Is.Not.Null);
+        Assert.That(System.Enum.GetNames(typeof(MenuManager.GameplayMode)), Does.Contain("DrivingPractice"));
+        Assert.That(System.Enum.GetNames(typeof(MenuManager.GameplayMode)), Does.Contain("CannonPractice"));
+        Assert.That(System.Enum.GetNames(typeof(MenuManager.GameplayMode)), Does.Contain("War"));
+
+        Object.DestroyImmediate(menu.gameObject);
+    }
+
+    [Test]
+    public void PracticeModes_DoNotSpawnEnemyWaveButWarDoes()
+    {
+        GameObject tankRoot = CreateTank(out TankController tank);
+        GameObject apiObject = new GameObject("GameplayTestApi");
+        GameplayTestApi api = apiObject.AddComponent<GameplayTestApi>();
+        api.playerTank = tank;
+        CountingEnemySpawner spawner = apiObject.AddComponent<CountingEnemySpawner>();
+        api.enemySpawner = spawner;
+
+        api.StartMode(MenuManager.GameplayMode.DrivingPractice, 7);
+        Assert.That(spawner.SpawnCalls, Is.EqualTo(0));
+        Assert.That(tank.enabled, Is.True);
+
+        api.StartMode(MenuManager.GameplayMode.CannonPractice, 7);
+        Assert.That(spawner.SpawnCalls, Is.EqualTo(0));
+
+        api.StartMode(MenuManager.GameplayMode.War, 7);
+        Assert.That(spawner.SpawnCalls, Is.EqualTo(1));
+        Assert.That(spawner.LastEnemyCount, Is.EqualTo(7));
+
+        Object.DestroyImmediate(apiObject);
+        Object.DestroyImmediate(tankRoot);
+    }
+
+    [Test]
+    public void DefeatLeftClick_RestartsCurrentGameplayMode()
+    {
+        GameObject tankRoot = CreateTank(out TankController tank);
+        GameObject apiObject = new GameObject("GameplayTestApi");
+        GameplayTestApi api = apiObject.AddComponent<GameplayTestApi>();
+        api.playerTank = tank;
+        CountingEnemySpawner spawner = apiObject.AddComponent<CountingEnemySpawner>();
+        api.enemySpawner = spawner;
+
+        api.StartMode(MenuManager.GameplayMode.War, 3);
+        spawner.SpawnCalls = 0;
+
+        api.RestartCurrentMode();
+
+        Assert.That(api.CurrentMode, Is.EqualTo(MenuManager.GameplayMode.War));
+        Assert.That(spawner.SpawnCalls, Is.EqualTo(1));
+        Assert.That(spawner.LastEnemyCount, Is.EqualTo(3));
+        Assert.That(tank.enabled, Is.True);
+
+        Object.DestroyImmediate(apiObject);
+        Object.DestroyImmediate(tankRoot);
+    }
+
     private static GameObject CreateTank(out TankController tank)
     {
         GameObject root = new GameObject("PlayerTank");
@@ -157,6 +221,18 @@ public class PlayStartFlowPlayModeTests
         tank.barrelPitchPivot = barrel;
         tank.cannonFirePoint = firePoint;
         return root;
+    }
+
+    private sealed class CountingEnemySpawner : EnemyTankSpawner
+    {
+        public int SpawnCalls;
+        public int LastEnemyCount;
+
+        public override void SpawnEnemyTanks(int count)
+        {
+            SpawnCalls++;
+            LastEnemyCount = count;
+        }
     }
 }
 #endif

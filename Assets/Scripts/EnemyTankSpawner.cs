@@ -33,7 +33,7 @@ public class EnemyTankSpawner : MonoBehaviour
         ResolveReferences();
     }
 
-    public void SpawnEnemyTanks(int desiredCount)
+    public virtual void SpawnEnemyTanks(int desiredCount)
     {
         enemyCount = Mathf.Max(0, desiredCount);
         ResolveReferences();

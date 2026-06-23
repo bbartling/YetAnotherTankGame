@@ -36,6 +36,25 @@ public class TankCameraPlayModeTests
     }
 
     [Test]
+    public void SniperRangeFinder_BuildsRightOffsetPanelAndCenteredCrosshair()
+    {
+        GameObject canvasObject = new GameObject("Canvas");
+        Canvas canvas = canvasObject.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+
+        GameObject rangeObject = new GameObject("SniperRangeFinderHost");
+        SniperRangeFinder rangeFinder = rangeObject.AddComponent<SniperRangeFinder>();
+        rangeFinder.targetCanvas = canvas;
+
+        Assert.That(rangeFinder.ScopePanelAnchoredPosition.x, Is.GreaterThan(150f));
+        Assert.That(rangeFinder.ScopePanelAnchoredPosition.y, Is.EqualTo(0f).Within(0.01f));
+        Assert.That(rangeFinder.CrosshairAnchoredPosition, Is.EqualTo(Vector2.zero));
+
+        Object.DestroyImmediate(rangeObject);
+        Object.DestroyImmediate(canvasObject);
+    }
+
+    [Test]
     public void ChaseCamera_CollisionSlidesIntoLowForwardViewInsteadOfTopDown()
     {
         GameObject target = new GameObject("CameraTarget");

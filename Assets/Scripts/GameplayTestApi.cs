@@ -39,6 +39,8 @@ public class GameplayTestApi : MonoBehaviour
     private bool _hasInitialPlayerTransform;
     private bool _fallThroughDetected;
     private bool _playerFellThroughMap;
+    private MenuManager.GameplayMode _currentMode = MenuManager.GameplayMode.War;
+    private int _lastEnemyCount;
 
     public float PlayerTankSpeed => playerTank != null ? playerTank.CurrentGroundSpeed : 0f;
     public float PlayerTankSlopeAngle => playerTank != null ? playerTank.CurrentSlopeAngle : 0f;
@@ -49,6 +51,7 @@ public class GameplayTestApi : MonoBehaviour
     public bool PlayerOverturned => playerTank != null && playerTank.IsOverturned;
     public bool ProjectileCameraActive => ProjectileCameraController.ActivePlayerProjectile != null;
     public int ProjectileCameraActivationCount => ProjectileCameraController.PlayerCameraActivationCount;
+    public MenuManager.GameplayMode CurrentMode => _currentMode;
     public float EnemyDistanceToPlayer
     {
         get
@@ -114,17 +117,45 @@ public class GameplayTestApi : MonoBehaviour
 
     public void StartBattle(int enemyCount)
     {
+        StartMode(MenuManager.GameplayMode.War, enemyCount);
+    }
+
+    public void StartMode(MenuManager.GameplayMode mode, int enemyCount)
+    {
+        StartMode(mode, enemyCount, true);
+    }
+
+    private void StartMode(MenuManager.GameplayMode mode, int enemyCount, bool captureSpawnTransform)
+    {
         ResolveReferences();
-        CaptureCurrentPlayerTransform();
+        if (captureSpawnTransform)
+        {
+            CaptureCurrentPlayerTransform();
+        }
+        _currentMode = mode;
+        _lastEnemyCount = Mathf.Clamp(enemyCount, 0, 24);
         ResetBattle();
 
-        if (enemySpawner != null)
+        if (mode == MenuManager.GameplayMode.DrivingPractice)
         {
-            enemySpawner.SpawnEnemyTanks(Mathf.Clamp(enemyCount, 0, 24));
+            BuildDrivingPracticeCourse();
+        }
+        else if (mode == MenuManager.GameplayMode.CannonPractice)
+        {
+            BuildCannonPracticeRange();
+        }
+        else if (enemySpawner != null)
+        {
+            enemySpawner.SpawnEnemyTanks(_lastEnemyCount);
         }
 
         HideMenuAndEnablePlayer();
-        _lastResult = "Battle started";
+        _lastResult = mode == MenuManager.GameplayMode.War ? "War started" : mode + " started";
+    }
+
+    public void RestartCurrentMode()
+    {
+        StartMode(_currentMode, _lastEnemyCount, false);
     }
 
     public void ResetBattle()
@@ -141,6 +172,8 @@ public class GameplayTestApi : MonoBehaviour
             enemySpawner.ClearExistingEnemies(true);
             enemySpawner.ClearTransientBattleObjects(true);
         }
+
+        ClearPracticeFixtures(true);
 
         if (playerTank != null)
         {
@@ -538,6 +571,82 @@ private void MonitorPlayerFallThrough()
         }
 
         return "Smoke test complete: " + damaged + " damaged enemies / " + enemies.Length + " present";
+    }
+
+    private void BuildDrivingPracticeCourse()
+    {
+        Transform root = GetPracticeRoot();
+        CreateFixture("PracticeFixture_Drive_StartPad", root, new Vector3(0f, 0.08f, -488f), new Vector3(12f, 0.16f, 12f), new Color(0.20f, 0.24f, 0.28f, 1f), Quaternion.identity);
+        CreateFixture("PracticeFixture_Drive_SpeedBump_A", root, new Vector3(-4f, 0.45f, -462f), new Vector3(3f, 0.9f, 9f), new Color(0.62f, 0.52f, 0.32f, 1f), Quaternion.Euler(0f, 0f, 0f));
+        CreateFixture("PracticeFixture_Drive_SpeedBump_B", root, new Vector3(4f, 0.75f, -438f), new Vector3(4f, 1.5f, 9f), new Color(0.62f, 0.52f, 0.32f, 1f), Quaternion.identity);
+        CreateFixture("PracticeFixture_Drive_Ramp_25", root, new Vector3(0f, 1.15f, -404f), new Vector3(13f, 0.7f, 18f), new Color(0.38f, 0.43f, 0.33f, 1f), Quaternion.Euler(25f, 0f, 0f));
+        CreateFixture("PracticeFixture_Drive_Ramp_40", root, new Vector3(18f, 1.8f, -368f), new Vector3(12f, 0.7f, 18f), new Color(0.34f, 0.39f, 0.31f, 1f), Quaternion.Euler(40f, -12f, 0f));
+        CreateFixture("PracticeFixture_Drive_TiltPad", root, new Vector3(-18f, 1.15f, -346f), new Vector3(14f, 0.55f, 18f), new Color(0.36f, 0.38f, 0.45f, 1f), Quaternion.Euler(0f, 0f, 18f));
+        CreateFixture("PracticeFixture_Drive_NarrowBridge", root, new Vector3(0f, 1.1f, -314f), new Vector3(5f, 0.55f, 32f), new Color(0.48f, 0.42f, 0.34f, 1f), Quaternion.identity);
+        Physics.SyncTransforms();
+    }
+
+    private void BuildCannonPracticeRange()
+    {
+        Transform root = GetPracticeRoot();
+        CreateFixture("PracticeFixture_Cannon_FiringPad", root, new Vector3(0f, 0.1f, -488f), new Vector3(14f, 0.2f, 14f), new Color(0.18f, 0.21f, 0.25f, 1f), Quaternion.identity);
+
+        CreateTarget("PracticeFixture_Cannon_Target_80", root, new Vector3(0f, 2.5f, -410f), new Vector3(6f, 5f, 0.7f), new Color(0.9f, 0.18f, 0.12f, 1f));
+        CreateTarget("PracticeFixture_Cannon_Target_180", root, new Vector3(-18f, 3.0f, -320f), new Vector3(8f, 6f, 0.8f), new Color(0.95f, 0.72f, 0.18f, 1f));
+        CreateTarget("PracticeFixture_Cannon_Target_320", root, new Vector3(22f, 4.2f, -190f), new Vector3(10f, 8f, 0.9f), new Color(0.18f, 0.75f, 0.95f, 1f));
+        CreateTarget("PracticeFixture_Cannon_Target_520", root, new Vector3(0f, 5.2f, 20f), new Vector3(12f, 10f, 1f), new Color(0.78f, 0.34f, 1f, 1f));
+        Physics.SyncTransforms();
+    }
+
+    private Transform GetPracticeRoot()
+    {
+        GameObject root = GameObject.Find("PracticeModeFixtures");
+        if (root == null)
+        {
+            root = new GameObject("PracticeModeFixtures");
+        }
+
+        return root.transform;
+    }
+
+    private void CreateTarget(string name, Transform parent, Vector3 position, Vector3 scale, Color color)
+    {
+        GameObject target = CreateFixture(name, parent, position, scale, color, Quaternion.identity);
+        target.AddComponent<Damageable>().maxHealth = 100f;
+    }
+
+    private GameObject CreateFixture(string name, Transform parent, Vector3 position, Vector3 scale, Color color, Quaternion rotation)
+    {
+        GameObject fixture = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        fixture.name = name;
+        fixture.transform.SetParent(parent, true);
+        fixture.transform.SetPositionAndRotation(position, rotation);
+        fixture.transform.localScale = scale;
+        Renderer renderer = fixture.GetComponent<Renderer>();
+        if (renderer != null)
+        {
+            renderer.material.color = color;
+        }
+
+        return fixture;
+    }
+
+    private void ClearPracticeFixtures(bool immediate)
+    {
+        GameObject root = GameObject.Find("PracticeModeFixtures");
+        if (root == null)
+        {
+            return;
+        }
+
+        if (Application.isPlaying && !immediate)
+        {
+            Destroy(root);
+        }
+        else
+        {
+            DestroyImmediate(root);
+        }
     }
 
     private EnemyTankAI FindNearestLiveEnemy()

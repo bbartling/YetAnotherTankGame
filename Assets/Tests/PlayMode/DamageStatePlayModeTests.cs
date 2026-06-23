@@ -93,6 +93,24 @@ public class DamageStatePlayModeTests
     }
 
     [Test]
+    public void Tree_TankImpactCanFlattenImmediatelyWithFallbackSound()
+    {
+        GameObject treeObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        treeObject.AddComponent<Rigidbody>();
+        BreakableTree tree = treeObject.AddComponent<BreakableTree>();
+        tree.smashSound = null;
+        tree.tankFlattenDamage = 999f;
+
+        tree.ApplyImpact(Vector3.zero, Vector3.up, tree.tankFlattenDamage, true);
+
+        Assert.That(tree.IsBroken, Is.True);
+        Assert.That(tree.SmashClipForTest, Is.Not.Null);
+        Assert.That(tree.SmashClipForTest.name, Does.Contain("Tree"));
+
+        if (treeObject != null) Object.DestroyImmediate(treeObject);
+    }
+
+    [Test]
     public void EffectPool_DeactivatesOldestBeyondBudget()
     {
         GameObject root = new GameObject("EffectPool");
@@ -128,6 +146,21 @@ public class DamageStatePlayModeTests
 
         Assert.That(states.CurrentState, Is.EqualTo(DamageStateController.State.Smoking));
         Assert.That(enemy.CurrentDamageState, Is.EqualTo("Smoking"));
+        Object.DestroyImmediate(enemyObject);
+    }
+
+    [Test]
+    public void EnemyTankDeath_UsesRandomizedRendererBurstInsteadOfOrderedLoop()
+    {
+        GameObject enemyObject = new GameObject("RandomDeathEnemy");
+        enemyObject.AddComponent<Rigidbody>();
+        enemyObject.AddComponent<AudioSource>();
+        EnemyTankAI enemy = enemyObject.AddComponent<EnemyTankAI>();
+
+        Assert.That(enemy.randomizeDeathRendererBursts, Is.True);
+        Assert.That(enemy.deathRendererBatchMin, Is.GreaterThan(1));
+        Assert.That(enemy.deathRendererBatchMax, Is.GreaterThanOrEqualTo(enemy.deathRendererBatchMin));
+
         Object.DestroyImmediate(enemyObject);
     }
 
