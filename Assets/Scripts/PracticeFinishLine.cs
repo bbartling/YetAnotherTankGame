@@ -9,6 +9,15 @@ public class PracticeFinishLine : MonoBehaviour
 
     private bool _crossed;
 
+    public bool HasCrossed => _crossed;
+
+    public static bool CourseCompleted { get; private set; }
+
+    public static void ResetCourseCompletion()
+    {
+        CourseCompleted = false;
+    }
+
     private void Reset()
     {
         BoxCollider collider = GetComponent<BoxCollider>();
@@ -29,6 +38,7 @@ public class PracticeFinishLine : MonoBehaviour
         }
 
         _crossed = true;
+        CourseCompleted = true;
         if (logCrossings)
         {
             Debug.Log(finishMessage);

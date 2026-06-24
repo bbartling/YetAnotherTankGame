@@ -49,6 +49,7 @@ public static class PracticeSceneBuilder
         GameObject tank = InstantiatePracticeTank(sourceTank, new Vector3(0f, 1.4f, -138f), Quaternion.identity);
         ConfigureTankForScene(tank);
         AddPracticePolicy(tank, PracticeModeInputPolicy.PracticeControlMode.DrivingOnly, "DrivingPracticePolicy");
+        BuildDrivingPracticeTestHarness(tank);
         BuildMinimalCanvas("Driving Practice - lap: north over bridge, return west lane, finish south");
 
         EditorSceneManager.SaveScene(scene, DrivingScenePath);
@@ -128,6 +129,19 @@ public static class PracticeSceneBuilder
         PracticeModeInputPolicy policy = policyObject.AddComponent<PracticeModeInputPolicy>();
         policy.mode = mode;
         policy.playerTank = tank.GetComponent<TankController>();
+    }
+
+    private static void BuildDrivingPracticeTestHarness(GameObject tank)
+    {
+        GameObject probeObject = new GameObject("DrivingPracticeProbe");
+        DrivingPracticeProbe probe = probeObject.AddComponent<DrivingPracticeProbe>();
+        probe.playerTank = tank.GetComponent<TankController>();
+        probe.logStatus = false;
+
+        DrivingPracticeAutopilot autopilot = probeObject.AddComponent<DrivingPracticeAutopilot>();
+        autopilot.playerTank = probe.playerTank;
+        autopilot.autoRunOnPlay = false;
+        autopilot.muteAudioDuringTest = true;
     }
 
     private static void BuildMinimalCanvas(string title)

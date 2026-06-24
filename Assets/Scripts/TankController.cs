@@ -325,7 +325,9 @@ public class TankController : MonoBehaviour
         HandleTrackDrive(groundInfo);
         ApplyTrackedGrip(groundInfo);
         ClampGroundSpeed(groundInfo);
-        if (continuousTerrainSnapEnabled)
+        ResolveHullPenetration(telemetryThrottle);
+        ApplyObstacleWallSlide(telemetryThrottle);
+        if (continuousTerrainSnapEnabled && !HasStaticHullPenetration())
         {
             PreventTerrainPenetration();
         }
@@ -777,7 +779,257 @@ public class TankController : MonoBehaviour
 
     private void PreventTerrainPenetration()
     {
-        SnapToTerrainClearance(terrainSurfaceSkin, true, false);
+        if (HasStaticHullPenetration())
+        {
+            return;
+        }
+
+        SnapToTerrainClearance(terrainSurfaceSkin, false, false);
+    }
+
+    private bool HasStaticHullPenetration()
+    {
+        Collider[] ownColliders = GetComponentsInChildren<Collider>();
+        for (int i = 0; i < ownColliders.Length; i++)
+        {
+            Collider own = ownColliders[i];
+            if (own == null || !own.enabled || own.isTrigger)
+            {
+                continue;
+            }
+
+            Bounds bounds = own.bounds;
+            Collider[] overlaps = Physics.OverlapBox(
+                bounds.center,
+                bounds.extents * 0.94f,
+                own.transform.rotation,
+                groundMask,
+                QueryTriggerInteraction.Ignore);
+
+            for (int j = 0; j < overlaps.Length; j++)
+            {
+                Collider other = overlaps[j];
+                if (other == null || other.isTrigger)
+                {
+                    continue;
+                }
+
+                if (other.transform == transform || other.transform.IsChildOf(transform))
+                {
+                    continue;
+                }
+
+                Rigidbody otherBody = other.attachedRigidbody;
+                if (otherBody != null && otherBody != _rb && !otherBody.isKinematic)
+                {
+                    continue;
+                }
+
+                if (Physics.ComputePenetration(
+                        own,
+                        own.transform.position,
+                        own.transform.rotation,
+                        other,
+                        other.transform.position,
+                        other.transform.rotation,
+                        out _,
+                        out float distance)
+                    && distance > 0.001f)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private void ResolveHullPenetration(float throttle)
+    {
+        if (_rb == null)
+        {
+            return;
+        }
+
+        bool corrected = false;
+        for (int pass = 0; pass < 5; pass++)
+        {
+            if (!TryResolveHullPenetrationStep(out Vector3 correction))
+            {
+                break;
+            }
+
+            _rb.MovePosition(_rb.position + correction);
+            Physics.SyncTransforms();
+            corrected = true;
+        }
+
+        if (!corrected)
+        {
+            return;
+        }
+
+        if (throttle > 0.05f)
+        {
+            float escapePush = 72f + throttle * 78f;
+            _rb.AddForce(transform.forward * escapePush + Vector3.up * 26f, ForceMode.Acceleration);
+        }
+    }
+
+    private bool TryResolveHullPenetrationStep(out Vector3 correction)
+    {
+        correction = Vector3.zero;
+        Collider[] ownColliders = GetComponentsInChildren<Collider>();
+        Vector3 totalSeparation = Vector3.zero;
+        int separationCount = 0;
+
+        for (int i = 0; i < ownColliders.Length; i++)
+        {
+            Collider own = ownColliders[i];
+            if (own == null || !own.enabled || own.isTrigger)
+            {
+                continue;
+            }
+
+            Bounds bounds = own.bounds;
+            Collider[] overlaps = Physics.OverlapBox(
+                bounds.center,
+                bounds.extents * 0.9f,
+                own.transform.rotation,
+                groundMask,
+                QueryTriggerInteraction.Ignore);
+
+            for (int j = 0; j < overlaps.Length; j++)
+            {
+                Collider other = overlaps[j];
+                if (other == null || other.isTrigger)
+                {
+                    continue;
+                }
+
+                if (other.transform == transform || other.transform.IsChildOf(transform))
+                {
+                    continue;
+                }
+
+                Rigidbody otherBody = other.attachedRigidbody;
+                if (otherBody != null && otherBody != _rb && !otherBody.isKinematic)
+                {
+                    continue;
+                }
+
+                if (Physics.ComputePenetration(
+                        own,
+                        own.transform.position,
+                        own.transform.rotation,
+                        other,
+                        other.transform.position,
+                        other.transform.rotation,
+                        out Vector3 direction,
+                        out float distance)
+                    && distance > 0.001f)
+                {
+                    totalSeparation += direction * (distance + 0.04f);
+                    separationCount++;
+                }
+            }
+        }
+
+        if (separationCount == 0)
+        {
+            return false;
+        }
+
+        correction = totalSeparation / separationCount;
+        return correction.sqrMagnitude > 0.000001f;
+    }
+
+    private void ApplyObstacleWallSlide(float throttle)
+    {
+        if (_rb == null || throttle < 0.05f)
+        {
+            return;
+        }
+
+        Collider[] ownColliders = GetComponentsInChildren<Collider>();
+        Vector3 totalSlide = Vector3.zero;
+        int slideCount = 0;
+        Vector3 driveForward = Vector3.ProjectOnPlane(transform.forward, Vector3.up);
+        if (driveForward.sqrMagnitude < 0.01f)
+        {
+            return;
+        }
+
+        driveForward.Normalize();
+
+        for (int i = 0; i < ownColliders.Length; i++)
+        {
+            Collider own = ownColliders[i];
+            if (own == null || !own.enabled || own.isTrigger)
+            {
+                continue;
+            }
+
+            Bounds bounds = own.bounds;
+            Collider[] overlaps = Physics.OverlapBox(
+                bounds.center,
+                bounds.extents * 0.92f,
+                own.transform.rotation,
+                groundMask,
+                QueryTriggerInteraction.Ignore);
+
+            for (int j = 0; j < overlaps.Length; j++)
+            {
+                Collider other = overlaps[j];
+                if (other == null || other.isTrigger)
+                {
+                    continue;
+                }
+
+                if (other.transform == transform || other.transform.IsChildOf(transform))
+                {
+                    continue;
+                }
+
+                if (!Physics.ComputePenetration(
+                        own,
+                        own.transform.position,
+                        own.transform.rotation,
+                        other,
+                        other.transform.position,
+                        other.transform.rotation,
+                        out Vector3 direction,
+                        out float distance))
+                {
+                    continue;
+                }
+
+                Vector3 normal = -direction.normalized;
+                float wallness = 1f - Mathf.Abs(normal.y);
+                if (wallness < 0.35f)
+                {
+                    continue;
+                }
+
+                Vector3 slide = Vector3.ProjectOnPlane(driveForward, normal);
+                if (slide.sqrMagnitude < 0.01f)
+                {
+                    continue;
+                }
+
+                slide.Normalize();
+                totalSlide += slide * wallness * Mathf.Clamp01(distance * 4f);
+                slideCount++;
+            }
+        }
+
+        if (slideCount == 0)
+        {
+            return;
+        }
+
+        Vector3 slideForce = totalSlide / slideCount * (92f + throttle * 88f);
+        _rb.AddForce(slideForce + Vector3.up * 14f, ForceMode.Acceleration);
     }
 
     private void SnapToTerrainClearance(float clearance, bool allowDownwardCorrection)
@@ -899,6 +1151,8 @@ public class TankController : MonoBehaviour
 
         Vector3 genericOrigin = new Vector3(x, transform.position.y + Mathf.Max(terrainProbeHeight, 30f), z);
         RaycastHit[] hits = Physics.RaycastAll(genericOrigin, Vector3.down, terrainProbeHeight + terrainProbeDistance, groundMask, QueryTriggerInteraction.Ignore);
+        float highestHitY = float.MinValue;
+        bool foundHit = false;
 
         for (int i = 0; i < hits.Length; i++)
         {
@@ -913,7 +1167,16 @@ public class TankController : MonoBehaviour
                 continue;
             }
 
-            terrainY = hits[i].point.y;
+            if (hits[i].point.y > highestHitY)
+            {
+                highestHitY = hits[i].point.y;
+                foundHit = true;
+            }
+        }
+
+        if (foundHit)
+        {
+            terrainY = highestHitY;
             return true;
         }
 

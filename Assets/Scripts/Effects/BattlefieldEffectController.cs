@@ -41,10 +41,33 @@ public static class BattlefieldEffectController
 
     private static Material CreateParticleMaterial(string effectName, Color color)
     {
-        Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+        Material template = Resources.Load<Material>("Materials/ExplosionParticle");
+        if (template != null)
+        {
+            Material material = new Material(template);
+            material.name = effectName + "Material";
+            if (material.HasProperty("_Color"))
+            {
+                material.SetColor("_Color", color);
+            }
+
+            if (material.HasProperty("_BaseColor"))
+            {
+                material.SetColor("_BaseColor", color);
+            }
+
+            return material;
+        }
+
+        Shader shader = Shader.Find("Particles/Standard Unlit");
         if (shader == null)
         {
-            shader = Shader.Find("Particles/Standard Unlit");
+            shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+        }
+
+        if (shader == null)
+        {
+            shader = Shader.Find("Legacy Shaders/Particles/Alpha Blended Premultiply");
         }
 
         if (shader == null)
@@ -52,29 +75,19 @@ public static class BattlefieldEffectController
             shader = Shader.Find("Sprites/Default");
         }
 
-        if (shader == null)
+        Material fallback = new Material(shader != null ? shader : Shader.Find("Unlit/Color"));
+        fallback.name = effectName + "Material";
+        if (fallback.HasProperty("_Color"))
         {
-            shader = Shader.Find("Unlit/Transparent");
+            fallback.SetColor("_Color", color);
         }
 
-        if (shader == null)
+        if (fallback.HasProperty("_BaseColor"))
         {
-            shader = Shader.Find("Unlit/Color");
+            fallback.SetColor("_BaseColor", color);
         }
 
-        Material material = shader != null ? new Material(shader) : new Material(Shader.Find("Standard"));
-        material.name = effectName + "Material";
-        if (material.HasProperty("_BaseColor"))
-        {
-            material.SetColor("_BaseColor", color);
-        }
-
-        if (material.HasProperty("_Color"))
-        {
-            material.SetColor("_Color", color);
-        }
-
-        return material;
+        return fallback;
     }
 
     public static void RegisterTemporary(GameObject effect, string category, int maxActive)

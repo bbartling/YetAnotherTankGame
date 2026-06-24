@@ -137,3 +137,7 @@ The process pattern is modeled after:
 - `https://github.com/bbartling/TheHoneyManEscape`
 
 Use its locked `AGENTS.md`, Blender source/runtime pairing, WebGL build script, Flask hosting layout, and regression audits as process references. Do not copy unrelated HoneyMan gameplay behavior into this tank game.
+
+## Unity 6 API Notes
+
+See `docs/UNITY_API_UPDATES.md` before editing `PracticeSceneBuilder.cs` or assigning physics materials. Use `PhysicsMaterial` (not `PhysicMaterial`). Rebuild dedicated practice scenes after course collision changes.

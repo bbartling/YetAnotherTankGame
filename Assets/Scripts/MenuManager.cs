@@ -36,6 +36,7 @@ public class MenuManager : MonoBehaviour
     [TextArea(3, 8)]
     public string warCopy = "WAR\nRandom battle setup. Enemies spawn at range, use line of sight, and pressure the castle.";
     public int defaultEnemyCount = 5;
+    public static bool AutoStartWarOnLoad;
 
     public GameplayMode SelectedMode { get; private set; } = GameplayMode.War;
 
@@ -57,6 +58,14 @@ public class MenuManager : MonoBehaviour
 
         EnsureInstructionsText();
         EnsureModeTutorialText();
+
+        if (AutoStartWarOnLoad)
+        {
+            AutoStartWarOnLoad = false;
+            StartWarInCurrentScene();
+            return;
+        }
+
         ShowMain();
 
         Cursor.visible = true;
@@ -124,6 +133,42 @@ public class MenuManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
     }
 
+    private void StartWarInCurrentScene()
+    {
+        SelectedMode = GameplayMode.War;
+        int enemyCount = GetDesiredEnemyCount();
+        GameplayTestApi gameplayTestApi = Object.FindAnyObjectByType<GameplayTestApi>();
+        if (gameplayTestApi != null)
+        {
+            gameplayTestApi.StartMode(GameplayMode.War, enemyCount);
+            return;
+        }
+
+        if (enemyTankSpawner == null)
+        {
+            enemyTankSpawner = Object.FindAnyObjectByType<EnemyTankSpawner>();
+        }
+
+        if (enemyTankSpawner != null)
+        {
+            enemyTankSpawner.SpawnEnemyTanks(enemyCount);
+        }
+
+        if (mainPanel != null)
+        {
+            mainPanel.SetActive(false);
+        }
+
+        if (playerTank != null)
+        {
+            playerTank.enabled = true;
+            playerTank.PrepareForGameplay();
+        }
+
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+    }
+
     private bool TryLoadDedicatedSceneForMode(GameplayMode mode)
     {
         string targetScene = mode switch
@@ -143,6 +188,11 @@ public class MenuManager : MonoBehaviour
         if (activeScene.name == targetScene || activeScene.path.EndsWith("/" + targetScene + ".unity"))
         {
             return false;
+        }
+
+        if (mode == GameplayMode.War)
+        {
+            AutoStartWarOnLoad = true;
         }
 
         SceneManager.LoadScene(targetScene);
