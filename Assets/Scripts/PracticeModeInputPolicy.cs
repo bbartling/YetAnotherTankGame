@@ -15,7 +15,7 @@ public class PracticeModeInputPolicy : MonoBehaviour
     public bool applyOnStart = true;
 
     public bool AllowsDriving => mode != PracticeControlMode.TargetPractice;
-    public bool AllowsTurret => mode != PracticeControlMode.DrivingOnly;
+    public bool AllowsTurret => true;
     public bool AllowsCannon => mode != PracticeControlMode.DrivingOnly;
     public bool AllowsScope => mode == PracticeControlMode.TargetPractice || mode == PracticeControlMode.War;
     public bool AllowsMachineGun => mode == PracticeControlMode.War;
@@ -51,6 +51,24 @@ public class PracticeModeInputPolicy : MonoBehaviour
         tank.allowCannonInput = AllowsCannon;
         tank.allowPowerInput = AllowsCannon;
         tank.disableRolloverDefeat = mode == PracticeControlMode.DrivingOnly;
+
+        if (mode == PracticeControlMode.War || mode == PracticeControlMode.DrivingOnly)
+        {
+            tank.ApplySharedDrivingHandling();
+        }
+
+        if (mode == PracticeControlMode.DrivingOnly)
+        {
+            tank.ApplyPracticeDrivingConstraints();
+
+            PracticeStuckRecovery recovery = tank.GetComponent<PracticeStuckRecovery>();
+            if (recovery == null)
+            {
+                recovery = tank.gameObject.AddComponent<PracticeStuckRecovery>();
+            }
+
+            recovery.tank = tank;
+        }
 
         TankMachineGun machineGun = tank.GetComponent<TankMachineGun>();
         if (machineGun != null)

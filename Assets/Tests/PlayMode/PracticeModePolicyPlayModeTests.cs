@@ -15,7 +15,7 @@ public class PracticeModePolicyPlayModeTests
         policy.ApplyTo(tank);
 
         Assert.That(tank.allowDrivingInput, Is.True);
-        Assert.That(tank.allowTurretInput, Is.False);
+        Assert.That(tank.allowTurretInput, Is.True);
         Assert.That(tank.allowCannonInput, Is.False);
         Assert.That(root.GetComponent<TankMachineGun>().allowInputFire, Is.False);
         Assert.That(root.GetComponent<SniperRangeFinder>().allowScope, Is.False);
@@ -60,6 +60,23 @@ public class PracticeModePolicyPlayModeTests
         Assert.That(tank.allowCannonInput, Is.True);
         Assert.That(root.GetComponent<TankMachineGun>().allowInputFire, Is.True);
         Assert.That(root.GetComponent<SniperRangeFinder>().allowScope, Is.True);
+
+        Object.DestroyImmediate(root);
+    }
+
+    [Test]
+    public void WarPolicy_AppliesSharedDrivingHandling()
+    {
+        GameObject root = CreateMinimalTank();
+        TankController tank = root.GetComponent<TankController>();
+        TankDriveController drive = root.AddComponent<TankDriveController>();
+        PracticeModeInputPolicy policy = root.AddComponent<PracticeModeInputPolicy>();
+        policy.mode = PracticeModeInputPolicy.PracticeControlMode.War;
+
+        policy.ApplyTo(tank);
+
+        Assert.That(drive.maxForwardSpeed, Is.EqualTo(TankDrivingProfile.MaxForwardSpeed));
+        Assert.That(drive.maxClimbSlopeDegrees, Is.EqualTo(TankDrivingProfile.MaxClimbSlopeDegrees));
 
         Object.DestroyImmediate(root);
     }

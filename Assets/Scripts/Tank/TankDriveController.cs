@@ -24,13 +24,14 @@ public class TankDriveController : MonoBehaviour
     private float _testSteer;
     private bool _testLowGear;
 
-    private void OnEnable()
+    private void Reset()
     {
         maxForwardSpeed = 8.5f;
         maxReverseSpeed = 4.2f;
         accelerationSeconds = 1.2f;
         brakingSeconds = 1.6f;
         highSpeedSteeringMultiplier = 0.45f;
+        lowGearSpeedMultiplier = 0.55f;
         tractionLossSlopeDegrees = 40f;
         maxClimbSlopeDegrees = 55f;
         minimumUphillSpeedMultiplier = 0.2f;
@@ -121,6 +122,11 @@ public class TankDriveController : MonoBehaviour
         IsGrounded = grounded;
         CurrentSlopeAngle = grounded ? slopeAngle : 0f;
         EngineStrain = GetEngineStrain(throttle, CurrentSlopeAngle);
+    }
+
+    public void ApplyMotocrossPracticeProfile()
+    {
+        TankDrivingProfile.ApplyToDriveController(this);
     }
 
     public void SetTestInput(float throttle, float steer, bool lowGear = false)

@@ -119,6 +119,7 @@ public class TankController : MonoBehaviour
     private TankTurretController _turretController;
     private TankAimController _aimController;
     private TankAudioController _tankAudioController;
+    private TankOverdriveController _overdriveController;
     private WheeledSuspensionController _wheeledSuspension;
     private AudioSource _audio;
     private float _turretYaw;
@@ -135,6 +136,7 @@ public class TankController : MonoBehaviour
     private float _rolloverStableSeconds;
     private bool _rolloverArmed = true;
     private bool _awaitingDriveInput;
+    private bool _practiceDrivingMode;
 
     private struct TrackGroundHit
     {
@@ -308,6 +310,7 @@ public class TankController : MonoBehaviour
             _rb.WakeUp();
         }
 
+        ApplyOverdriveSuspensionTuning();
         int groundedWheelCount = _wheeledSuspension != null ? _wheeledSuspension.ApplySuspension(_rb) : 0;
         TrackGroundInfo groundInfo = ProbeTrackGround();
         RejectUnclimbableRayGround(ref groundInfo, groundedWheelCount);
@@ -325,6 +328,8 @@ public class TankController : MonoBehaviour
         HandleTrackDrive(groundInfo);
         ApplyTrackedGrip(groundInfo);
         ClampGroundSpeed(groundInfo);
+        ClampPracticePlanarSpeed();
+        ApplyHeavyTankAirConstraints(groundInfo);
         ResolveHullPenetration(telemetryThrottle);
         ApplyObstacleWallSlide(telemetryThrottle);
         if (continuousTerrainSnapEnabled && !HasStaticHullPenetration())
@@ -425,6 +430,8 @@ public class TankController : MonoBehaviour
         _tankAudioController = GetComponent<TankAudioController>();
         if (_tankAudioController == null) _tankAudioController = gameObject.AddComponent<TankAudioController>();
 
+        _overdriveController = GetComponent<TankOverdriveController>();
+
         if (gameplayCamera != null)
         {
             TankOrbitCamera orbitCamera = gameplayCamera.GetComponent<TankOrbitCamera>();
@@ -453,8 +460,109 @@ public class TankController : MonoBehaviour
         reverseAcceleration = _driveController.GetAccelerationLimit(true, 0f);
         turnAcceleration = Mathf.Min(turnAcceleration, 10f);
         pivotTurnAcceleration = Mathf.Min(pivotTurnAcceleration, 12f);
-        trackDriveResponse = Mathf.Min(trackDriveResponse, 2.4f);
+        trackDriveResponse = Mathf.Max(trackDriveResponse, 5f);
         brakeDrag = Mathf.Max(brakeDrag, _driveController.GetBrakingResponse());
+    }
+
+    public void ApplySharedDrivingHandling()
+    {
+        EnsureFocusedControllers();
+        TankDrivingProfile.ApplyToDriveController(_driveController);
+        trackDriveResponse = Mathf.Max(trackDriveResponse, TankDrivingProfile.TrackDriveResponse);
+        forwardAcceleration = Mathf.Max(forwardAcceleration, TankDrivingProfile.ForwardAcceleration);
+        reverseAcceleration = Mathf.Max(reverseAcceleration, TankDrivingProfile.ReverseAcceleration);
+        maxForwardSpeed = _driveController.maxForwardSpeed;
+        maxReverseSpeed = _driveController.maxReverseSpeed;
+        maxDriveSlopeAngle = _driveController.maxClimbSlopeDegrees;
+        TankOverdriveSetup.Configure(gameObject);
+    }
+
+    public void ApplyPracticeDrivingConstraints()
+    {
+        _practiceDrivingMode = true;
+    }
+
+    public void ApplyPracticeDrivingTuning()
+    {
+        ApplySharedDrivingHandling();
+        ApplyPracticeDrivingConstraints();
+    }
+
+    private float GetOverdriveSpeedMultiplier()
+    {
+        return _overdriveController != null ? _overdriveController.SpeedMultiplier : 1f;
+    }
+
+    private float GetOverdriveAccelerationMultiplier()
+    {
+        return _overdriveController != null ? _overdriveController.AccelerationMultiplier : 1f;
+    }
+
+    private float GetOverdriveClimbMultiplier()
+    {
+        return _overdriveController != null ? _overdriveController.ClimbSlopeMultiplier : 1f;
+    }
+
+    private void ApplyOverdriveSuspensionTuning()
+    {
+        if (_wheeledSuspension == null)
+        {
+            return;
+        }
+
+        if (_overdriveController == null)
+        {
+            _wheeledSuspension.SpringBoostScale = 1f;
+            _wheeledSuspension.DamperScale = 1f;
+            _wheeledSuspension.BumpLaunchScale = 1f;
+            _wheeledSuspension.WheelSpinLaunchBoost = 0f;
+            return;
+        }
+
+        float charge = Mathf.Max(_overdriveController.ChargeRatio, _overdriveController.IsOverdriveActive ? 1f : 0f);
+        _wheeledSuspension.SpringBoostScale = Mathf.Lerp(1f, TankGameplayTuning.OverdriveSuspensionSpringBoost, charge);
+        _wheeledSuspension.DamperScale = Mathf.Lerp(1f, TankGameplayTuning.OverdriveSuspensionDamperScale, charge);
+        _wheeledSuspension.BumpLaunchScale = 1f;
+        _wheeledSuspension.WheelSpinLaunchBoost = 0f;
+    }
+
+    private void ApplyOverdriveTerrainAssist(TrackGroundInfo groundInfo, float throttle, float slopeAngle)
+    {
+        if (_overdriveController == null || throttle <= 0.05f)
+        {
+            return;
+        }
+
+        Vector3 driveForward = Vector3.ProjectOnPlane(transform.forward, groundInfo.normal);
+        if (driveForward.sqrMagnitude < 0.0001f)
+        {
+            return;
+        }
+
+        driveForward.Normalize();
+        float climbMult = GetOverdriveClimbMultiplier();
+        float assistStrength = _overdriveController.TerrainAssistStrength;
+
+        float baseAssist = _practiceDrivingMode && (_overdriveController == null || !_overdriveController.IsOverdriveActive)
+            ? 0.35f
+            : 0f;
+        float effectiveAssist = Mathf.Max(assistStrength, baseAssist);
+
+        if (slopeAngle > 6f && effectiveAssist > 0.05f)
+        {
+            float climbForce = throttle * (18f + slopeAngle * 1.1f) * climbMult * effectiveAssist;
+            if (_overdriveController.IsOverdriveActive)
+            {
+                climbForce *= _practiceDrivingMode ? 2.4f : 1.2f;
+            }
+
+            _rb.AddForce(driveForward * climbForce, ForceMode.Acceleration);
+        }
+
+        if (_overdriveController.IsWheelSpinOut)
+        {
+            _rb.AddForce(driveForward * TankGameplayTuning.OverdriveStuckPushForce, ForceMode.Acceleration);
+        }
     }
 
     private void ReadDriveInput(out float throttle, out float steer, out bool lowGear)
@@ -484,7 +592,10 @@ public class TankController : MonoBehaviour
 
     private float GetForwardSpeedLimit(float slopeAngle, bool lowGear)
     {
-        return _driveController != null ? _driveController.GetForwardSpeedLimit(slopeAngle, lowGear) : maxForwardSpeed;
+        float climbMult = Mathf.Max(1f, GetOverdriveClimbMultiplier());
+        float effectiveSlope = slopeAngle / climbMult;
+        float limit = _driveController != null ? _driveController.GetForwardSpeedLimit(effectiveSlope, lowGear) : maxForwardSpeed;
+        return limit * GetOverdriveSpeedMultiplier();
     }
 
     private float GetReverseSpeedLimit(float slopeAngle, bool lowGear)
@@ -525,8 +636,10 @@ public class TankController : MonoBehaviour
             float maxAccel = _driveController != null
                 ? _driveController.GetAccelerationLimit(throttle < 0f, slopeAngle)
                 : (throttle > 0f ? forwardAcceleration : reverseAcceleration);
+            maxAccel *= GetOverdriveAccelerationMultiplier();
             float requestedAccel = Mathf.Clamp((targetSpeed - currentForwardSpeed) * trackDriveResponse, -maxAccel, maxAccel);
             _rb.AddForce(driveForward * requestedAccel, ForceMode.Acceleration);
+            ApplyOverdriveTerrainAssist(groundInfo, throttle, slopeAngle);
         }
 
         if (Mathf.Abs(steer) > 0.01f)
@@ -777,6 +890,54 @@ public class TankController : MonoBehaviour
         SetVelocity(groundForward * clampedForwardSpeed + lateralVelocity + verticalVelocity);
     }
 
+    private void ClampPracticePlanarSpeed()
+    {
+        if (!_practiceDrivingMode)
+        {
+            return;
+        }
+
+        Vector3 velocity = ReadVelocity();
+        Vector3 planar = Vector3.ProjectOnPlane(velocity, Vector3.up);
+        bool overdriveActive = _overdriveController != null && _overdriveController.IsOverdriveActive;
+        float maxPlanar = overdriveActive
+            ? TankGameplayTuning.PracticeOverdrivePlanarSpeedCap
+            : TankGameplayTuning.PracticeBasePlanarSpeedCap;
+
+        if (planar.sqrMagnitude <= maxPlanar * maxPlanar)
+        {
+            return;
+        }
+
+        Vector3 clampedPlanar = planar.normalized * maxPlanar;
+        SetVelocity(new Vector3(clampedPlanar.x, velocity.y, clampedPlanar.z));
+    }
+
+    private void ApplyHeavyTankAirConstraints(TrackGroundInfo groundInfo)
+    {
+        if (!_practiceDrivingMode || _rb == null)
+        {
+            return;
+        }
+
+        if (!groundInfo.grounded)
+        {
+            float extraGravity = TankGameplayTuning.PracticeAirborneGravityMultiplier - 1f;
+            if (extraGravity > 0.01f)
+            {
+                _rb.AddForce(Physics.gravity * extraGravity, ForceMode.Acceleration);
+            }
+        }
+
+        Vector3 velocity = ReadVelocity();
+        float maxUpward = TankGameplayTuning.MaxPracticeAirborneVerticalSpeed;
+        if (velocity.y > maxUpward)
+        {
+            velocity.y = maxUpward;
+            SetVelocity(velocity);
+        }
+    }
+
     private void PreventTerrainPenetration()
     {
         if (HasStaticHullPenetration())
@@ -871,8 +1032,8 @@ public class TankController : MonoBehaviour
 
         if (throttle > 0.05f)
         {
-            float escapePush = 72f + throttle * 78f;
-            _rb.AddForce(transform.forward * escapePush + Vector3.up * 26f, ForceMode.Acceleration);
+            float escapePush = 42f + throttle * 36f;
+            _rb.AddForce(transform.forward * escapePush, ForceMode.Acceleration);
         }
     }
 
@@ -1028,8 +1189,8 @@ public class TankController : MonoBehaviour
             return;
         }
 
-        Vector3 slideForce = totalSlide / slideCount * (92f + throttle * 88f);
-        _rb.AddForce(slideForce + Vector3.up * 14f, ForceMode.Acceleration);
+        Vector3 slideForce = totalSlide / slideCount * (52f + throttle * 42f);
+        _rb.AddForce(slideForce, ForceMode.Acceleration);
     }
 
     private void SnapToTerrainClearance(float clearance, bool allowDownwardCorrection)
@@ -1389,6 +1550,11 @@ public class TankController : MonoBehaviour
         ConfigureRigidbody();
         EnsureFocusedControllers();
         AutoWireReferences();
+        if (TankDrivingProfile.ShouldApplyToScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name))
+        {
+            ApplySharedDrivingHandling();
+        }
+
         SnapToTerrainClearance(terrainSurfaceSkin, true);
         AlignHullToGroundSurface();
         SnapToTerrainClearance(terrainSurfaceSkin, true);

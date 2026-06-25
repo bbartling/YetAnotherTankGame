@@ -9,7 +9,8 @@ public class DrivingPracticeAutopilot : MonoBehaviour
     public bool muteAudioDuringTest = true;
     public float waypointReachDistance = 18f;
     public float stuckSpeedThreshold = 0.45f;
-    public float stuckTimeSeconds = 1.8f;
+    public float stuckTimeSeconds = 2.5f;
+    public float hardStuckTimeSeconds = 10f;
     public float unstuckReverseSeconds = 1.1f;
     public float statusLogInterval = 3f;
 
@@ -26,6 +27,8 @@ public class DrivingPracticeAutopilot : MonoBehaviour
     private float _savedListenerVolume = 1f;
     private float _nextUnstuckImpulseTime;
     private float _nextClimbAssistTime;
+    private float _nextHardRecoveryTime;
+    private int _hardRecoveryCount;
     private bool _audioMuted;
     private bool _running;
     private bool _completed;
@@ -119,6 +122,7 @@ public class DrivingPracticeAutopilot : MonoBehaviour
         float planarSpeed = GetPlanarSpeed();
         UpdateStuckState(tankPosition, planarSpeed, ref throttle, ref steer, ref lowGear);
         EnforceCourseDirection(tankPosition, target, ref throttle);
+        ApplyNorthTurnSpeedControl(tankPosition, planarSpeed, ref throttle);
         ApplyClimbAssist(planarSpeed, throttle);
         ApplyUnstuckImpulse(throttle);
         driveController.SetTestInput(throttle, steer, lowGear);
@@ -175,8 +179,8 @@ public class DrivingPracticeAutopilot : MonoBehaviour
             AddWaypoint(0f, 360f);
             AddWaypoint(0f, 520f);
             AddWaypoint(0f, 650f);
-            AddWaypoint(0f, 740f);
-            AddWaypoint(-70f, 790f);
+            AddWaypoint(-25f, 700f);
+            AddWaypoint(-70f, 760f);
             AddWaypoint(-160f, 790f);
             AddWaypoint(-210f, 760f);
             AddWaypoint(-210f, 600f);
@@ -255,7 +259,7 @@ public class DrivingPracticeAutopilot : MonoBehaviour
 
     private Vector3 SnapTargetToLane(Vector3 tankPosition, Vector3 target)
     {
-        if (tankPosition.z > -520f && tankPosition.z < 720f)
+        if (tankPosition.z > -520f && tankPosition.z < 680f)
         {
             target.x = 0f;
         }
@@ -269,6 +273,12 @@ public class DrivingPracticeAutopilot : MonoBehaviour
         {
             target.x = 0f;
             target.z = Mathf.Max(target.z, -660f);
+        }
+
+        if (tankPosition.z >= 750f && tankPosition.z <= 860f && tankPosition.x > -170f)
+        {
+            target.x = Mathf.Min(target.x, -140f);
+            target.z = Mathf.Min(target.z, 790f);
         }
 
         return target;
@@ -311,11 +321,17 @@ public class DrivingPracticeAutopilot : MonoBehaviour
 
     private float ApplyLaneAssist(float steer, Vector3 position)
     {
-        if (position.z > -520f && position.z < 720f)
+        if (position.z > -520f && position.z < 680f)
         {
             float laneSteer = Mathf.Clamp(-position.x / 5f, -1f, 1f);
             float blend = Mathf.Abs(position.x) > 4f ? 0.75f : 0.45f;
             steer = Mathf.Clamp(steer * (1f - blend) + laneSteer * blend, -1f, 1f);
+        }
+
+        if (position.z >= 620f && position.z <= 780f && position.x > -120f)
+        {
+            float turnSteer = Mathf.Clamp((-160f - position.x) / 90f, -1f, 1f);
+            steer = Mathf.Clamp(steer * 0.35f + turnSteer * 0.65f, -1f, 1f);
         }
 
         if (position.z > -460f && position.z < 780f && position.x < -80f)
@@ -325,6 +341,23 @@ public class DrivingPracticeAutopilot : MonoBehaviour
         }
 
         return steer;
+    }
+
+    private void ApplyNorthTurnSpeedControl(Vector3 tankPosition, float planarSpeed, ref float throttle)
+    {
+        if (tankPosition.z < 620f || tankPosition.z > 820f || _unstuckTimer > 0f)
+        {
+            return;
+        }
+
+        if (planarSpeed > 34f)
+        {
+            throttle = Mathf.Min(throttle, 0.35f);
+        }
+        else if (planarSpeed > 24f)
+        {
+            throttle = Mathf.Min(throttle, 0.65f);
+        }
     }
 
     private void ApplyClimbAssist(float planarSpeed, float throttle)
@@ -341,9 +374,7 @@ public class DrivingPracticeAutopilot : MonoBehaviour
             return;
         }
 
-        body.AddForce(
-            playerTank.transform.forward * body.mass * 14f + Vector3.up * body.mass * 6f,
-            ForceMode.Impulse);
+        body.AddForce(playerTank.transform.forward * body.mass * 6f, ForceMode.Impulse);
     }
 
     private void EnforceCourseDirection(Vector3 tankPosition, Vector3 target, ref float throttle)
@@ -383,9 +414,7 @@ public class DrivingPracticeAutopilot : MonoBehaviour
             return;
         }
 
-        body.AddForce(
-            playerTank.transform.forward * body.mass * 28f + Vector3.up * body.mass * 10f,
-            ForceMode.Impulse);
+        body.AddForce(playerTank.transform.forward * body.mass * 12f, ForceMode.Impulse);
     }
 
     private void UpdateStuckState(Vector3 tankPosition, float planarSpeed, ref float throttle, ref float steer, ref bool lowGear)
@@ -403,6 +432,12 @@ public class DrivingPracticeAutopilot : MonoBehaviour
         else if (throttle > 0.2f)
         {
             _stuckTimer += Time.deltaTime;
+        }
+
+        if (_stuckTimer >= hardStuckTimeSeconds)
+        {
+            PerformHardStuckRecovery(tankPosition, ref throttle, ref steer);
+            return;
         }
 
         if (_stuckTimer < stuckTimeSeconds && _unstuckTimer <= 0f)
@@ -440,6 +475,54 @@ public class DrivingPracticeAutopilot : MonoBehaviour
                 steer = ApplyLaneAssist(-0.35f, playerTank.transform.position);
                 break;
         }
+    }
+
+    private void PerformHardStuckRecovery(Vector3 tankPosition, ref float throttle, ref float steer)
+    {
+        if (Time.time < _nextHardRecoveryTime || playerTank == null)
+        {
+            return;
+        }
+
+        _nextHardRecoveryTime = Time.time + 8f;
+        _hardRecoveryCount++;
+        _stuckTimer = 0f;
+        _unstuckTimer = 0f;
+        _unstuckPhase = 0;
+        _lastProgressPosition = tankPosition;
+
+        Rigidbody body = playerTank.GetComponent<Rigidbody>();
+        if (body == null)
+        {
+            return;
+        }
+
+        Vector3 target = GetCurrentTarget(tankPosition);
+        Vector3 forward = target - tankPosition;
+        forward.y = 0f;
+        if (forward.sqrMagnitude < 0.5f)
+        {
+            forward = playerTank.transform.forward;
+        }
+
+        forward.Normalize();
+        Vector3 right = Vector3.Cross(Vector3.up, forward);
+        Vector3 nudge = forward * 2.5f + right * ((_hardRecoveryCount % 2 == 0) ? 1f : -1f);
+        body.position += new Vector3(nudge.x, 0.2f, nudge.z);
+#if UNITY_6000_0_OR_NEWER
+        body.linearVelocity = forward * 3.5f;
+#else
+        body.velocity = forward * 3.5f;
+#endif
+        body.angularVelocity *= 0.25f;
+        body.WakeUp();
+
+        throttle = 1f;
+        steer = ComputeSteer(target);
+        Debug.LogWarning("[DrivingPracticeAutopilot] HARD_STUCK_RECOVERY count="
+            + _hardRecoveryCount
+            + " pos=" + Format(body.position)
+            + " wp=" + (_waypointIndex + 1) + "/" + _waypoints.Count);
     }
 
     private float GetPlanarSpeed()

@@ -96,22 +96,36 @@ public static class DrivingPracticeTestRunner
         }
         else if (_playModeStarted)
         {
-            Finish(PracticeFinishLine.CourseCompleted, PracticeFinishLine.CourseCompleted
-                ? "Course completed."
-                : "Play mode stopped before finish.");
+            Finish(PracticeFinishLine.CourseCompleted, BuildFinishMessage());
             return;
         }
 
         if (_playModeStarted && EditorApplication.timeSinceStartup >= _deadline)
         {
-            Finish(false, "Timed out before finish line.");
+            Finish(false, BuildFinishMessage() + " Timed out.");
             return;
         }
 
         if (PracticeFinishLine.CourseCompleted)
         {
-            Finish(true, "DRIVING_PRACTICE_FINISH");
+            Finish(true, BuildFinishMessage());
         }
+    }
+
+    private static string BuildFinishMessage()
+    {
+        DrivingPracticeProbe probe = UnityEngine.Object.FindAnyObjectByType<DrivingPracticeProbe>();
+        DrivingPracticeAutopilot autopilot = UnityEngine.Object.FindAnyObjectByType<DrivingPracticeAutopilot>();
+        PracticeStuckRecovery recovery = UnityEngine.Object.FindAnyObjectByType<PracticeStuckRecovery>();
+        string telemetry = probe != null ? probe.GetTelemetrySummary() : "telemetry=missing";
+        string recoveries = "hardRecoveries=" + (recovery != null ? recovery.HardRecoveryCount.ToString() : "0");
+        if (autopilot != null)
+        {
+            recoveries += " wp=" + (autopilot.WaypointIndex + 1) + "/" + autopilot.WaypointCount;
+        }
+
+        return (PracticeFinishLine.CourseCompleted ? "DRIVING_PRACTICE_FINISH " : "INCOMPLETE ")
+            + telemetry + " " + recoveries;
     }
 
     private static void Finish(bool success, string message)

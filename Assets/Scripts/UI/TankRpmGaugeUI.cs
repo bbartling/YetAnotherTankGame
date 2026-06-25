@@ -7,9 +7,12 @@ public class TankRpmGaugeUI : MonoBehaviour
 {
     public TankOverdriveController overdrive;
     public bool showOnlyWhileDriving = true;
-    public float gaugeTiltDegrees = 225f;
+    public float gaugeTiltDegrees = -35f;
+    public float needleMinAngle = 135f;
+    public float needleMaxAngle = -45f;
 
     private RectTransform _root;
+    private RectTransform _rpmLabelRoot;
     private RectTransform _needlePivot;
     private RectTransform _needleShadowPivot;
     private Image _needleBody;
@@ -17,6 +20,14 @@ public class TankRpmGaugeUI : MonoBehaviour
     private TextMeshProUGUI _rpmLabel;
     private float _displayedRatio;
     private float _displayedAngle;
+
+    private void Awake()
+    {
+        if (overdrive == null)
+        {
+            overdrive = GetComponent<TankOverdriveController>();
+        }
+    }
 
     private void Start()
     {
@@ -45,7 +56,7 @@ public class TankRpmGaugeUI : MonoBehaviour
 
         float targetRatio = Mathf.InverseLerp(TankGameplayTuning.RpmIdle, TankGameplayTuning.RpmRedline, overdrive.DisplayRpm);
         _displayedRatio = Mathf.Lerp(_displayedRatio, targetRatio, Time.deltaTime * 9f);
-        float targetAngle = Mathf.Lerp(72f, -72f, _displayedRatio);
+        float targetAngle = Mathf.Lerp(needleMinAngle, needleMaxAngle, _displayedRatio);
         _displayedAngle = Mathf.LerpAngle(_displayedAngle, targetAngle, Time.deltaTime * 12f);
 
         Quaternion rotation = Quaternion.Euler(0f, 0f, _displayedAngle);
@@ -53,6 +64,11 @@ public class TankRpmGaugeUI : MonoBehaviour
         if (_needleShadowPivot != null)
         {
             _needleShadowPivot.localRotation = Quaternion.Euler(0f, 0f, _displayedAngle - 2.5f);
+        }
+
+        if (_rpmLabelRoot != null)
+        {
+            _rpmLabelRoot.localRotation = Quaternion.Euler(0f, 0f, -gaugeTiltDegrees);
         }
 
         Color rpmColor = GetRpmGradientColor(_displayedRatio);
@@ -113,7 +129,8 @@ public class TankRpmGaugeUI : MonoBehaviour
 
         GameObject rpmBack = new GameObject("RpmNumber", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
         rpmBack.transform.SetParent(root.transform, false);
-        RectTransform rpmRt = rpmBack.GetComponent<RectTransform>();
+        _rpmLabelRoot = rpmBack.GetComponent<RectTransform>();
+        RectTransform rpmRt = _rpmLabelRoot;
         rpmRt.anchorMin = new Vector2(0.5f, 0f);
         rpmRt.anchorMax = new Vector2(0.5f, 0f);
         rpmRt.pivot = new Vector2(0.5f, 0.5f);
@@ -126,6 +143,7 @@ public class TankRpmGaugeUI : MonoBehaviour
         _rpmLabel.alignment = TextAlignmentOptions.Center;
         _rpmLabel.color = GetRpmGradientColor(0f);
         _rpmLabel.raycastTarget = false;
+        _rpmLabelRoot.localRotation = Quaternion.Euler(0f, 0f, -gaugeTiltDegrees);
 
         GameObject shadowPivot = new GameObject("NeedleShadowPivot", typeof(RectTransform));
         shadowPivot.transform.SetParent(root.transform, false);
