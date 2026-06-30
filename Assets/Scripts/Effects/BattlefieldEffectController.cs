@@ -31,7 +31,7 @@ public static class BattlefieldEffectController
         ParticleSystemRenderer renderer = effect.GetComponent<ParticleSystemRenderer>();
         if (renderer != null)
         {
-            renderer.sharedMaterial = CreateParticleMaterial(effectName, color);
+            renderer.sharedMaterial = CreateTintedParticleMaterial(effectName, color);
         }
 
         particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
@@ -39,7 +39,7 @@ public static class BattlefieldEffectController
         return effect;
     }
 
-    private static Material CreateParticleMaterial(string effectName, Color color)
+    public static Material CreateTintedParticleMaterial(string effectName, Color color)
     {
         Material template = Resources.Load<Material>("Materials/ExplosionParticle");
         if (template != null)

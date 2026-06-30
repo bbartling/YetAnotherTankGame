@@ -17,6 +17,7 @@ public class PracticeModePolicyPlayModeTests
         Assert.That(tank.allowDrivingInput, Is.True);
         Assert.That(tank.allowTurretInput, Is.True);
         Assert.That(tank.allowCannonInput, Is.False);
+        Assert.That(tank.leftClickFiresCannon, Is.False);
         Assert.That(root.GetComponent<TankMachineGun>().allowInputFire, Is.False);
         Assert.That(root.GetComponent<SniperRangeFinder>().allowScope, Is.False);
         Assert.That(tank.gameplayCamera.GetComponent<TankBarrelScopeCamera>().allowScope, Is.False);

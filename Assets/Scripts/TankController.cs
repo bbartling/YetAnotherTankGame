@@ -62,7 +62,7 @@ public class TankController : MonoBehaviour
 
     [Header("Tank Stability")]
     public float playerVisualScale = 3f;
-    public float chassisMass = 18000f;
+    public float chassisMass = TankGameplayTuning.ChassisMass;
     public Vector3 centerOfMassOffset = new Vector3(0f, -1.15f, 0f);
     public float uprightAssist = 12f;
     public float angularDamping = 4.5f;
@@ -187,6 +187,7 @@ public class TankController : MonoBehaviour
         EnsureFocusedControllers();
         ValidatePivotSetup();
         SillyModelInstaller.Ensure(gameObject, "Models/Tanks/SillyPlayerTank", Mathf.Clamp(playerVisualScale, 2.5f, 3.5f), true);
+        SyncCombatControllers();
     }
 
     private void Start()
@@ -199,6 +200,11 @@ public class TankController : MonoBehaviour
     private void ConfigureRigidbody()
     {
         if (_rb == null) return;
+
+        if (Mathf.Approximately(chassisMass, TankGameplayTuning.BaselineChassisMass))
+        {
+            chassisMass = TankGameplayTuning.ChassisMass;
+        }
 
         _rb.mass = Mathf.Max(15000f, chassisMass);
         centerOfMassOffset.y = Mathf.Min(centerOfMassOffset.y, -1f);
@@ -421,11 +427,10 @@ public class TankController : MonoBehaviour
 
         _turretController = GetComponent<TankTurretController>();
         if (_turretController == null) _turretController = gameObject.AddComponent<TankTurretController>();
-        _turretController.Bind(turretYawPivot, 55f, 32f);
 
         _aimController = GetComponent<TankAimController>();
         if (_aimController == null) _aimController = gameObject.AddComponent<TankAimController>();
-        _aimController.Bind(barrelPitchPivot, _barrelElevation, minBarrelElevation, maxBarrelElevation);
+        SyncCombatControllers();
 
         _tankAudioController = GetComponent<TankAudioController>();
         if (_tankAudioController == null) _tankAudioController = gameObject.AddComponent<TankAudioController>();
@@ -486,6 +491,23 @@ public class TankController : MonoBehaviour
     {
         ApplySharedDrivingHandling();
         ApplyPracticeDrivingConstraints();
+    }
+
+    public void SyncCombatControllers()
+    {
+        if (_turretController != null)
+        {
+            _turretController.Bind(turretYawPivot, turretYawSpeed, mouseYawDegreesPerSecond);
+            _turretYaw = _turretController.DesiredYawDegrees;
+        }
+
+        if (_aimController != null)
+        {
+            _aimController.Bind(barrelPitchPivot, _barrelElevation, minBarrelElevation, maxBarrelElevation);
+            _aimController.mouseWheelPitchSensitivity = mouseWheelPitchSensitivity;
+            _aimController.keyboardPitchSpeed = keyboardPitchSpeed;
+            _barrelElevation = _aimController.ElevationDegrees;
+        }
     }
 
     private float GetOverdriveSpeedMultiplier()

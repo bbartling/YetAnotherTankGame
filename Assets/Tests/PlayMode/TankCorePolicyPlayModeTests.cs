@@ -202,7 +202,7 @@ public class TankCorePolicyPlayModeTests
             .GetMethod("ConfigureRigidbody", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
             .Invoke(tank, null);
 
-        Assert.That(body.mass, Is.GreaterThanOrEqualTo(15000f));
+        Assert.That(body.mass, Is.GreaterThanOrEqualTo(TankGameplayTuning.ChassisMass));
         Assert.That(body.centerOfMass.y, Is.LessThanOrEqualTo(-1f));
         Assert.That(body.constraints, Is.EqualTo(RigidbodyConstraints.None));
         Assert.That(body.angularDamping, Is.GreaterThanOrEqualTo(4f));
@@ -297,6 +297,36 @@ public class TankCorePolicyPlayModeTests
         Assert.That(body.isKinematic, Is.True);
         Assert.That(body.linearVelocity.magnitude, Is.LessThan(0.01f));
         Assert.That(body.angularVelocity.magnitude, Is.LessThan(0.01f));
+
+        Object.DestroyImmediate(tankObject);
+    }
+
+    [Test]
+    public void SyncCombatControllers_UsesTankControllerTurretTuning()
+    {
+        GameObject tankObject = new GameObject("SyncedTurretTank");
+        Transform turret = new GameObject("TurretYawPivot").transform;
+        turret.SetParent(tankObject.transform, false);
+        Transform barrel = new GameObject("BarrelPitchPivot").transform;
+        barrel.SetParent(turret, false);
+
+        TankController tank = tankObject.AddComponent<TankController>();
+        tank.turretYawPivot = turret;
+        tank.barrelPitchPivot = barrel;
+        tank.turretYawSpeed = 110f;
+        tank.mouseYawDegreesPerSecond = 42.5f;
+        tank.keyboardPitchSpeed = 35f;
+        tank.mouseWheelPitchSensitivity = 18f;
+
+        tank.SyncCombatControllers();
+
+        TankTurretController turretController = tankObject.GetComponent<TankTurretController>();
+        TankAimController aimController = tankObject.GetComponent<TankAimController>();
+
+        Assert.That(turretController.turretYawSpeed, Is.EqualTo(110f).Within(0.01f));
+        Assert.That(turretController.mouseYawDegreesPerSecond, Is.EqualTo(42.5f).Within(0.01f));
+        Assert.That(aimController.keyboardPitchSpeed, Is.EqualTo(35f).Within(0.01f));
+        Assert.That(aimController.mouseWheelPitchSensitivity, Is.EqualTo(18f).Within(0.01f));
 
         Object.DestroyImmediate(tankObject);
     }

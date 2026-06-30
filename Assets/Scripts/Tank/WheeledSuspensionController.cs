@@ -76,21 +76,24 @@ public class WheeledSuspensionController : MonoBehaviour
             body.AddForceAtPosition(hit.normal * force, hit.point, ForceMode.Acceleration);
 
             float release = _lastCompression[i] - compression;
-            if (TankGameplayTuning.BumpLaunchGlobalScale > 0.0001f
-                && release > 0.16f
-                && _lastCompression[i] > 0.48f)
+            if (release > 0.16f && _lastCompression[i] > 0.48f)
             {
                 float speedFactor = Mathf.Max(forwardSpeed * 0.0025f, WheelSpinLaunchBoost);
-                float deltaV = release * (0.0085f + speedFactor) * BumpLaunchScale * TankGameplayTuning.BumpLaunchGlobalScale;
-                deltaV = Mathf.Clamp(deltaV, 0f, TankGameplayTuning.OverdriveMaxBumpDeltaV);
-                if (deltaV > 0.002f)
+                float bumpStrength = release * (0.0085f + speedFactor) * BumpLaunchScale;
+                RecentBumpStrength = Mathf.Max(RecentBumpStrength, bumpStrength);
+
+                if (TankGameplayTuning.BumpLaunchGlobalScale > 0.0001f)
                 {
-                    Vector3 launchDir = (
-                        hit.normal * TankGameplayTuning.BumpLaunchVerticalBias
-                        + transform.forward * TankGameplayTuning.BumpLaunchForwardBias).normalized;
-                    float impulse = deltaV * body.mass;
-                    body.AddForceAtPosition(launchDir * impulse, hit.point, ForceMode.Impulse);
-                    RecentBumpStrength = Mathf.Max(RecentBumpStrength, deltaV);
+                    float deltaV = bumpStrength * TankGameplayTuning.BumpLaunchGlobalScale;
+                    deltaV = Mathf.Clamp(deltaV, 0f, TankGameplayTuning.OverdriveMaxBumpDeltaV);
+                    if (deltaV > 0.002f)
+                    {
+                        Vector3 launchDir = (
+                            hit.normal * TankGameplayTuning.BumpLaunchVerticalBias
+                            + transform.forward * TankGameplayTuning.BumpLaunchForwardBias).normalized;
+                        float impulse = deltaV * body.mass;
+                        body.AddForceAtPosition(launchDir * impulse, hit.point, ForceMode.Impulse);
+                    }
                 }
             }
 

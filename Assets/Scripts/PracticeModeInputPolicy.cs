@@ -50,7 +50,13 @@ public class PracticeModeInputPolicy : MonoBehaviour
         tank.allowTurretInput = AllowsTurret;
         tank.allowCannonInput = AllowsCannon;
         tank.allowPowerInput = AllowsCannon;
+        tank.leftClickFiresCannon = AllowsCannon;
         tank.disableRolloverDefeat = mode == PracticeControlMode.DrivingOnly;
+
+        if (AllowsTurret)
+        {
+            tank.SyncCombatControllers();
+        }
 
         if (mode == PracticeControlMode.War || mode == PracticeControlMode.DrivingOnly)
         {

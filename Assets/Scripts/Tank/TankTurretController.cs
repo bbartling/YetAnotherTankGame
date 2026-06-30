@@ -18,7 +18,8 @@ public class TankTurretController : MonoBehaviour
 
     public void TickPlayerInput(float deltaTime)
     {
-        DesiredYawDegrees += Input.GetAxisRaw("Mouse X") * mouseYawDegreesPerSecond * deltaTime;
+        DesiredYawDegrees = NormalizeSignedAngle(
+            DesiredYawDegrees + Input.GetAxisRaw("Mouse X") * mouseYawDegreesPerSecond * deltaTime);
         TickRotation(deltaTime);
     }
 

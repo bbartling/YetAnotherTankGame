@@ -40,6 +40,11 @@ public class MenuManager : MonoBehaviour
 
     public GameplayMode SelectedMode { get; private set; } = GameplayMode.War;
 
+    private void Awake()
+    {
+        EnsureMenuCanvasReady();
+    }
+
     private void Start()
     {
         if (playerTank != null)
@@ -243,6 +248,7 @@ public class MenuManager : MonoBehaviour
             {
                 StretchInstructionsText(instructionsText.rectTransform);
                 instructionsText.text = controlsCopy;
+                instructionsText.raycastTarget = false;
                 return;
             }
         }
@@ -287,6 +293,7 @@ public class MenuManager : MonoBehaviour
             modeTutorialText = existing.GetComponent<TextMeshProUGUI>();
             if (modeTutorialText != null)
             {
+                modeTutorialText.raycastTarget = false;
                 return;
             }
         }
@@ -352,6 +359,53 @@ public class MenuManager : MonoBehaviour
         {
             playButton = warButton;
         }
+
+        BringModeButtonsToFront();
+    }
+
+    private void BringModeButtonsToFront()
+    {
+        if (mainPanel == null)
+        {
+            return;
+        }
+
+        if (drivingPracticeButton != null)
+        {
+            drivingPracticeButton.transform.SetAsLastSibling();
+        }
+
+        if (cannonPracticeButton != null)
+        {
+            cannonPracticeButton.transform.SetAsLastSibling();
+        }
+
+        if (warButton != null)
+        {
+            warButton.transform.SetAsLastSibling();
+        }
+    }
+
+    private void EnsureMenuCanvasReady()
+    {
+        if (mainPanel == null)
+        {
+            return;
+        }
+
+        Canvas canvas = mainPanel.GetComponentInParent<Canvas>();
+        if (canvas == null)
+        {
+            return;
+        }
+
+        MenuCanvasScalerBootstrap bootstrap = canvas.GetComponent<MenuCanvasScalerBootstrap>();
+        if (bootstrap == null)
+        {
+            bootstrap = canvas.gameObject.AddComponent<MenuCanvasScalerBootstrap>();
+        }
+
+        bootstrap.ApplyCanvasScale();
     }
 
     private Button FindOrCreateModeButton(string name, string label, Vector2 anchoredPosition)

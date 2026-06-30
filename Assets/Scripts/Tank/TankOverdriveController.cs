@@ -20,14 +20,18 @@ public class TankOverdriveController : MonoBehaviour
 
     private TankDriveController _drive;
     private TankController _tank;
+    private WheeledSuspensionController _suspension;
     private GameObject _exhaustSmoke;
+    private Material _smokeMaterial;
     private float _releaseGraceTimer;
     private bool _boostUnlockedThisHold;
+    private float _lastBumpSmokeTime;
 
     private void Awake()
     {
         _drive = GetComponent<TankDriveController>();
         _tank = GetComponent<TankController>();
+        _suspension = GetComponent<WheeledSuspensionController>();
         if (exhaustPoint == null)
         {
             exhaustPoint = TankOverdriveSetup.EnsureExhaustPoint(transform);
@@ -92,6 +96,37 @@ public class TankOverdriveController : MonoBehaviour
         ApplyMultiplierState();
     }
 
+    private void FixedUpdate()
+    {
+        if (!IsOverdriveActive || _suspension == null)
+        {
+            return;
+        }
+
+        TryPlayOverdriveBumpSmoke();
+    }
+
+    private void TryPlayOverdriveBumpSmoke()
+    {
+        if (!IsOverdriveActive || _suspension == null)
+        {
+            return;
+        }
+
+        if (_suspension.RecentBumpStrength < 0.012f)
+        {
+            return;
+        }
+
+        if (Time.time - _lastBumpSmokeTime < 0.18f)
+        {
+            return;
+        }
+
+        _lastBumpSmokeTime = Time.time;
+        PlayBlackSmokePuff(Mathf.Clamp(_suspension.RecentBumpStrength * 18f, 12f, 28f), 0.75f);
+    }
+
     private void ApplyMultiplierState()
     {
         if (!allowOverdrive)
@@ -150,7 +185,7 @@ public class TankOverdriveController : MonoBehaviour
         ChargeRatio = 1f;
         _releaseGraceTimer = TankGameplayTuning.OverdriveReleaseGraceSeconds;
         ApplyOverdriveBurst();
-        PlaySingleBlackSmokePuff();
+        PlayBlackSmokePuff(56f, 1f);
     }
 
     private void ApplyOverdriveBurst()
@@ -182,7 +217,7 @@ public class TankOverdriveController : MonoBehaviour
         ApplyMultiplierState();
     }
 
-    private void PlaySingleBlackSmokePuff()
+    private void PlayBlackSmokePuff(float emitCount, float sizeScale)
     {
         if (exhaustPoint == null)
         {
@@ -206,11 +241,14 @@ public class TankOverdriveController : MonoBehaviour
             return;
         }
 
+        ParticleSystem.MainModule main = burst.main;
+        main.startSize = 3.6f * sizeScale;
+
         burst.Clear(true);
-        burst.Emit(34);
+        burst.Emit(Mathf.RoundToInt(emitCount));
     }
 
-    private static GameObject CreateBlackSmokePuffSystem(Transform anchor)
+    private GameObject CreateBlackSmokePuffSystem(Transform anchor)
     {
         GameObject effect = new GameObject("TankOverdriveSmoke");
         effect.transform.SetParent(anchor, false);
@@ -219,22 +257,29 @@ public class TankOverdriveController : MonoBehaviour
         ParticleSystem.MainModule main = particles.main;
         main.loop = false;
         main.playOnAwake = false;
-        main.maxParticles = 48;
-        main.startLifetime = 2.8f;
-        main.startSize = 2.2f;
-        main.startSpeed = 5.5f;
-        main.startColor = new Color(0.06f, 0.06f, 0.06f, 0.88f);
+        main.maxParticles = 72;
+        main.startLifetime = 3.1f;
+        main.startSize = 3.6f;
+        main.startSpeed = 6.5f;
+        main.startColor = new Color(0.12f, 0.12f, 0.12f, 0.92f);
         main.simulationSpace = ParticleSystemSimulationSpace.Local;
-        main.gravityModifier = 0.35f;
+        main.gravityModifier = 0.22f;
 
         ParticleSystem.EmissionModule emission = particles.emission;
         emission.rateOverTime = 0f;
 
         ParticleSystem.ShapeModule shape = particles.shape;
         shape.shapeType = ParticleSystemShapeType.Cone;
-        shape.angle = 22f;
-        shape.radius = 0.35f;
+        shape.angle = 28f;
+        shape.radius = 0.55f;
         shape.rotation = new Vector3(-90f, 0f, 0f);
+
+        ParticleSystem.SizeOverLifetimeModule sizeOverLifetime = particles.sizeOverLifetime;
+        sizeOverLifetime.enabled = true;
+        sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, new AnimationCurve(
+            new Keyframe(0f, 0.45f),
+            new Keyframe(0.18f, 1f),
+            new Keyframe(1f, 1.55f)));
 
         ParticleSystem.ColorOverLifetimeModule colorOverLifetime = particles.colorOverLifetime;
         colorOverLifetime.enabled = true;
@@ -242,14 +287,14 @@ public class TankOverdriveController : MonoBehaviour
         gradient.SetKeys(
             new[]
             {
-                new GradientColorKey(new Color(0.08f, 0.08f, 0.08f), 0f),
-                new GradientColorKey(new Color(0.18f, 0.18f, 0.18f), 0.35f),
-                new GradientColorKey(new Color(0.28f, 0.28f, 0.28f), 1f)
+                new GradientColorKey(new Color(0.1f, 0.1f, 0.1f), 0f),
+                new GradientColorKey(new Color(0.16f, 0.16f, 0.16f), 0.35f),
+                new GradientColorKey(new Color(0.22f, 0.22f, 0.22f), 1f)
             },
             new[]
             {
-                new GradientAlphaKey(0.9f, 0f),
-                new GradientAlphaKey(0.55f, 0.6f),
+                new GradientAlphaKey(0.92f, 0f),
+                new GradientAlphaKey(0.5f, 0.65f),
                 new GradientAlphaKey(0f, 1f)
             });
         colorOverLifetime.color = gradient;
@@ -258,43 +303,28 @@ public class TankOverdriveController : MonoBehaviour
         if (renderer != null)
         {
             renderer.renderMode = ParticleSystemRenderMode.Billboard;
-            renderer.material = CreateBlackSmokeMaterial();
+            renderer.sharedMaterial = GetBlackSmokeMaterial();
         }
 
         return effect;
     }
 
-    private static Material CreateBlackSmokeMaterial()
+    private Material GetBlackSmokeMaterial()
     {
-        Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
-        if (shader == null)
+        if (_smokeMaterial != null)
         {
-            shader = Shader.Find("Particles/Standard Unlit");
+            return _smokeMaterial;
         }
 
-        if (shader == null)
+        _smokeMaterial = BattlefieldEffectController.CreateTintedParticleMaterial(
+            "TankOverdriveBlackSmoke",
+            new Color(0.12f, 0.12f, 0.12f, 0.95f));
+
+        if (_smokeMaterial.HasProperty("_EmissionColor"))
         {
-            shader = Shader.Find("Legacy Shaders/Particles/Alpha Blended Premultiply");
+            _smokeMaterial.SetColor("_EmissionColor", Color.black);
         }
 
-        if (shader == null)
-        {
-            shader = Shader.Find("Sprites/Default");
-        }
-
-        Material material = new Material(shader != null ? shader : Shader.Find("Unlit/Color"));
-        material.name = "TankOverdriveBlackSmoke";
-        Color black = new Color(0.08f, 0.08f, 0.08f, 0.9f);
-        if (material.HasProperty("_Color"))
-        {
-            material.SetColor("_Color", black);
-        }
-
-        if (material.HasProperty("_BaseColor"))
-        {
-            material.SetColor("_BaseColor", black);
-        }
-
-        return material;
+        return _smokeMaterial;
     }
 }

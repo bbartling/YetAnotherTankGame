@@ -82,7 +82,7 @@ public static class MainMenuSceneBuilder
 
   private static GameObject BuildMenuUi()
   {
-    GameObject canvasObject = new GameObject("MainMenuCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+    GameObject canvasObject = new GameObject("MainMenuCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(MenuCanvasScalerBootstrap));
     Canvas canvas = canvasObject.GetComponent<Canvas>();
     canvas.renderMode = RenderMode.ScreenSpaceOverlay;
     CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
