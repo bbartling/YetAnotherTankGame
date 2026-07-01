@@ -42,6 +42,7 @@ public class PracticeModePolicyPlayModeTests
         Assert.That(root.GetComponent<TankMachineGun>().allowInputFire, Is.False);
         Assert.That(root.GetComponent<SniperRangeFinder>().allowScope, Is.True);
         Assert.That(tank.gameplayCamera.GetComponent<TankBarrelScopeCamera>().allowScope, Is.True);
+        Assert.That(tank.targetRangeAnchored, Is.True);
 
         Object.DestroyImmediate(root);
     }

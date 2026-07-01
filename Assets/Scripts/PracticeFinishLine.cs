@@ -18,6 +18,11 @@ public class PracticeFinishLine : MonoBehaviour
         CourseCompleted = false;
     }
 
+    private void Start()
+    {
+        CheckerFlagVisual.EnsureAtFinish(this);
+    }
+
     private void Reset()
     {
         BoxCollider collider = GetComponent<BoxCollider>();

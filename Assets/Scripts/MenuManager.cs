@@ -40,9 +40,30 @@ public class MenuManager : MonoBehaviour
 
     public GameplayMode SelectedMode { get; private set; } = GameplayMode.War;
 
+    private MainMenuPresentation _mainMenuPresentation;
+
+    private bool UsesMinimalMenuLayout => _mainMenuPresentation != null;
+
     private void Awake()
     {
+        if (mainPanel != null)
+        {
+            _mainMenuPresentation = mainPanel.GetComponent<MainMenuPresentation>();
+            if (_mainMenuPresentation == null && IsMainMenuScene())
+            {
+                _mainMenuPresentation = mainPanel.AddComponent<MainMenuPresentation>();
+            }
+        }
+
         EnsureMenuCanvasReady();
+        _mainMenuPresentation?.ApplyLayout();
+    }
+
+    private static bool IsMainMenuScene()
+    {
+        Scene activeScene = SceneManager.GetActiveScene();
+        return activeScene.name == "MainMenu"
+            || activeScene.path.EndsWith("/MainMenu.unity");
     }
 
     private void Start()
@@ -61,8 +82,11 @@ public class MenuManager : MonoBehaviour
             playButton.onClick.AddListener(StartWar);
         }
 
-        EnsureInstructionsText();
-        EnsureModeTutorialText();
+        if (!UsesMinimalMenuLayout)
+        {
+            EnsureInstructionsText();
+            EnsureModeTutorialText();
+        }
 
         if (AutoStartWarOnLoad)
         {
@@ -211,6 +235,13 @@ public class MenuManager : MonoBehaviour
             mainPanel.SetActive(true);
         }
 
+        if (UsesMinimalMenuLayout)
+        {
+            _mainMenuPresentation.ApplyLayout();
+            EnsureModeButtons();
+            return;
+        }
+
         EnsureInstructionsText();
         if (instructionsText != null)
         {
@@ -326,17 +357,24 @@ public class MenuManager : MonoBehaviour
             return;
         }
 
+        float buttonRowY = UsesMinimalMenuLayout
+            ? _mainMenuPresentation.buttonRowY
+            : 42f;
+        float driveStagger = UsesMinimalMenuLayout ? _mainMenuPresentation.buttonStagger : 0f;
+        float cannonStagger = UsesMinimalMenuLayout ? -_mainMenuPresentation.buttonStagger : 0f;
+        float warStagger = UsesMinimalMenuLayout ? _mainMenuPresentation.buttonStagger : 0f;
+
         drivingPracticeButton = drivingPracticeButton != null
             ? drivingPracticeButton
-            : FindOrCreateModeButton("DrivingPracticeButton", "DRIVE", new Vector2(-220f, 42f));
+            : FindOrCreateModeButton("DrivingPracticeButton", "DRIVE", new Vector2(-220f, buttonRowY + driveStagger));
         cannonPracticeButton = cannonPracticeButton != null
             ? cannonPracticeButton
-            : FindOrCreateModeButton("CannonPracticeButton", "CANNON", new Vector2(0f, 42f));
+            : FindOrCreateModeButton("CannonPracticeButton", "CANNON", new Vector2(0f, buttonRowY + cannonStagger));
         warButton = warButton != null
             ? warButton
             : playButton != null
                 ? playButton
-                : FindOrCreateModeButton("WarButton", "WAR", new Vector2(220f, 42f));
+                : FindOrCreateModeButton("WarButton", "WAR", new Vector2(220f, buttonRowY + warStagger));
         if (warButton != null)
         {
             warButton.gameObject.name = "WarButton";
@@ -346,10 +384,15 @@ public class MenuManager : MonoBehaviour
                 warRt.anchorMin = new Vector2(0.5f, 0f);
                 warRt.anchorMax = new Vector2(0.5f, 0f);
                 warRt.pivot = new Vector2(0.5f, 0.5f);
-                warRt.anchoredPosition = new Vector2(220f, 42f);
+                warRt.anchoredPosition = new Vector2(220f, buttonRowY + warStagger);
                 warRt.sizeDelta = new Vector2(190f, 56f);
             }
             SetButtonLabel(warButton, "WAR");
+        }
+
+        if (UsesMinimalMenuLayout)
+        {
+            _mainMenuPresentation.ApplyLayout();
         }
 
         HookModeButton(drivingPracticeButton, GameplayMode.DrivingPractice);
@@ -441,6 +484,11 @@ public class MenuManager : MonoBehaviour
             return;
         }
 
+        if (UsesMinimalMenuLayout)
+        {
+            return;
+        }
+
         TextMeshProUGUI text = button.GetComponentInChildren<TextMeshProUGUI>(true);
         if (text == null)
         {
@@ -485,6 +533,11 @@ public class MenuManager : MonoBehaviour
 
     private void EnsureEnemyCountInput()
     {
+        if (UsesMinimalMenuLayout)
+        {
+            return;
+        }
+
         if (mainPanel == null)
         {
             return;

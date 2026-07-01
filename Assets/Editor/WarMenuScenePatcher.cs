@@ -29,8 +29,33 @@ public static class WarMenuScenePatcher
 
         EnsureCanvasBootstrap(menu.mainPanel);
         EnsureModeButtons(menu);
+        if (scenePath == MainMenuSceneBuilder.MainMenuScenePath)
+        {
+            EnsureMinimalMainMenuLayout(menu);
+        }
+
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
+    }
+
+    private static void EnsureMinimalMainMenuLayout(MenuManager menu)
+    {
+        if (menu.mainPanel == null)
+        {
+            return;
+        }
+
+        MainMenuPresentation presentation = menu.mainPanel.GetComponent<MainMenuPresentation>();
+        if (presentation == null)
+        {
+            presentation = menu.mainPanel.AddComponent<MainMenuPresentation>();
+        }
+
+        menu.instructionsText = null;
+        menu.modeTutorialText = null;
+        presentation.ApplyLayout();
+        EditorUtility.SetDirty(presentation);
+        EditorUtility.SetDirty(menu);
     }
 
     private static void EnsureCanvasBootstrap(GameObject mainPanel)
@@ -71,7 +96,7 @@ public static class WarMenuScenePatcher
             rowRect.anchorMin = new Vector2(0.5f, 0f);
             rowRect.anchorMax = new Vector2(0.5f, 0f);
             rowRect.pivot = new Vector2(0.5f, 0f);
-            rowRect.anchoredPosition = new Vector2(0f, 42f);
+            rowRect.anchoredPosition = new Vector2(0f, MainMenuPresentation.DefaultButtonRowY);
             rowRect.sizeDelta = new Vector2(760f, 72f);
         }
 

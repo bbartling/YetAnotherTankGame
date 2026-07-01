@@ -69,11 +69,30 @@ public static class PracticeSceneBuilder
 
         GameObject tank = InstantiatePracticeTank(sourceTank, new Vector3(0f, 1.35f, -40f), Quaternion.identity);
         ConfigureTankForScene(tank);
+        ConfigureTargetRangeTank(tank);
         AddPracticePolicy(tank, PracticeModeInputPolicy.PracticeControlMode.TargetPractice, "TargetPracticePolicy");
         BuildExtendedShootingTargets(-40f);
-        BuildMinimalCanvas("Tank Target Practice - hold RMB to scope, targets at 120-520 m");
+
+        new GameObject("EventSystem", typeof(UnityEngine.EventSystems.EventSystem), typeof(UnityEngine.EventSystems.StandaloneInputModule));
 
         EditorSceneManager.SaveScene(scene, TargetScenePath);
+    }
+
+    private static void ConfigureTargetRangeTank(GameObject tank)
+    {
+        TankController controller = tank.GetComponent<TankController>();
+        if (controller != null)
+        {
+            controller.ApplyTargetRangeAnchor();
+        }
+
+        TargetRangeTankAnchor anchor = tank.GetComponent<TargetRangeTankAnchor>();
+        if (anchor == null)
+        {
+            anchor = tank.AddComponent<TargetRangeTankAnchor>();
+        }
+
+        anchor.tank = controller;
     }
 
     private static GameObject InstantiatePracticeTank(GameObject sourceTank, Vector3 position, Quaternion rotation)
@@ -358,6 +377,7 @@ public static class PracticeSceneBuilder
         trigger.isTrigger = true;
         PracticeFinishLine line = finish.AddComponent<PracticeFinishLine>();
         line.finishMessage = "DRIVING_PRACTICE_FINISH";
+        CheckerFlagVisual.EnsureAtFinish(line);
     }
 
     private static void CreateTraversableWhoop(string name, Vector3 center, float peakHeight, float width)

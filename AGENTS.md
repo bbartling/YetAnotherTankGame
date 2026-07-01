@@ -8,7 +8,7 @@ This block is the authoritative feature contract. Update it in the same validate
 
 ### Game Identity And Feel
 
-- Working title: `SILLY TANK HILL WAR`.
+- Working title: `YET ANOTHER TANK GAME` (silly tank hill war).
 - The target feel is silly cartoon armored vehicles with deliberate War Thunder-ish combat pacing.
 - Player vehicle reaches approximately `8.5 m/s` with gradual acceleration, never FPS-sprint movement.
 - Player vehicle must follow terrain into craters.

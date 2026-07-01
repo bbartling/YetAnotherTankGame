@@ -44,6 +44,26 @@ public class BattlefieldPresentationPlayModeTests
     }
 
     [Test]
+    public void TankAudioController_PrefersAuthoredEngineLoopWhenAvailable()
+    {
+        AudioClip running = TankEngineAudioLibrary.RunningLoop;
+        if (running == null)
+        {
+            Assert.Ignore("Authored engine loop is not present under Resources/Audio/tank_sounds.");
+        }
+
+        GameObject root = new GameObject("AuthoredAudioTank");
+        TankAudioController audio = root.AddComponent<TankAudioController>();
+        audio.EnsureEngineAudioSources();
+        audio.EnsureFallbackClips();
+
+        Assert.That(audio.engineSource, Is.Not.Null);
+        Assert.That(audio.engineSource.clip, Is.SameAs(running));
+
+        Object.DestroyImmediate(root);
+    }
+
+    [Test]
     public void TankAudioController_GeneratesReplaceableFallbackEngineClip()
     {
         GameObject root = new GameObject("AudioTank");
@@ -53,7 +73,15 @@ public class BattlefieldPresentationPlayModeTests
         audio.EnsureFallbackClips();
 
         Assert.That(audio.engineSource.clip, Is.Not.Null);
-        Assert.That(audio.engineSource.clip.name, Does.Contain("Silly"));
+        AudioClip running = TankEngineAudioLibrary.RunningLoop;
+        if (running != null)
+        {
+            Assert.That(audio.engineSource.clip, Is.SameAs(running));
+        }
+        else
+        {
+            Assert.That(audio.engineSource.clip.name, Does.Contain("Silly"));
+        }
         Assert.That(audio.idleVolume, Is.GreaterThanOrEqualTo(0.4f));
         Assert.That(audio.engineSource.spatialBlend, Is.EqualTo(0f).Within(0.001f));
         Assert.That(audio.engineSource.loop, Is.True);

@@ -44,30 +44,11 @@ public static class MainMenuSceneBuilder
     RenderSettings.fogColor = new Color(0.18f, 0.22f, 0.28f, 1f);
   }
 
-  private static void BuildEnvironment()
-  {
-    GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-    floor.name = "Menu Platform";
-    floor.transform.position = new Vector3(0f, -0.2f, 0f);
-    floor.transform.localScale = new Vector3(24f, 0.35f, 24f);
-    ApplyColor(floor, new Color(0.28f, 0.24f, 0.2f, 1f));
-
-    GameObject backdrop = new GameObject("MainMenuBackdrop");
-    MainMenuBackdrop backdropComponent = backdrop.AddComponent<MainMenuBackdrop>();
-    backdropComponent.displayTankRoot = BakeMenuDisplayTank(backdrop.transform);
-
-    GameObject leftBerm = GameObject.CreatePrimitive(PrimitiveType.Cube);
-    leftBerm.name = "Left Berm";
-    leftBerm.transform.position = new Vector3(-8f, 1.2f, -6f);
-    leftBerm.transform.localScale = new Vector3(10f, 2.4f, 18f);
-    ApplyColor(leftBerm, new Color(0.34f, 0.28f, 0.2f, 1f));
-
-    GameObject rightBerm = GameObject.CreatePrimitive(PrimitiveType.Cube);
-    rightBerm.name = "Right Berm";
-    rightBerm.transform.position = new Vector3(8f, 1.2f, -6f);
-    rightBerm.transform.localScale = new Vector3(10f, 2.4f, 18f);
-    ApplyColor(rightBerm, new Color(0.34f, 0.28f, 0.2f, 1f));
-  }
+    private static void BuildEnvironment()
+    {
+        GameObject cutsceneHost = new GameObject("MainMenuActionCutscene");
+        cutsceneHost.AddComponent<MainMenuActionCutscene>();
+    }
 
   private static void BuildMenuCamera()
   {
@@ -90,24 +71,12 @@ public static class MainMenuSceneBuilder
     scaler.referenceResolution = new Vector2(1600f, 900f);
 
     GameObject overlay = CreatePanel(canvasObject.transform, "BackdropOverlay", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Color(0.04f, 0.07f, 0.1f, 0.55f));
+    overlay.AddComponent<MainMenuPresentation>();
 
-    CreateText(overlay.transform, "SILLY TANK", 64, FontStyles.Bold, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -36f), new Vector2(900f, 90f), new Color(1f, 0.88f, 0.42f, 1f));
-    CreateText(overlay.transform, "Physics cannon. Hill-climb tracks. Target range. All-out war.", 22, FontStyles.Italic, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -96f), new Vector2(900f, 40f), new Color(0.9f, 0.92f, 0.95f, 0.95f));
-
-    GameObject leftPanel = CreatePanel(overlay.transform, "ControlsPanel", new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(28f, 0f), new Vector2(420f, 520f), new Color(0.08f, 0.11f, 0.15f, 0.9f));
-  CreateText(leftPanel.transform, "CONTROLS", 24, FontStyles.Bold, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(18f, -16f), new Vector2(-36f, 34f), new Color(1f, 0.86f, 0.45f, 1f));
-    TextMeshProUGUI controls = CreateText(leftPanel.transform, GetControlsCopy(), 17, FontStyles.Normal, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(18f, 18f), new Vector2(-36f, -58f), new Color(0.92f, 0.94f, 0.96f, 1f));
-    controls.alignment = TextAlignmentOptions.TopLeft;
-
-    GameObject rightPanel = CreatePanel(overlay.transform, "ModesPanel", new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-28f, 0f), new Vector2(420f, 520f), new Color(0.08f, 0.11f, 0.15f, 0.9f));
-    CreateText(rightPanel.transform, "GAME MODES", 24, FontStyles.Bold, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(18f, -16f), new Vector2(-36f, 34f), new Color(1f, 0.86f, 0.45f, 1f));
-    TextMeshProUGUI modes = CreateText(rightPanel.transform, GetModesCopy(), 17, FontStyles.Normal, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(18f, 18f), new Vector2(-36f, -58f), new Color(0.92f, 0.94f, 0.96f, 1f));
-    modes.alignment = TextAlignmentOptions.TopLeft;
-
-    GameObject buttonRow = CreatePanel(overlay.transform, "ButtonRow", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 42f), new Vector2(760f, 72f), new Color(0f, 0f, 0f, 0f));
-    Button driveButton = CreateModeButton(buttonRow.transform, "DrivingPracticeButton", "DRIVE", new Vector2(-250f, 0f), new Color(0.16f, 0.52f, 0.34f, 1f));
-    Button cannonButton = CreateModeButton(buttonRow.transform, "CannonPracticeButton", "CANNON", new Vector2(0f, 0f), new Color(0.18f, 0.34f, 0.62f, 1f));
-    Button warButton = CreateModeButton(buttonRow.transform, "WarButton", "WAR", new Vector2(250f, 0f), new Color(0.62f, 0.2f, 0.16f, 1f));
+    GameObject buttonRow = CreatePanel(overlay.transform, "ButtonRow", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, MainMenuPresentation.DefaultButtonRowY), new Vector2(760f, 72f), new Color(0f, 0f, 0f, 0f));
+    Button driveButton = CreateModeButton(buttonRow.transform, "DrivingPracticeButton", "DRIVE", new Vector2(-220f, MainMenuPresentation.DefaultButtonStagger), new Color(0.16f, 0.52f, 0.34f, 1f));
+    Button cannonButton = CreateModeButton(buttonRow.transform, "CannonPracticeButton", "CANNON", new Vector2(0f, -MainMenuPresentation.DefaultButtonStagger), new Color(0.18f, 0.34f, 0.62f, 1f));
+    Button warButton = CreateModeButton(buttonRow.transform, "WarButton", "WAR", new Vector2(220f, MainMenuPresentation.DefaultButtonStagger), new Color(0.62f, 0.2f, 0.16f, 1f));
 
     GameObject mainPanel = overlay;
     GameObject menuRoot = new GameObject("MenuManagerRoot");
@@ -117,13 +86,9 @@ public static class MainMenuSceneBuilder
     menu.cannonPracticeButton = cannonButton;
     menu.warButton = warButton;
     menu.playButton = warButton;
-    menu.instructionsText = controls;
-    menu.modeTutorialText = modes;
+    menu.instructionsText = null;
+    menu.modeTutorialText = null;
     menu.loadDedicatedPracticeScenes = true;
-    menu.controlsCopy = GetControlsCopy();
-    menu.drivingPracticeCopy = "DRIVING PRACTICE\nHuge obstacle lap with whoops, jumps, bridge, and hill-climb physics. Hold W to build RPM and unleash overdrive smoke boost.";
-    menu.cannonPracticeCopy = "CANNON PRACTICE\nLong-range targets from 120m to 520m. Right-click scope for sniper shots.";
-    menu.warCopy = "WAR\nSpawn enemy tanks and defend the castle.";
     return menuRoot;
   }
 
@@ -135,16 +100,6 @@ public static class MainMenuSceneBuilder
     }
 
     new GameObject("EventSystem", typeof(UnityEngine.EventSystems.EventSystem), typeof(UnityEngine.EventSystems.StandaloneInputModule));
-  }
-
-  private static string GetControlsCopy()
-  {
-    return "W / S - forward and reverse\nA / D - steer tracks\nShift - low gear crawl\nHold W 3s - RPM overdrive boost\nMouse X - turret yaw\nQ / E - barrel pitch\nMouse wheel - fine elevation\n+ / - - cannon power\nRight click - scope\nLeft click / Space - fire\nF - machine gun";
-  }
-
-  private static string GetModesCopy()
-  {
-    return "DRIVE - giant obstacle lap with traversable whoops, jumps, and bridge.\n\nCANNON - extended shooting lanes with exploding targets.\n\nWAR - full battlefield with enemy waves.";
   }
 
   private static Transform BakeMenuDisplayTank(Transform parent)

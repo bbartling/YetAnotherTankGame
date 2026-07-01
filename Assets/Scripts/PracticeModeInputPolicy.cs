@@ -74,6 +74,18 @@ public class PracticeModeInputPolicy : MonoBehaviour
             }
 
             recovery.tank = tank;
+            DrivingLapProgressHud.Ensure(tank);
+        }
+
+        if (mode == PracticeControlMode.TargetPractice)
+        {
+            TargetRangeTankAnchor.Apply(tank);
+            TargetPracticeProgressHud.Ensure();
+        }
+
+        if (mode == PracticeControlMode.DrivingOnly || mode == PracticeControlMode.TargetPractice)
+        {
+            PracticeReturnController.Ensure(mode, tank);
         }
 
         TankMachineGun machineGun = tank.GetComponent<TankMachineGun>();

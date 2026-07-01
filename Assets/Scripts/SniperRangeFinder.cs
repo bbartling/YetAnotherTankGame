@@ -28,8 +28,8 @@ public class SniperRangeFinder : MonoBehaviour
     public Color majorTickColor = new Color(1f, 1f, 1f, 0.95f);
     public Color indicatorColor = new Color(1f, 0.87f, 0.2f, 1f);
     public int fontSize = 24;
-    public Vector2 scopePanelOffset = new Vector2(360f, 0f);
-    public Vector2 centerCrosshairSize = new Vector2(34f, 34f);
+    public Vector2 scopePanelOffset = new Vector2(320f, 0f);
+    public Vector2 centerCrosshairSize = new Vector2(42f, 42f);
 
     private RectTransform _root;
     private RectTransform _crosshairRoot;
@@ -194,8 +194,28 @@ public class SniperRangeFinder : MonoBehaviour
         _crosshairRoot.anchoredPosition = Vector2.zero;
         _crosshairRoot.sizeDelta = centerCrosshairSize;
 
-        CreateCrosshairLine("Vertical", _crosshairRoot, new Vector2(2f, centerCrosshairSize.y), Vector2.zero);
-        CreateCrosshairLine("Horizontal", _crosshairRoot, new Vector2(centerCrosshairSize.x, 2f), Vector2.zero);
+        CreateCrosshairLine("VerticalTop", _crosshairRoot, new Vector2(2f, centerCrosshairSize.y * 0.22f), new Vector2(0f, centerCrosshairSize.y * 0.18f));
+        CreateCrosshairLine("VerticalBottom", _crosshairRoot, new Vector2(2f, centerCrosshairSize.y * 0.22f), new Vector2(0f, -centerCrosshairSize.y * 0.18f));
+        CreateCrosshairLine("HorizontalLeft", _crosshairRoot, new Vector2(centerCrosshairSize.x * 0.22f, 2f), new Vector2(-centerCrosshairSize.x * 0.18f, 0f));
+        CreateCrosshairLine("HorizontalRight", _crosshairRoot, new Vector2(centerCrosshairSize.x * 0.22f, 2f), new Vector2(centerCrosshairSize.x * 0.18f, 0f));
+        CreateScopeRing(_crosshairRoot);
+    }
+
+    private void CreateScopeRing(Transform parent)
+    {
+        GameObject ringGo = new GameObject("ScopeRing", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        ringGo.transform.SetParent(parent, false);
+        RectTransform rt = ringGo.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.sizeDelta = centerCrosshairSize * 1.35f;
+        Image ring = ringGo.GetComponent<Image>();
+        ring.color = new Color(1f, 1f, 1f, 0.22f);
+        ring.raycastTarget = false;
+        Outline outline = ringGo.AddComponent<Outline>();
+        outline.effectColor = new Color(0f, 0f, 0f, 0.55f);
+        outline.effectDistance = new Vector2(1f, -1f);
     }
 
     private void CreateCrosshairLine(string name, Transform parent, Vector2 size, Vector2 anchoredPosition)

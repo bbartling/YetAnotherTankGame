@@ -6,15 +6,19 @@ public class TankBarrelScopeCamera : MonoBehaviour
 {
     public bool allowScope = true;
     public Transform sight;
-    public Vector3 localSightOffset = new Vector3(0.2f, 0.12f, 2.5f);
-    public float scopeFieldOfView = 16f;
+    public Vector3 localSightOffset = Vector3.zero;
+    public float scopeFieldOfView = 11f;
     public float normalFieldOfView = 58f;
+    public float scopeBlendSpeed = 12f;
+    public float scopeSwayDegrees = 0.08f;
 
     private Camera _camera;
+    private float _swaySeed;
 
     private void Awake()
     {
         _camera = GetComponent<Camera>();
+        _swaySeed = Random.Range(0f, 100f);
     }
 
     private void LateUpdate()
@@ -25,11 +29,15 @@ public class TankBarrelScopeCamera : MonoBehaviour
         }
 
         bool scoped = allowScope && Input.GetMouseButton(1) && ProjectileCameraController.ActivePlayerProjectile == null;
-        _camera.fieldOfView = scoped ? scopeFieldOfView : normalFieldOfView;
-        if (scoped)
+        float targetFov = scoped ? scopeFieldOfView : normalFieldOfView;
+        _camera.fieldOfView = Mathf.Lerp(_camera.fieldOfView, targetFov, Time.deltaTime * scopeBlendSpeed);
+
+        if (!scoped)
         {
-            ApplyScopePose();
+            return;
         }
+
+        ApplyScopePose();
     }
 
     public void ApplyScopePose()
@@ -44,8 +52,15 @@ public class TankBarrelScopeCamera : MonoBehaviour
             return;
         }
 
-        _camera.fieldOfView = scopeFieldOfView;
+        _camera.fieldOfView = Mathf.Lerp(_camera.fieldOfView, scopeFieldOfView, Time.deltaTime * scopeBlendSpeed);
         transform.position = sight.TransformPoint(localSightOffset);
         transform.rotation = sight.rotation;
+
+        if (scopeSwayDegrees > 0f)
+        {
+            float swayX = Mathf.Sin((Time.time + _swaySeed) * 1.7f) * scopeSwayDegrees;
+            float swayY = Mathf.Cos((Time.time + _swaySeed) * 1.3f) * scopeSwayDegrees * 0.6f;
+            transform.rotation *= Quaternion.Euler(swayX, swayY, 0f);
+        }
     }
 }

@@ -163,59 +163,11 @@ public class DrivingPracticeAutopilot : MonoBehaviour
     private void BuildWaypoints()
     {
         _waypoints.Clear();
-
-        PracticeFinishLine finish = Object.FindAnyObjectByType<PracticeFinishLine>();
-        float finishZ = finish != null ? finish.transform.position.z : -132f;
-        bool expandedCourse = finishZ < -400f;
-
-        if (expandedCourse)
+        IReadOnlyList<Vector3> path = DrivingCoursePath.BuildWaypoints();
+        for (int i = 0; i < path.Count; i++)
         {
-            AddWaypoint(0f, -640f);
-            AddWaypoint(0f, -520f);
-            AddWaypoint(0f, -360f);
-            AddWaypoint(0f, -180f);
-            AddWaypoint(0f, 0f);
-            AddWaypoint(0f, 180f);
-            AddWaypoint(0f, 360f);
-            AddWaypoint(0f, 520f);
-            AddWaypoint(0f, 650f);
-            AddWaypoint(-25f, 700f);
-            AddWaypoint(-70f, 760f);
-            AddWaypoint(-160f, 790f);
-            AddWaypoint(-210f, 760f);
-            AddWaypoint(-210f, 600f);
-            AddWaypoint(-210f, 420f);
-            AddWaypoint(-210f, 240f);
-            AddWaypoint(-210f, 60f);
-            AddWaypoint(-210f, -120f);
-            AddWaypoint(-210f, -300f);
-            AddWaypoint(-210f, -440f);
-            AddWaypoint(-150f, -560f);
-            AddWaypoint(-70f, -630f);
-            AddWaypoint(0f, finishZ);
+            _waypoints.Add(path[i]);
         }
-        else
-        {
-            AddWaypoint(0f, -130f);
-            AddWaypoint(0f, -90f);
-            AddWaypoint(0f, -40f);
-            AddWaypoint(0f, 20f);
-            AddWaypoint(0f, 80f);
-            AddWaypoint(0f, 130f);
-            AddWaypoint(-20f, 152f);
-            AddWaypoint(-42f, 150f);
-            AddWaypoint(-42f, 100f);
-            AddWaypoint(-42f, 40f);
-            AddWaypoint(-42f, -20f);
-            AddWaypoint(-42f, -80f);
-            AddWaypoint(-30f, -120f);
-            AddWaypoint(0f, finishZ);
-        }
-    }
-
-    private void AddWaypoint(float x, float z)
-    {
-        _waypoints.Add(new Vector3(x, 0f, z));
     }
 
     private void AdvanceWaypoints(Vector3 tankPosition)

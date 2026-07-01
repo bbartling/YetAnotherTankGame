@@ -72,6 +72,7 @@ public class TankController : MonoBehaviour
     public float rolloverStartupGraceSeconds = 6f;
     public float rolloverStableArmSeconds = 2f;
     public bool disableRolloverDefeat = false;
+    public bool targetRangeAnchored = false;
 
     [Header("Mouse Turret")]
     [Tooltip("Mouse X yaws the turret left/right. This is intentionally local to turretYawPivot so the turret does not orbit the map.")]
@@ -303,6 +304,13 @@ public class TankController : MonoBehaviour
     private void FixedUpdate()
     {
         if (_dead || _rb == null) return;
+
+        if (targetRangeAnchored)
+        {
+            _tankAudioController?.StopEngine();
+            return;
+        }
+
         if (_awaitingDriveInput)
         {
             ReadDriveInput(out float startupThrottle, out float startupSteer, out _);
@@ -434,6 +442,8 @@ public class TankController : MonoBehaviour
 
         _tankAudioController = GetComponent<TankAudioController>();
         if (_tankAudioController == null) _tankAudioController = gameObject.AddComponent<TankAudioController>();
+        _tankAudioController.EnsureEngineAudioSources();
+        _tankAudioController.EnsureFallbackClips();
 
         _overdriveController = GetComponent<TankOverdriveController>();
 
@@ -485,6 +495,34 @@ public class TankController : MonoBehaviour
     public void ApplyPracticeDrivingConstraints()
     {
         _practiceDrivingMode = true;
+    }
+
+    public void ApplyTargetRangeAnchor()
+    {
+        targetRangeAnchored = true;
+        allowDrivingInput = false;
+        continuousTerrainSnapEnabled = false;
+        disableRolloverDefeat = true;
+
+        if (_wheeledSuspension != null)
+        {
+            _wheeledSuspension.enabled = false;
+        }
+
+        TankOverdriveController overdrive = GetComponent<TankOverdriveController>();
+        if (overdrive != null)
+        {
+            overdrive.enabled = false;
+        }
+
+        _tankAudioController?.StopEngine();
+
+        if (_rb != null)
+        {
+            _rb.linearVelocity = Vector3.zero;
+            _rb.angularVelocity = Vector3.zero;
+            _rb.constraints = RigidbodyConstraints.FreezeAll;
+        }
     }
 
     public void ApplyPracticeDrivingTuning()
