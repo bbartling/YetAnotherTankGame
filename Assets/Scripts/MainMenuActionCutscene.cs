@@ -3,18 +3,23 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class MainMenuActionCutscene : MonoBehaviour
 {
-    public float loopDuration = 5f;
+    public float loopDuration = 15f;
     public Vector3 tankPosition = new Vector3(0f, 0.35f, 6f);
-    public Vector3 targetPosition = new Vector3(0f, 1.4f, 42f);
+    public float tankYawDegrees = 180f;
+    public Vector3 targetPosition = new Vector3(0f, 1.4f, -30f);
+    public float cameraCollisionRadius = 0.75f;
 
     private Transform _cutsceneRoot;
     private Transform _turretPivot;
     private Transform _barrelPivot;
     private Transform _firePoint;
     private Transform _target;
+    private Transform _tankRoot;
     private Camera _cutsceneCamera;
     private float _loopTimer;
     private GameObject _activeShell;
+    private bool _firedPrimary;
+    private bool _firedSecondary;
 
     private void Start()
     {
@@ -64,7 +69,7 @@ public class MainMenuActionCutscene : MonoBehaviour
         }
 
         Camera menuCamera = Camera.main;
-        if (menuCamera != null)
+        if (menuCamera != null && menuCamera.GetComponent<MainMenuActionCutscene>() == null)
         {
             menuCamera.enabled = false;
             AudioListener listener = menuCamera.GetComponent<AudioListener>();
@@ -89,8 +94,9 @@ public class MainMenuActionCutscene : MonoBehaviour
         GameObject tankRoot = new GameObject("CutsceneTank");
         tankRoot.transform.SetParent(_cutsceneRoot, false);
         tankRoot.transform.position = tankPosition;
-        tankRoot.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+        tankRoot.transform.rotation = Quaternion.Euler(0f, tankYawDegrees, 0f);
         SillyModelInstaller.Ensure(tankRoot, "Models/Tanks/SillyPlayerTank", 3f, false);
+        _tankRoot = tankRoot.transform;
 
         _turretPivot = FindDeepChild(tankRoot.transform, "TurretYawPivot") ?? tankRoot.transform;
         _barrelPivot = FindDeepChild(tankRoot.transform, "BarrelPitchPivot") ?? _turretPivot;
@@ -110,12 +116,15 @@ public class MainMenuActionCutscene : MonoBehaviour
         _cutsceneCamera.tag = "MainCamera";
         _cutsceneCamera.clearFlags = CameraClearFlags.SolidColor;
         _cutsceneCamera.backgroundColor = new Color(0.1f, 0.14f, 0.18f, 1f);
-        _cutsceneCamera.fieldOfView = 52f;
+        _cutsceneCamera.fieldOfView = 42f;
+        _cutsceneCamera.nearClipPlane = 0.2f;
     }
 
     private void ResetLoop()
     {
         _loopTimer = 0f;
+        _firedPrimary = false;
+        _firedSecondary = false;
         if (_activeShell != null)
         {
             Destroy(_activeShell);
@@ -125,6 +134,7 @@ public class MainMenuActionCutscene : MonoBehaviour
         if (_target != null)
         {
             _target.localScale = new Vector3(2.4f, 2.4f, 0.6f);
+            ApplyColor(_target.gameObject, new Color(0.72f, 0.18f, 0.14f, 1f));
         }
 
         if (_turretPivot != null)
@@ -140,35 +150,111 @@ public class MainMenuActionCutscene : MonoBehaviour
 
     private void AnimateCamera(float t)
     {
-        Vector3 start = tankPosition + new Vector3(-7f, 4.2f, -10f);
-        Vector3 end = tankPosition + new Vector3(2f, 3.2f, -7f);
-        _cutsceneCamera.transform.position = Vector3.Lerp(start, end, Mathf.SmoothStep(0f, 1f, t));
-        _cutsceneCamera.transform.LookAt(targetPosition + new Vector3(0f, 0.5f, 0f));
+        Vector3 lookFocus = tankPosition + new Vector3(0f, 1.35f, 0.8f);
+        Vector3 front = tankPosition + new Vector3(0f, 6.2f, -38f);
+        Vector3 side = tankPosition + new Vector3(32f, 5.4f, -10f);
+        Vector3 hero = tankPosition + new Vector3(-16f, 4.8f, -26f);
+        Vector3 impact = targetPosition + new Vector3(-10f, 4.6f, -34f);
+
+        Vector3 position;
+        Vector3 lookAt;
+        if (t < 0.28f)
+        {
+            float local = t / 0.28f;
+            position = Vector3.Lerp(front, side, Mathf.SmoothStep(0f, 1f, local));
+            lookAt = lookFocus;
+        }
+        else if (t < 0.58f)
+        {
+            float local = (t - 0.28f) / 0.3f;
+            position = Vector3.Lerp(side, hero, Mathf.SmoothStep(0f, 1f, local));
+            lookAt = _firePoint != null ? _firePoint.position : targetPosition;
+        }
+        else if (t < 0.82f)
+        {
+            float local = (t - 0.58f) / 0.24f;
+            position = Vector3.Lerp(hero, impact, Mathf.SmoothStep(0f, 1f, local));
+            lookAt = targetPosition + new Vector3(0f, 0.8f, 0f);
+        }
+        else
+        {
+            float local = (t - 0.82f) / 0.18f;
+            position = Vector3.Lerp(impact, front, Mathf.SmoothStep(0f, 1f, local));
+            lookAt = lookFocus;
+        }
+
+        position = ResolveCameraCollision(lookAt, position);
+        _cutsceneCamera.transform.position = position;
+        _cutsceneCamera.transform.rotation = Quaternion.LookRotation(lookAt - position, Vector3.up);
+    }
+
+    private Vector3 ResolveCameraCollision(Vector3 lookAt, Vector3 desiredPosition)
+    {
+        Vector3 direction = desiredPosition - lookAt;
+        float distance = direction.magnitude;
+        if (distance <= 0.01f)
+        {
+            return desiredPosition;
+        }
+
+        direction /= distance;
+        if (Physics.SphereCast(
+                lookAt,
+                cameraCollisionRadius,
+                direction,
+                out RaycastHit hit,
+                distance,
+                ~0,
+                QueryTriggerInteraction.Ignore))
+        {
+            if (_tankRoot == null || !hit.transform.IsChildOf(_tankRoot))
+            {
+                return lookAt + direction * Mathf.Max(2.5f, hit.distance - cameraCollisionRadius);
+            }
+        }
+
+        return desiredPosition;
     }
 
     private void AnimateTurret(float t)
     {
         if (_turretPivot != null)
         {
-            _turretPivot.localRotation = Quaternion.Euler(0f, Mathf.Lerp(-8f, 6f, t), 0f);
+            _turretPivot.localRotation = Quaternion.Euler(0f, Mathf.Lerp(-10f, 8f, t), 0f);
         }
 
         if (_barrelPivot != null)
         {
-            _barrelPivot.localRotation = Quaternion.Euler(Mathf.Lerp(4f, 18f, t), 0f, 0f);
+            float barrel = t < 0.55f ? Mathf.Lerp(3f, 16f, t / 0.55f) : Mathf.Lerp(16f, 10f, (t - 0.55f) / 0.45f);
+            _barrelPivot.localRotation = Quaternion.Euler(barrel, 0f, 0f);
         }
     }
 
     private void TryFire(float t)
     {
-        if (_activeShell != null || _firePoint == null)
+        if (_firePoint == null)
         {
             return;
         }
 
-        if (t < 0.58f || t > 0.62f)
+        if (!_firedPrimary && t >= 0.56f && t <= 0.58f)
         {
-            return;
+            SpawnShell();
+            _firedPrimary = true;
+        }
+
+        if (!_firedSecondary && t >= 0.72f && t <= 0.74f)
+        {
+            SpawnShell();
+            _firedSecondary = true;
+        }
+    }
+
+    private void SpawnShell()
+    {
+        if (_activeShell != null)
+        {
+            Destroy(_activeShell);
         }
 
         GameObject shell = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -181,7 +267,7 @@ public class MainMenuActionCutscene : MonoBehaviour
         body.useGravity = true;
         body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
         Vector3 toTarget = (targetPosition - _firePoint.position).normalized;
-        body.linearVelocity = toTarget * 78f + Vector3.up * 16f;
+        body.linearVelocity = toTarget * 82f + Vector3.up * 18f;
         _activeShell = shell;
     }
 

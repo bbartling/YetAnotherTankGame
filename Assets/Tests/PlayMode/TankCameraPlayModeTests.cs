@@ -13,7 +13,8 @@ public class TankCameraPlayModeTests
 
         Assert.That(orbit.targetOffset.y, Is.GreaterThanOrEqualTo(7f));
         Assert.That(orbit.cameraHeight, Is.GreaterThanOrEqualTo(9f));
-        Assert.That(orbit.followDistance, Is.GreaterThanOrEqualTo(24f));
+        Assert.That(orbit.positionSmoothTime, Is.GreaterThanOrEqualTo(0.25f));
+        Assert.That(orbit.focusSmoothTime, Is.GreaterThan(0f));
         Object.DestroyImmediate(cameraObject);
     }
 

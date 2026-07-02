@@ -364,6 +364,12 @@ public class ProjectileCameraController : MonoBehaviour
         TankController tank = collision.collider.GetComponentInParent<TankController>();
         if (tank != null)
         {
+            TankController owner = trackingBase != null ? trackingBase.GetComponentInParent<TankController>() : null;
+            if (owner != null && tank == owner)
+            {
+                return;
+            }
+
             float damage = Mathf.Max(15f, impactForce * 1.4f) * Mathf.Max(0f, playerTankImpactDamageMultiplier);
             if (playerTankImpactDamageMultiplier < 0.999f)
             {
@@ -469,6 +475,12 @@ public class ProjectileCameraController : MonoBehaviour
                 TankController tank = h.GetComponentInParent<TankController>();
                 if (tank != null)
                 {
+                    TankController owner = trackingBase != null ? trackingBase.GetComponentInParent<TankController>() : null;
+                    if (owner != null && tank == owner)
+                    {
+                        continue;
+                    }
+
                     float distance = Vector3.Distance(transform.position, tank.transform.position);
                     float falloff = 1f - Mathf.Clamp01(distance / Mathf.Max(0.01f, explosionRadius));
                     float damage = Mathf.Max(10f, explosionForce * 70f * falloff + GetRigidbodyVelocity().magnitude * 0.6f) * Mathf.Max(0f, playerTankExplosionDamageMultiplier);

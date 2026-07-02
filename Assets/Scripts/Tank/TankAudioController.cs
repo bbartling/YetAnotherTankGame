@@ -7,9 +7,13 @@ public class TankAudioController : MonoBehaviour
     public float strainedPitch = 1.05f;
     public float idleVolume = 0.42f;
     public float strainedVolume = 0.9f;
+    public float idleShutdownSeconds = 3f;
 
     private AudioSource _oneShotSource;
     private bool _engineStarted;
+    private bool _engineMuted;
+    private float _lastAudibleStrain;
+    private float _idleSeconds;
 
     private void Awake()
     {
@@ -17,6 +21,53 @@ public class TankAudioController : MonoBehaviour
         strainedVolume = Mathf.Max(strainedVolume, idleVolume + 0.08f);
         EnsureEngineAudioSources();
         EnsureFallbackClips();
+    }
+
+    private void Update()
+    {
+        ProcessIdleShutdown(Time.deltaTime);
+    }
+
+    public void AdvanceIdleShutdown(float deltaSeconds)
+    {
+        ProcessIdleShutdown(deltaSeconds);
+    }
+
+    private void ProcessIdleShutdown(float deltaSeconds)
+    {
+        if (_engineMuted)
+        {
+            StopEngine(false);
+            return;
+        }
+
+        if (_lastAudibleStrain > 0.04f)
+        {
+            _idleSeconds = 0f;
+            return;
+        }
+
+        if (engineSource == null || !engineSource.isPlaying)
+        {
+            _idleSeconds = 0f;
+            return;
+        }
+
+        _idleSeconds += deltaSeconds;
+        if (_idleSeconds >= idleShutdownSeconds)
+        {
+            StopEngine(true);
+            _idleSeconds = 0f;
+        }
+    }
+
+    public void SetEngineMuted(bool muted)
+    {
+        _engineMuted = muted;
+        if (muted)
+        {
+            StopEngine(false);
+        }
     }
 
     public void EnsureEngineAudioSources()
@@ -54,6 +105,13 @@ public class TankAudioController : MonoBehaviour
 
     public void SetEngineStrain(float strain)
     {
+        if (_engineMuted)
+        {
+            _lastAudibleStrain = 0f;
+            StopEngine(false);
+            return;
+        }
+
         if (engineSource == null || engineSource.clip == null)
         {
             return;
@@ -69,12 +127,24 @@ public class TankAudioController : MonoBehaviour
                 : overdrive.ChargeRatio * 0.18f;
         }
 
-        float audibleStrain = Mathf.Clamp01(Mathf.Max(strain, 0.06f) + overdriveBoost);
+        float audibleStrain = strain;
+        if (strain > 0.02f || overdriveBoost > 0.01f)
+        {
+            audibleStrain = Mathf.Clamp01(Mathf.Max(strain, 0.06f) + overdriveBoost);
+        }
+
+        _lastAudibleStrain = audibleStrain;
+
+        if (audibleStrain <= 0.001f)
+        {
+            return;
+        }
+
         engineSource.loop = true;
         engineSource.pitch = Mathf.Lerp(idlePitch, strainedPitch, audibleStrain);
         engineSource.volume = Mathf.Lerp(idleVolume, strainedVolume, audibleStrain);
 
-        if (!_engineStarted && audibleStrain > 0.05f)
+        if (!_engineStarted)
         {
             TryPlayEngineStart();
         }
@@ -87,18 +157,27 @@ public class TankAudioController : MonoBehaviour
 
     public void StopEngine()
     {
+        StopEngine(true);
+    }
+
+    private void StopEngine(bool playStopClip)
+    {
         if (engineSource != null && engineSource.isPlaying)
         {
             engineSource.Stop();
         }
 
-        AudioClip stopClip = TankEngineAudioLibrary.StopOneShot;
-        if (stopClip != null && _oneShotSource != null)
+        if (playStopClip && _engineStarted)
         {
-            _oneShotSource.PlayOneShot(stopClip, idleVolume);
+            AudioClip stopClip = TankEngineAudioLibrary.StopOneShot;
+            if (stopClip != null && _oneShotSource != null)
+            {
+                _oneShotSource.PlayOneShot(stopClip, idleVolume);
+            }
         }
 
         _engineStarted = false;
+        _lastAudibleStrain = 0f;
     }
 
     private void TryPlayEngineStart()

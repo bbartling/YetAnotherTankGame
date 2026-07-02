@@ -64,6 +64,25 @@ public class BattlefieldPresentationPlayModeTests
     }
 
     [Test]
+    public void TankAudioController_StopsEngineAfterIdleTimeout()
+    {
+        GameObject root = new GameObject("IdleAudioTank");
+        TankAudioController audio = root.AddComponent<TankAudioController>();
+        audio.idleShutdownSeconds = 0.1f;
+        audio.EnsureEngineAudioSources();
+        audio.EnsureFallbackClips();
+
+        audio.SetEngineStrain(0.8f);
+        Assert.That(audio.engineSource.isPlaying, Is.True);
+
+        audio.SetEngineStrain(0f);
+        audio.AdvanceIdleShutdown(0.12f);
+
+        Assert.That(audio.engineSource.isPlaying, Is.False);
+        Object.DestroyImmediate(root);
+    }
+
+    [Test]
     public void TankAudioController_GeneratesReplaceableFallbackEngineClip()
     {
         GameObject root = new GameObject("AudioTank");

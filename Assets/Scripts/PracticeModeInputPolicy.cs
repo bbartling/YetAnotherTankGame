@@ -14,7 +14,7 @@ public class PracticeModeInputPolicy : MonoBehaviour
     public TankController playerTank;
     public bool applyOnStart = true;
 
-    public bool AllowsDriving => mode != PracticeControlMode.TargetPractice;
+    public bool AllowsDriving => true;
     public bool AllowsTurret => true;
     public bool AllowsCannon => mode != PracticeControlMode.DrivingOnly;
     public bool AllowsScope => mode == PracticeControlMode.TargetPractice || mode == PracticeControlMode.War;
@@ -58,9 +58,12 @@ public class PracticeModeInputPolicy : MonoBehaviour
             tank.SyncCombatControllers();
         }
 
-        if (mode == PracticeControlMode.War || mode == PracticeControlMode.DrivingOnly)
+        if (mode == PracticeControlMode.War
+            || mode == PracticeControlMode.DrivingOnly
+            || mode == PracticeControlMode.TargetPractice)
         {
             tank.ApplySharedDrivingHandling();
+            TankCombatProfile.ApplyToTankController(tank);
         }
 
         if (mode == PracticeControlMode.DrivingOnly)
@@ -81,6 +84,11 @@ public class PracticeModeInputPolicy : MonoBehaviour
         {
             TargetRangeTankAnchor.Apply(tank);
             TargetPracticeProgressHud.Ensure();
+            TankVoidFallController.Ensure(tank, useRangeBounds: true);
+        }
+        else
+        {
+            TankVoidFallController.Ensure(tank, useRangeBounds: false);
         }
 
         if (mode == PracticeControlMode.DrivingOnly || mode == PracticeControlMode.TargetPractice)

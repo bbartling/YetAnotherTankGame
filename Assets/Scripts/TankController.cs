@@ -72,12 +72,11 @@ public class TankController : MonoBehaviour
     public float rolloverStartupGraceSeconds = 6f;
     public float rolloverStableArmSeconds = 2f;
     public bool disableRolloverDefeat = false;
-    public bool targetRangeAnchored = false;
 
     [Header("Mouse Turret")]
     [Tooltip("Mouse X yaws the turret left/right. This is intentionally local to turretYawPivot so the turret does not orbit the map.")]
-    public float mouseYawDegreesPerSecond = 42.5f;
-    public float turretYawSpeed = 110f;
+    public float mouseYawDegreesPerSecond = TankCombatProfile.MouseYawDegreesPerSecond;
+    public float turretYawSpeed = TankCombatProfile.TurretYawSpeed;
 
     [Tooltip("Mouse wheel plus PageUp/PageDown pitch the barrel.")]
     public float mouseWheelPitchSensitivity = 18f;
@@ -193,6 +192,10 @@ public class TankController : MonoBehaviour
 
     private void Start()
     {
+        GameAudioVolume.LoadAndApply();
+        TankCombatProfile.ApplyToTankController(this);
+        string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        TankVoidFallController.Ensure(this, sceneName == "TankTargetPractice");
         SnapToTerrainClearance(terrainSurfaceSkin, true);
         AlignHullToGroundSurface();
         SnapToTerrainClearance(terrainSurfaceSkin, true);
@@ -304,13 +307,6 @@ public class TankController : MonoBehaviour
     private void FixedUpdate()
     {
         if (_dead || _rb == null) return;
-
-        if (targetRangeAnchored)
-        {
-            _tankAudioController?.StopEngine();
-            return;
-        }
-
         if (_awaitingDriveInput)
         {
             ReadDriveInput(out float startupThrottle, out float startupSteer, out _);
@@ -445,10 +441,18 @@ public class TankController : MonoBehaviour
         _tankAudioController.EnsureEngineAudioSources();
         _tankAudioController.EnsureFallbackClips();
 
+        if (GetComponent<TankCombatMechanicalAudio>() == null)
+        {
+            TankCombatMechanicalAudio mechanical = gameObject.AddComponent<TankCombatMechanicalAudio>();
+            mechanical.tank = this;
+        }
+
         _overdriveController = GetComponent<TankOverdriveController>();
 
         if (gameplayCamera != null)
         {
+            gameplayCamera.transform.SetParent(null, true);
+
             TankOrbitCamera orbitCamera = gameplayCamera.GetComponent<TankOrbitCamera>();
             if (orbitCamera == null) orbitCamera = gameplayCamera.gameObject.AddComponent<TankOrbitCamera>();
             orbitCamera.target = transform;
@@ -497,34 +501,6 @@ public class TankController : MonoBehaviour
         _practiceDrivingMode = true;
     }
 
-    public void ApplyTargetRangeAnchor()
-    {
-        targetRangeAnchored = true;
-        allowDrivingInput = false;
-        continuousTerrainSnapEnabled = false;
-        disableRolloverDefeat = true;
-
-        if (_wheeledSuspension != null)
-        {
-            _wheeledSuspension.enabled = false;
-        }
-
-        TankOverdriveController overdrive = GetComponent<TankOverdriveController>();
-        if (overdrive != null)
-        {
-            overdrive.enabled = false;
-        }
-
-        _tankAudioController?.StopEngine();
-
-        if (_rb != null)
-        {
-            _rb.linearVelocity = Vector3.zero;
-            _rb.angularVelocity = Vector3.zero;
-            _rb.constraints = RigidbodyConstraints.FreezeAll;
-        }
-    }
-
     public void ApplyPracticeDrivingTuning()
     {
         ApplySharedDrivingHandling();
@@ -533,9 +509,10 @@ public class TankController : MonoBehaviour
 
     public void SyncCombatControllers()
     {
+        TankCombatProfile.ApplyToTankController(this);
+
         if (_turretController != null)
         {
-            _turretController.Bind(turretYawPivot, turretYawSpeed, mouseYawDegreesPerSecond);
             _turretYaw = _turretController.DesiredYawDegrees;
         }
 
@@ -1535,13 +1512,14 @@ public class TankController : MonoBehaviour
             _audio.PlayOneShot(playerFireSound);
         }
 
-        GameObject shell = Instantiate(shellPrefab, cannonFirePoint.position, cannonFirePoint.rotation);
+        GameObject shell = Instantiate(shellPrefab, cannonFirePoint.position + cannonFirePoint.forward * 1.35f, cannonFirePoint.rotation);
         if (shell.GetComponent<ProjectileAudioController>() == null)
         {
             shell.AddComponent<ProjectileAudioController>();
         }
         GetComponent<TankVisualAnimator>()?.TriggerRecoil();
         IgnoreShellOwnerCollision(shell);
+        Physics.SyncTransforms();
 
         ProjectileCameraController projectileCamera = shell.GetComponent<ProjectileCameraController>();
         if (projectileCamera != null)

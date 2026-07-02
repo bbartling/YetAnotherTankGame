@@ -75,8 +75,18 @@ public class PracticeReturnController : MonoBehaviour
         }
     }
 
+    public void TriggerVoidFallReturn()
+    {
+        BeginReturn("TANK OOF!", rolloverReturnDelaySeconds, true, "nice try...");
+    }
+
     private bool IsTankOof()
     {
+        if (playerTank == null)
+        {
+            return false;
+        }
+
         if (playerTank.disableRolloverDefeat)
         {
             return playerTank.IsOverturned

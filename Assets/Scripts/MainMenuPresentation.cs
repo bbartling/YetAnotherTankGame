@@ -22,6 +22,7 @@ public class MainMenuPresentation : MonoBehaviour
 
     private void Awake()
     {
+        GameAudioVolume.LoadAndApply();
         EnsureMainMenuCutscene();
         ApplyLayout();
     }
@@ -30,8 +31,102 @@ public class MainMenuPresentation : MonoBehaviour
     {
         HideExtraUi();
         RebuildTitleBlock();
+        EnsureVolumeControl();
         StyleModeButtons();
         RepositionModeButtons();
+    }
+
+    private void EnsureVolumeControl()
+    {
+        Transform existing = transform.Find("GameVolumeControl");
+        if (existing != null)
+        {
+            return;
+        }
+
+        GameObject row = new GameObject("GameVolumeControl", typeof(RectTransform));
+        row.transform.SetParent(transform, false);
+        RectTransform rowRect = row.GetComponent<RectTransform>();
+        rowRect.anchorMin = new Vector2(1f, 0f);
+        rowRect.anchorMax = new Vector2(1f, 0f);
+        rowRect.pivot = new Vector2(1f, 0f);
+        rowRect.anchoredPosition = new Vector2(-24f, 24f);
+        rowRect.sizeDelta = new Vector2(280f, 44f);
+
+        GameObject labelGo = new GameObject("Label", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+        labelGo.transform.SetParent(row.transform, false);
+        RectTransform labelRect = labelGo.GetComponent<RectTransform>();
+        labelRect.anchorMin = new Vector2(0f, 0.5f);
+        labelRect.anchorMax = new Vector2(0f, 0.5f);
+        labelRect.pivot = new Vector2(0f, 0.5f);
+        labelRect.anchoredPosition = new Vector2(0f, 0f);
+        labelRect.sizeDelta = new Vector2(92f, 28f);
+        TextMeshProUGUI label = labelGo.GetComponent<TextMeshProUGUI>();
+        label.text = "GAME VOL";
+        label.fontSize = 14f;
+        label.fontStyle = FontStyles.Bold;
+        label.color = new Color(0.9f, 0.94f, 0.98f, 0.95f);
+        label.alignment = TextAlignmentOptions.MidlineLeft;
+        label.raycastTarget = false;
+
+        GameObject sliderGo = new GameObject("Slider", typeof(RectTransform), typeof(Slider));
+        sliderGo.transform.SetParent(row.transform, false);
+        RectTransform sliderRect = sliderGo.GetComponent<RectTransform>();
+        sliderRect.anchorMin = new Vector2(0f, 0.5f);
+        sliderRect.anchorMax = new Vector2(1f, 0.5f);
+        sliderRect.pivot = new Vector2(0.5f, 0.5f);
+        sliderRect.anchoredPosition = new Vector2(44f, 0f);
+        sliderRect.sizeDelta = new Vector2(-52f, 18f);
+
+        Slider slider = sliderGo.GetComponent<Slider>();
+        slider.minValue = 0f;
+        slider.maxValue = 1f;
+        slider.value = GameAudioVolume.MasterVolume;
+
+        GameObject background = new GameObject("Background", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        background.transform.SetParent(sliderGo.transform, false);
+        RectTransform bgRect = background.GetComponent<RectTransform>();
+        bgRect.anchorMin = Vector2.zero;
+        bgRect.anchorMax = Vector2.one;
+        bgRect.offsetMin = Vector2.zero;
+        bgRect.offsetMax = Vector2.zero;
+        background.GetComponent<Image>().color = new Color(0.08f, 0.12f, 0.16f, 0.85f);
+
+        GameObject fillArea = new GameObject("Fill Area", typeof(RectTransform));
+        fillArea.transform.SetParent(sliderGo.transform, false);
+        RectTransform fillAreaRect = fillArea.GetComponent<RectTransform>();
+        fillAreaRect.anchorMin = new Vector2(0f, 0.25f);
+        fillAreaRect.anchorMax = new Vector2(1f, 0.75f);
+        fillAreaRect.offsetMin = new Vector2(6f, 0f);
+        fillAreaRect.offsetMax = new Vector2(-6f, 0f);
+
+        GameObject fill = new GameObject("Fill", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        fill.transform.SetParent(fillArea.transform, false);
+        RectTransform fillRect = fill.GetComponent<RectTransform>();
+        fillRect.anchorMin = Vector2.zero;
+        fillRect.anchorMax = Vector2.one;
+        fillRect.offsetMin = Vector2.zero;
+        fillRect.offsetMax = Vector2.zero;
+        fill.GetComponent<Image>().color = new Color(0.35f, 0.72f, 1f, 0.95f);
+
+        GameObject handleSlideArea = new GameObject("Handle Slide Area", typeof(RectTransform));
+        handleSlideArea.transform.SetParent(sliderGo.transform, false);
+        RectTransform handleAreaRect = handleSlideArea.GetComponent<RectTransform>();
+        handleAreaRect.anchorMin = Vector2.zero;
+        handleAreaRect.anchorMax = Vector2.one;
+        handleAreaRect.offsetMin = new Vector2(8f, 0f);
+        handleAreaRect.offsetMax = new Vector2(-8f, 0f);
+
+        GameObject handle = new GameObject("Handle", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        handle.transform.SetParent(handleSlideArea.transform, false);
+        RectTransform handleRect = handle.GetComponent<RectTransform>();
+        handleRect.sizeDelta = new Vector2(16f, 22f);
+        handle.GetComponent<Image>().color = new Color(0.95f, 0.92f, 0.78f, 1f);
+
+        slider.fillRect = fillRect;
+        slider.handleRect = handleRect;
+        slider.targetGraphic = handle.GetComponent<Image>();
+        slider.onValueChanged.AddListener(value => GameAudioVolume.MasterVolume = value);
     }
 
     private void EnsureMainMenuCutscene()
@@ -53,6 +148,7 @@ public class MainMenuPresentation : MonoBehaviour
         DisableNamedChild("InstructionsText");
         DisableNamedChild("ModeTutorialText");
         DisableNamedChild("MenuTankIcon");
+        DisableLegacySubtitleText();
 
         TextMeshProUGUI[] labels = GetComponentsInChildren<TextMeshProUGUI>(true);
         for (int i = 0; i < labels.Length; i++)
@@ -97,6 +193,31 @@ public class MainMenuPresentation : MonoBehaviour
         }
     }
 
+    private void DisableLegacySubtitleText()
+    {
+        TextMeshProUGUI[] labels = GetComponentsInChildren<TextMeshProUGUI>(true);
+        for (int i = 0; i < labels.Length; i++)
+        {
+            TextMeshProUGUI label = labels[i];
+            if (label == null || IsProtectedLabel(label))
+            {
+                continue;
+            }
+
+            if (label.transform.parent != null && label.transform.parent.GetComponent<Button>() != null)
+            {
+                continue;
+            }
+
+            string text = label.text ?? string.Empty;
+            if (text.IndexOf("hill-climb", System.StringComparison.OrdinalIgnoreCase) >= 0
+                || text.IndexOf("silly physics", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                label.gameObject.SetActive(false);
+            }
+        }
+    }
+
     private void RebuildTitleBlock()
     {
         Transform existing = transform.Find("YatgTitle");
@@ -130,16 +251,6 @@ public class MainMenuPresentation : MonoBehaviour
                 titleColor,
                 0f);
         }
-
-        CreateTitleLine(
-            titleRoot.transform,
-            "Subtitle",
-            "· silly physics hill-climb tank war ·",
-            15f,
-            new Vector2(0f, -138f),
-            FontStyles.Italic,
-            new Color(0.86f, 0.9f, 0.96f, 0.92f),
-            0f);
 
         titleRoot.transform.SetAsFirstSibling();
     }

@@ -81,10 +81,6 @@ public static class PracticeSceneBuilder
     private static void ConfigureTargetRangeTank(GameObject tank)
     {
         TankController controller = tank.GetComponent<TankController>();
-        if (controller != null)
-        {
-            controller.ApplyTargetRangeAnchor();
-        }
 
         TargetRangeTankAnchor anchor = tank.GetComponent<TargetRangeTankAnchor>();
         if (anchor == null)
@@ -93,6 +89,22 @@ public static class PracticeSceneBuilder
         }
 
         anchor.tank = controller;
+        Physics.SyncTransforms();
+        anchor.ApplyNow();
+        Physics.SyncTransforms();
+
+        if (controller != null && controller.transform.position.y > 4f)
+        {
+            float pivotToBottom = anchor.GetPivotToBottomOffset();
+            Vector3 corrected = controller.transform.position;
+            corrected.y = 0.08f + anchor.hullClearance + pivotToBottom;
+            controller.transform.position = corrected;
+            Rigidbody body = tank.GetComponent<Rigidbody>();
+            if (body != null)
+            {
+                body.position = corrected;
+            }
+        }
     }
 
     private static GameObject InstantiatePracticeTank(GameObject sourceTank, Vector3 position, Quaternion rotation)
@@ -156,6 +168,8 @@ public static class PracticeSceneBuilder
         {
             controller.gameplayCamera = camera;
         }
+
+        camera.transform.SetParent(null, true);
 
         AudioListener listener = camera.GetComponent<AudioListener>();
         if (listener == null)
