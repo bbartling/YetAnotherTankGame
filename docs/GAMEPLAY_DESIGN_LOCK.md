@@ -8,7 +8,7 @@ The game is a silly cartoon armored-vehicle battle with deliberate War Thunder-i
 
 ## Locked Player Experience
 
-- Player wheeled vehicle reaches approximately `7.5 m/s` with gradual acceleration and braking, never FPS-sprint movement.
+- Player wheeled vehicle reaches approximately `8.5 m/s` with gradual acceleration and braking, never FPS-sprint movement.
 - Reverse is slower than forward.
 - Low-speed turning is possible but heavy.
 - High-speed turning is wide and limited.
@@ -24,7 +24,18 @@ The game is a silly cartoon armored-vehicle battle with deliberate War Thunder-i
 - Left click fires the player cannonball; firing is not hitscan.
 - Right click enters a useful scope/rangefinder aligned with actual aiming.
 - Scope reports distance, elevation, and estimated time of flight.
+- Scope keeps a centered aim crosshair aligned with actual cannon aim while the range ladder/readout is offset to the right.
 - Shift is low gear or aim stabilization, never sprint.
+
+## Locked Menu And Practice Modes
+
+- Main menu must expose `Driving Practice`, `Cannon Practice`, and `WAR`.
+- `WAR` loads/uses `Assets/Scenes/Practice.unity` and is the only mode that starts the enemy wave and randomized generated battlefield flow.
+- `Driving Practice` loads `Assets/Scenes/TankDrivingPractice.unity`, a bounded hard-coded indoor-stadium obstacle course for tank climb, bump, bridge, traction, and rollover testing.
+- `Driving Practice` allows only tank driving controls; turret movement, cannon fire, cannon power changes, machine gun, and right-click scope are locked out.
+- `Cannon Practice` loads `Assets/Scenes/TankTargetPractice.unity`, a bounded fixed shooting range for normal cannon fire and far right-click scope/rangefinder dialing.
+- `Cannon Practice` locks out WASD/arrow tank movement and machine gun; turret movement, cannon fire, cannon power changes, and scope/rangefinder remain available.
+- Defeat screen must support left-click restart into the current selected mode.
 
 ## Locked Camera Experience
 
@@ -49,8 +60,10 @@ The game is a silly cartoon armored-vehicle battle with deliberate War Thunder-i
 
 - Terrain craters remain.
 - Trees can be damaged, knocked down, or crushed according to size.
+- Procedural forest trees must keep `BreakableTree`, tank-flatten collision behavior, and a fallback tree-flatten audio clip.
 - Castle walls and turrets have visible damage/destruction states.
 - Tanks have visible damage/destruction states.
+- The player engine loop must stay audible in normal gameplay through the procedural fallback loop unless replaced by a tested authored clip/mix.
 - Destruction is bounded and WebGL-friendly through pooling or strict limits.
 - The game must not leak unlimited debris, craters, impact marks, or projectiles.
 

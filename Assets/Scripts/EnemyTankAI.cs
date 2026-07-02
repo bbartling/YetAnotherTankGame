@@ -21,15 +21,20 @@ public class EnemyTankAI : MonoBehaviour
     public float turnTorque = 32f;
     public float strafeForce = 0f;
     public float shellPower = 145f;
-    public float fireCooldown = 8f;
+    public float fireCooldown = 12f;
     public float aimSpeed = 1.25f;
-    public float accuracy = 0.72f;
+    public float accuracy = 0.42f;
     public float visibilityHeight = 0.55f;
     public float lastKnownMemorySeconds = 5.5f;
     public float searchOrbitSpeed = 0.8f;
     public float searchMoveForce = 20f;
     public float searchTurnTorque = 28f;
     public float ambushRadius = 18f;
+
+    [Header("Pathing")]
+    public float slopeProbeDistance = 7f;
+    public float slopeProbeHeight = 5f;
+    public float slopeSideProbeOffset = 5f;
 
     [Header("Patrol")]
     public Transform patrolCenter;
@@ -55,6 +60,10 @@ public class EnemyTankAI : MonoBehaviour
     public float deathDelay = 2.8f;
     public int crumblePieceCount = 48;
     public float crumbleForce = 38f;
+    public bool randomizeDeathRendererBursts = true;
+    public int deathRendererBatchMin = 2;
+    public int deathRendererBatchMax = 5;
+    public float deathRendererBurstWindow = 0.42f;
     public float machineGunDamageScale = 1f;
     public float tankKillCraterForce = 82f;
     public float tankKillBlastRadius = 12f;
@@ -216,6 +225,100 @@ private void FixedUpdate()
         }
 
         _rb.linearVelocity = _pathingBrain.ClampPlanarVelocity(_rb.linearVelocity);
+        SnapToGroundSurface();
+    }
+
+    private void SnapToGroundSurface()
+    {
+        if (_rb == null)
+        {
+            return;
+        }
+
+        if (!TryGetGroundSurface(transform.position, out RaycastHit groundHit))
+        {
+            return;
+        }
+
+        Collider[] colliders = GetComponentsInChildren<Collider>(true);
+        float bottom = float.MaxValue;
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider collider = colliders[i];
+            if (collider == null || !collider.enabled || collider.isTrigger)
+            {
+                continue;
+            }
+
+            bottom = Mathf.Min(bottom, collider.bounds.min.y);
+        }
+
+        if (bottom == float.MaxValue)
+        {
+            return;
+        }
+
+        const float skin = 0.05f;
+        const float maxCorrection = 0.35f;
+        float desiredBottom = groundHit.point.y + skin;
+        float delta = Mathf.Clamp(desiredBottom - bottom, -maxCorrection, maxCorrection);
+        if (Mathf.Abs(delta) <= 0.02f)
+        {
+            return;
+        }
+
+        Vector3 corrected = _rb.position + Vector3.up * delta;
+        _rb.position = corrected;
+        transform.position = corrected;
+
+        Vector3 velocity = _rb.linearVelocity;
+        if (delta < 0f && velocity.y > 0f)
+        {
+            velocity.y = 0f;
+            _rb.linearVelocity = velocity;
+        }
+
+        Physics.SyncTransforms();
+    }
+
+    private bool TryGetGroundSurface(Vector3 position, out RaycastHit groundHit)
+    {
+        groundHit = default;
+        CraterTerrain terrain = Object.FindFirstObjectByType<CraterTerrain>();
+        Collider terrainCollider = terrain != null ? terrain.GetComponent<Collider>() : null;
+        Renderer terrainRenderer = terrain != null ? terrain.GetComponent<Renderer>() : null;
+
+        if (terrainCollider != null || terrainRenderer != null)
+        {
+            Bounds bounds = terrainCollider != null ? terrainCollider.bounds : terrainRenderer.bounds;
+            Vector3 origin = new Vector3(position.x, bounds.max.y + 30f, position.z);
+            float distance = bounds.size.y + 160f;
+
+            if (terrainCollider != null && terrainCollider.Raycast(new Ray(origin, Vector3.down), out groundHit, distance))
+            {
+                return true;
+            }
+        }
+
+        Vector3 fallbackOrigin = position + Vector3.up * Mathf.Max(10f, slopeProbeHeight);
+        RaycastHit[] hits = Physics.RaycastAll(fallbackOrigin, Vector3.down, slopeProbeHeight + 80f, ~0, QueryTriggerInteraction.Ignore);
+        float nearestDistance = float.MaxValue;
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider hitCollider = hits[i].collider;
+            if (hitCollider == null || hitCollider.transform == transform || hitCollider.transform.IsChildOf(transform))
+            {
+                continue;
+            }
+
+            if (hits[i].distance < nearestDistance)
+            {
+                nearestDistance = hits[i].distance;
+                groundHit = hits[i];
+            }
+        }
+
+        return groundHit.collider != null;
     }
 
     private void AutoWireReferences()
@@ -330,7 +433,7 @@ private EnemyState GetState()
         _pathingBrain = new TankPathingBrain
         {
             MaxTravelSpeed = 2.25f,
-            MaxSlopeDegrees = 35f
+            MaxSlopeDegrees = 55f
         };
     }
 
@@ -457,7 +560,7 @@ private EnemyState GetState()
             return;
         }
 
-        Vector3 desiredDir = toTarget.normalized;
+        Vector3 desiredDir = GetSlopeAwareDirection(toTarget.normalized);
         Vector3 forward = transform.forward;
         forward.y = 0f;
         if (forward.sqrMagnitude < 0.001f)
@@ -492,6 +595,48 @@ private EnemyState GetState()
             float pressure = Mathf.Sin(Time.time * 1.05f + transform.position.x * 0.03f + transform.position.z * 0.02f) * 0.65f;
             _rb.AddForce(lateral * (pressure * strafeForce), ForceMode.Acceleration);
         }
+    }
+
+    private Vector3 GetSlopeAwareDirection(Vector3 desiredDir)
+    {
+        InitializePoliciesIfNeeded();
+        Vector3 planarDesired = Vector3.ProjectOnPlane(desiredDir, Vector3.up);
+        if (planarDesired.sqrMagnitude < 0.0001f)
+        {
+            return transform.forward;
+        }
+
+        planarDesired.Normalize();
+        Vector3 right = Vector3.Cross(Vector3.up, planarDesired).normalized;
+        float forwardSlope = ProbeSlope(planarDesired, Vector3.zero);
+        float leftSlope = ProbeSlope(planarDesired, -right * slopeSideProbeOffset);
+        float rightSlope = ProbeSlope(planarDesired, right * slopeSideProbeOffset);
+        return _pathingBrain.ChooseSlopeAwareDirection(planarDesired, right, forwardSlope, leftSlope, rightSlope);
+    }
+
+    private float ProbeSlope(Vector3 direction, Vector3 lateralOffset)
+    {
+        Vector3 origin = transform.position + lateralOffset + direction.normalized * Mathf.Max(0.1f, slopeProbeDistance) + Vector3.up * Mathf.Max(0.1f, slopeProbeHeight);
+        RaycastHit[] hits = Physics.RaycastAll(origin, Vector3.down, slopeProbeHeight * 3f, ~0, QueryTriggerInteraction.Ignore);
+        float nearestDistance = float.MaxValue;
+        RaycastHit nearest = default;
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Transform hitTransform = hits[i].transform;
+            if (hitTransform == null || hitTransform == transform || hitTransform.IsChildOf(transform))
+            {
+                continue;
+            }
+
+            if (hits[i].distance < nearestDistance)
+            {
+                nearestDistance = hits[i].distance;
+                nearest = hits[i];
+            }
+        }
+
+        return nearest.collider != null ? Vector3.Angle(nearest.normal, Vector3.up) : 0f;
     }
 
     private void HandleAudio(TankCombatBrain.State state)
@@ -691,6 +836,8 @@ private EnemyState GetState()
             cameraController.enableCameraSwitching = false;
             cameraController.applyWindDrift = false;
             cameraController.launchPowerPercentage = 100f;
+            cameraController.playerTankImpactDamageMultiplier = 0.05f;
+            cameraController.playerTankExplosionDamageMultiplier = 0.05f;
         }
 
         Rigidbody rb = shell.GetComponent<Rigidbody>();
@@ -902,7 +1049,7 @@ public void ApplyExplosionDamage(float explosionForce, Vector3 explosionPoint, V
         SpawnKillBlast(worldPoint, worldNormal, force);
         PlayKillSound(worldPoint);
         SpawnCrumblePieces(worldPoint, worldNormal, force * 0.65f, crumblePieceCount);
-        yield return HideRenderersGradually(worldPoint, worldNormal, force);
+        yield return HideRenderersInRandomBursts(worldPoint, worldNormal, force);
 
         if (worldNormal.sqrMagnitude > 0.001f && _rb != null)
         {
@@ -1020,23 +1167,70 @@ public void ApplyExplosionDamage(float explosionForce, Vector3 explosionPoint, V
         }
     }
 
-    private IEnumerator HideRenderersGradually(Vector3 worldPoint, Vector3 worldNormal, float force)
+    private IEnumerator HideRenderersInRandomBursts(Vector3 worldPoint, Vector3 worldNormal, float force)
     {
         Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
-        float stepDelay = renderers.Length > 0 ? deathDelay / Mathf.Max(1, renderers.Length) : deathDelay;
-
-        for (int i = 0; i < renderers.Length; i++)
+        if (renderers.Length == 0)
         {
-            Renderer renderer = renderers[i];
-            if (renderer == null || !renderer.enabled)
+            yield break;
+        }
+
+        if (randomizeDeathRendererBursts)
+        {
+            ShuffleRenderers(renderers);
+        }
+
+        int index = 0;
+        int batchMin = Mathf.Max(1, deathRendererBatchMin);
+        int batchMax = Mathf.Max(batchMin, deathRendererBatchMax);
+        float burstWindow = Mathf.Max(0.02f, deathRendererBurstWindow);
+
+        while (index < renderers.Length)
+        {
+            int batchSize = randomizeDeathRendererBursts ? Random.Range(batchMin, batchMax + 1) : 1;
+            int hiddenThisBatch = 0;
+
+            for (int i = 0; i < batchSize && index < renderers.Length; i++, index++)
             {
-                continue;
+                Renderer renderer = renderers[index];
+                if (renderer == null || !renderer.enabled)
+                {
+                    continue;
+                }
+
+                Bounds bounds = renderer.bounds;
+                Vector3 burstPoint = bounds.center + Random.insideUnitSphere * Mathf.Max(0.1f, bounds.extents.magnitude * 0.35f);
+                SpawnCrumblePieces(
+                    burstPoint,
+                    worldNormal.sqrMagnitude > 0.001f ? worldNormal : Vector3.up,
+                    Mathf.Max(8f, force * Random.Range(0.16f, 0.34f)),
+                    Random.Range(2, 6));
+                renderer.enabled = false;
+                hiddenThisBatch++;
             }
 
-            Bounds bounds = renderer.bounds;
-            SpawnCrumblePieces(bounds.center, worldNormal.sqrMagnitude > 0.001f ? worldNormal : Vector3.up, Mathf.Max(8f, force * 0.25f), 4);
-            renderer.enabled = false;
-            yield return new WaitForSeconds(Mathf.Clamp(stepDelay, 0.05f, 0.22f));
+            if (index < renderers.Length && hiddenThisBatch > 0)
+            {
+                float delay = randomizeDeathRendererBursts
+                    ? Random.Range(0.025f, burstWindow)
+                    : Mathf.Clamp(deathDelay / Mathf.Max(1, renderers.Length), 0.05f, 0.22f);
+                yield return new WaitForSeconds(delay);
+            }
+            else
+            {
+                yield return null;
+            }
+        }
+    }
+
+    private void ShuffleRenderers(Renderer[] renderers)
+    {
+        for (int i = renderers.Length - 1; i > 0; i--)
+        {
+            int swapIndex = Random.Range(0, i + 1);
+            Renderer temp = renderers[i];
+            renderers[i] = renderers[swapIndex];
+            renderers[swapIndex] = temp;
         }
     }
 

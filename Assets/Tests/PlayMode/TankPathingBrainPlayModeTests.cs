@@ -28,10 +28,10 @@ public class TankPathingBrainPlayModeTests
     [Test]
     public void ExcessiveSlopeStopsAdvance()
     {
-        TankPathingBrain brain = new TankPathingBrain { MaxSlopeDegrees = 35f };
+        TankPathingBrain brain = new TankPathingBrain { MaxSlopeDegrees = 55f };
 
-        Assert.That(brain.CanAdvanceOnSlope(30f), Is.True);
-        Assert.That(brain.CanAdvanceOnSlope(40f), Is.False);
+        Assert.That(brain.CanAdvanceOnSlope(54f), Is.True);
+        Assert.That(brain.CanAdvanceOnSlope(56f), Is.False);
     }
 }
 #endif

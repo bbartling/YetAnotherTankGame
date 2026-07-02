@@ -28,9 +28,66 @@ public static class BattlefieldEffectController
         shape.angle = 18f;
         shape.radius = 0.35f;
 
+        ParticleSystemRenderer renderer = effect.GetComponent<ParticleSystemRenderer>();
+        if (renderer != null)
+        {
+            renderer.sharedMaterial = CreateTintedParticleMaterial(effectName, color);
+        }
+
         particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         effect.SetActive(false);
         return effect;
+    }
+
+    public static Material CreateTintedParticleMaterial(string effectName, Color color)
+    {
+        Material template = Resources.Load<Material>("Materials/ExplosionParticle");
+        if (template != null)
+        {
+            Material material = new Material(template);
+            material.name = effectName + "Material";
+            if (material.HasProperty("_Color"))
+            {
+                material.SetColor("_Color", color);
+            }
+
+            if (material.HasProperty("_BaseColor"))
+            {
+                material.SetColor("_BaseColor", color);
+            }
+
+            return material;
+        }
+
+        Shader shader = Shader.Find("Particles/Standard Unlit");
+        if (shader == null)
+        {
+            shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+        }
+
+        if (shader == null)
+        {
+            shader = Shader.Find("Legacy Shaders/Particles/Alpha Blended Premultiply");
+        }
+
+        if (shader == null)
+        {
+            shader = Shader.Find("Sprites/Default");
+        }
+
+        Material fallback = new Material(shader != null ? shader : Shader.Find("Unlit/Color"));
+        fallback.name = effectName + "Material";
+        if (fallback.HasProperty("_Color"))
+        {
+            fallback.SetColor("_Color", color);
+        }
+
+        if (fallback.HasProperty("_BaseColor"))
+        {
+            fallback.SetColor("_BaseColor", color);
+        }
+
+        return fallback;
     }
 
     public static void RegisterTemporary(GameObject effect, string category, int maxActive)

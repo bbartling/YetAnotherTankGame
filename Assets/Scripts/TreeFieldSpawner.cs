@@ -176,14 +176,61 @@ public class TreeFieldSpawner : MonoBehaviour
     private bool TryProjectToGround(Vector3 worldPoint, out Vector3 hitPoint)
     {
         Vector3 origin = worldPoint;
-        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, 400f, ~0, QueryTriggerInteraction.Ignore))
+        Collider terrainCollider = terrainSource != null ? terrainSource.GetComponent<Collider>() : null;
+        Renderer terrainRenderer = terrainSource != null ? terrainSource.GetComponent<Renderer>() : null;
+
+        if (terrainCollider != null)
+        {
+            Bounds bounds = terrainCollider.bounds;
+            Vector3 terrainOrigin = new Vector3(worldPoint.x, bounds.max.y + 80f, worldPoint.z);
+            float distance = bounds.size.y + 180f;
+            if (terrainCollider.Raycast(new Ray(terrainOrigin, Vector3.down), out RaycastHit terrainHit, distance))
+            {
+                hitPoint = terrainHit.point;
+                return true;
+            }
+        }
+
+        if (terrainRenderer != null)
+        {
+            Bounds bounds = terrainRenderer.bounds;
+            Vector3 terrainOrigin = new Vector3(worldPoint.x, bounds.max.y + 80f, worldPoint.z);
+            float distance = bounds.size.y + 180f;
+            RaycastHit[] hits = Physics.RaycastAll(terrainOrigin, Vector3.down, distance, ~0, QueryTriggerInteraction.Ignore);
+            float nearestDistance = float.MaxValue;
+            RaycastHit nearest = default;
+            for (int i = 0; i < hits.Length; i++)
+            {
+                if (hits[i].collider == null || !hits[i].collider.transform.IsChildOf(terrainSource.transform))
+                {
+                    continue;
+                }
+
+                if (hits[i].distance < nearestDistance)
+                {
+                    nearestDistance = hits[i].distance;
+                    nearest = hits[i];
+                }
+            }
+
+            if (nearest.collider != null)
+            {
+                hitPoint = nearest.point;
+                return true;
+            }
+        }
+
+        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, 400f, ~0, QueryTriggerInteraction.Ignore)
+            && hit.collider != null
+            && terrainSource != null
+            && hit.collider.transform.IsChildOf(terrainSource.transform))
         {
             hitPoint = hit.point;
             return true;
         }
 
-        hitPoint = new Vector3(worldPoint.x, terrainSource.transform.position.y + 1.5f, worldPoint.z);
-        return true;
+        hitPoint = default;
+        return false;
     }
 
     private void CreateTree(Vector3 position, System.Random rng, int index)
@@ -222,7 +269,7 @@ public class TreeFieldSpawner : MonoBehaviour
         audio.spatialBlend = 0f;
 
         BreakableTree breakable = tree.AddComponent<BreakableTree>();
-        breakable.smashSound = treeSmashSound;
+        breakable.smashSound = treeSmashSound != null ? treeSmashSound : ProceduralBattlefieldAudio.CreateTreeFlatten();
         breakable.maxHealth = 16f + height * 2f;
 
         GameObject trunk = GameObject.CreatePrimitive(PrimitiveType.Cylinder);

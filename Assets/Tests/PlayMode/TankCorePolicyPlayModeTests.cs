@@ -10,13 +10,39 @@ public class TankCorePolicyPlayModeTests
         GameObject tankObject = new GameObject("PolicyTank");
         TankDriveController drive = tankObject.AddComponent<TankDriveController>();
 
-        Assert.That(drive.maxForwardSpeed, Is.EqualTo(7.5f).Within(0.1f));
-        Assert.That(drive.maxReverseSpeed, Is.EqualTo(3.5f).Within(0.1f));
-        Assert.That(drive.accelerationSeconds, Is.EqualTo(4f).Within(0.25f));
-        Assert.That(drive.brakingSeconds, Is.EqualTo(2f).Within(0.25f));
+        Assert.That(drive.maxForwardSpeed, Is.EqualTo(8.5f).Within(0.1f));
+        Assert.That(drive.maxReverseSpeed, Is.EqualTo(4.2f).Within(0.1f));
+        Assert.That(drive.accelerationSeconds, Is.EqualTo(1.2f).Within(0.25f));
+        Assert.That(drive.brakingSeconds, Is.EqualTo(1.6f).Within(0.25f));
         Assert.That(drive.GetSteeringMultiplier(drive.maxForwardSpeed), Is.LessThan(0.55f));
 
         Object.Destroy(tankObject);
+    }
+
+    [Test]
+    public void TankMovement_UsesContinuousTerrainClearanceByDefault()
+    {
+        GameObject tankObject = new GameObject("GroundedPolicyTank");
+        tankObject.SetActive(false);
+        tankObject.AddComponent<Rigidbody>();
+        TankController tank = tankObject.AddComponent<TankController>();
+
+        Assert.That(tank.continuousTerrainSnapEnabled, Is.True);
+
+        Object.DestroyImmediate(tankObject);
+    }
+
+    [Test]
+    public void TankSuspension_UsesDistributedVehicleWeightInsteadOfExcessiveLift()
+    {
+        GameObject tankObject = new GameObject("SuspensionPolicyTank");
+        WheeledSuspensionController suspension = tankObject.AddComponent<WheeledSuspensionController>();
+
+        Assert.That(suspension.suspensionTravel, Is.InRange(0.55f, 1.1f));
+        Assert.That(suspension.springStrength, Is.InRange(2.4f, 3.6f));
+        Assert.That(suspension.damperStrength, Is.InRange(0.8f, 1.8f));
+
+        Object.DestroyImmediate(tankObject);
     }
 
     [Test]
@@ -31,9 +57,9 @@ public class TankCorePolicyPlayModeTests
 
         tankObject.SetActive(true);
 
-        Assert.That(drive.maxForwardSpeed, Is.EqualTo(7.5f).Within(0.1f));
-        Assert.That(drive.maxReverseSpeed, Is.EqualTo(3.5f).Within(0.1f));
-        Assert.That(drive.accelerationSeconds, Is.EqualTo(4f).Within(0.25f));
+        Assert.That(drive.maxForwardSpeed, Is.EqualTo(8.5f).Within(0.1f));
+        Assert.That(drive.maxReverseSpeed, Is.EqualTo(4.2f).Within(0.1f));
+        Assert.That(drive.accelerationSeconds, Is.EqualTo(1.2f).Within(0.25f));
 
         Object.Destroy(tankObject);
     }
@@ -49,8 +75,25 @@ public class TankCorePolicyPlayModeTests
         float blockedLimit = drive.GetForwardSpeedLimit(drive.maxClimbSlopeDegrees + 1f);
 
         Assert.That(uphillLimit, Is.LessThan(levelLimit));
-        Assert.That(blockedLimit, Is.GreaterThan(0f));
+        Assert.That(drive.maxClimbSlopeDegrees, Is.EqualTo(55f).Within(0.5f));
+        Assert.That(blockedLimit, Is.EqualTo(0f).Within(0.001f));
         Assert.That(drive.GetEngineStrain(1f, drive.tractionLossSlopeDegrees + 5f), Is.GreaterThan(0.5f));
+
+        Object.Destroy(tankObject);
+    }
+
+    [Test]
+    public void TankSlope_EngineTorqueClimbsModerateGradesBelowCap()
+    {
+        GameObject tankObject = new GameObject("ModerateGradeTank");
+        TankDriveController drive = tankObject.AddComponent<TankDriveController>();
+        float moderateSlope = 40f;
+        float gravityPullDownSlope = Physics.gravity.magnitude * Mathf.Sin(moderateSlope * Mathf.Deg2Rad);
+
+        Assert.That(drive.GetForwardSpeedLimit(moderateSlope), Is.GreaterThan(6.25f));
+        Assert.That(drive.GetAccelerationLimit(false, moderateSlope), Is.GreaterThan(gravityPullDownSlope + 0.5f));
+        Assert.That(drive.GetForwardSpeedLimit(drive.maxClimbSlopeDegrees + 0.1f), Is.EqualTo(0f).Within(0.001f));
+        Assert.That(drive.GetAccelerationLimit(false, drive.maxClimbSlopeDegrees + 0.1f), Is.EqualTo(0f).Within(0.001f));
 
         Object.Destroy(tankObject);
     }
@@ -93,9 +136,8 @@ public class TankCorePolicyPlayModeTests
         GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Cube);
         ground.name = "SlopedGround";
         ground.transform.position = Vector3.zero;
-        ground.transform.rotation = Quaternion.Euler(0f, 0f, 18f);
+        ground.transform.rotation = Quaternion.Euler(0f, 0f, 12f);
         ground.transform.localScale = new Vector3(24f, 1f, 24f);
-
         GameObject tankObject = new GameObject("SlopeAlignedPlayer");
         tankObject.AddComponent<Rigidbody>();
         tankObject.AddComponent<BoxCollider>();
@@ -110,12 +152,18 @@ public class TankCorePolicyPlayModeTests
         tank.turretYawPivot = turret;
         tank.barrelPitchPivot = barrel;
         tank.cannonFirePoint = firePoint;
+        typeof(TankController)
+            .GetField("_terrainCollider", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            .SetValue(tank, ground.GetComponent<Collider>());
+        typeof(TankController)
+            .GetField("_terrainRenderer", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            .SetValue(tank, ground.GetComponent<Renderer>());
 
         tank.PrepareForGameplay();
 
         Vector3 expectedNormal = ground.transform.up;
         Assert.That(Vector3.Angle(tank.transform.up, expectedNormal), Is.LessThan(3f));
-        Assert.That(tank.RigidbodyComponent.isKinematic, Is.True);
+        Assert.That(tank.RigidbodyComponent.isKinematic, Is.False);
 
         Object.DestroyImmediate(tankObject);
         Object.DestroyImmediate(ground);
@@ -154,7 +202,7 @@ public class TankCorePolicyPlayModeTests
             .GetMethod("ConfigureRigidbody", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
             .Invoke(tank, null);
 
-        Assert.That(body.mass, Is.GreaterThanOrEqualTo(15000f));
+        Assert.That(body.mass, Is.GreaterThanOrEqualTo(TankGameplayTuning.ChassisMass));
         Assert.That(body.centerOfMass.y, Is.LessThanOrEqualTo(-1f));
         Assert.That(body.constraints, Is.EqualTo(RigidbodyConstraints.None));
         Assert.That(body.angularDamping, Is.GreaterThanOrEqualTo(4f));
@@ -170,6 +218,25 @@ public class TankCorePolicyPlayModeTests
         TankController tank = tankObject.AddComponent<TankController>();
 
         Assert.That(tank.playerVisualScale, Is.InRange(2.5f, 3.5f));
+        Object.DestroyImmediate(tankObject);
+    }
+
+    [Test]
+    public void Cannon_DefaultsToFullPowerAndSupportsKeyboardPowerAdjustment()
+    {
+        GameObject tankObject = new GameObject("PowerPolicyTank");
+        tankObject.SetActive(false);
+        tankObject.AddComponent<Rigidbody>();
+        TankController tank = tankObject.AddComponent<TankController>();
+
+        Assert.That(tank.powerPercentage, Is.EqualTo(100f).Within(0.01f));
+        Assert.That(typeof(TankController).GetMethod("AdjustPower"), Is.Not.Null);
+
+        tank.AdjustPower(-15f);
+        Assert.That(tank.powerPercentage, Is.EqualTo(85f).Within(0.01f));
+        tank.AdjustPower(30f);
+        Assert.That(tank.powerPercentage, Is.EqualTo(100f).Within(0.01f));
+
         Object.DestroyImmediate(tankObject);
     }
 
@@ -203,6 +270,64 @@ public class TankCorePolicyPlayModeTests
 
         Assert.That(defeated, Is.True);
         Assert.That(tank.IsDestroyed, Is.True);
+        Object.DestroyImmediate(tankObject);
+    }
+
+    [Test]
+    public void PlayerDeath_DoesNotBlastRigidbodyThroughTerrain()
+    {
+        GameObject tankObject = new GameObject("DestroyedPlayerTank");
+        tankObject.SetActive(false);
+        Rigidbody body = tankObject.AddComponent<Rigidbody>();
+        TankController tank = tankObject.AddComponent<TankController>();
+        Transform turret = new GameObject("TurretYawPivot").transform;
+        turret.SetParent(tankObject.transform, false);
+        Transform barrel = new GameObject("BarrelPitchPivot").transform;
+        barrel.SetParent(turret, false);
+        Transform firePoint = new GameObject("FirePoint").transform;
+        firePoint.SetParent(barrel, false);
+        tank.turretYawPivot = turret;
+        tank.barrelPitchPivot = barrel;
+        tank.cannonFirePoint = firePoint;
+        tankObject.SetActive(true);
+
+        tank.ApplyProjectileDamage(999f, tankObject.transform.position + Vector3.up, Vector3.up);
+
+        Assert.That(tank.IsDestroyed, Is.True);
+        Assert.That(body.isKinematic, Is.True);
+        Assert.That(body.linearVelocity.magnitude, Is.LessThan(0.01f));
+        Assert.That(body.angularVelocity.magnitude, Is.LessThan(0.01f));
+
+        Object.DestroyImmediate(tankObject);
+    }
+
+    [Test]
+    public void SyncCombatControllers_UsesTankControllerTurretTuning()
+    {
+        GameObject tankObject = new GameObject("SyncedTurretTank");
+        Transform turret = new GameObject("TurretYawPivot").transform;
+        turret.SetParent(tankObject.transform, false);
+        Transform barrel = new GameObject("BarrelPitchPivot").transform;
+        barrel.SetParent(turret, false);
+
+        TankController tank = tankObject.AddComponent<TankController>();
+        tank.turretYawPivot = turret;
+        tank.barrelPitchPivot = barrel;
+        tank.turretYawSpeed = 110f;
+        tank.mouseYawDegreesPerSecond = 42.5f;
+        tank.keyboardPitchSpeed = 35f;
+        tank.mouseWheelPitchSensitivity = 18f;
+
+        tank.SyncCombatControllers();
+
+        TankTurretController turretController = tankObject.GetComponent<TankTurretController>();
+        TankAimController aimController = tankObject.GetComponent<TankAimController>();
+
+        Assert.That(turretController.turretYawSpeed, Is.EqualTo(110f).Within(0.01f));
+        Assert.That(turretController.mouseYawDegreesPerSecond, Is.EqualTo(42.5f).Within(0.01f));
+        Assert.That(aimController.keyboardPitchSpeed, Is.EqualTo(35f).Within(0.01f));
+        Assert.That(aimController.mouseWheelPitchSensitivity, Is.EqualTo(18f).Within(0.01f));
+
         Object.DestroyImmediate(tankObject);
     }
 }

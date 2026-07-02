@@ -12,6 +12,7 @@ public class SniperRangeFinder : MonoBehaviour
     public Canvas targetCanvas;
 
     [Header("Range")]
+    public bool allowScope = true;
     public float maxRange = 1200f;
     public float tickSpacing = 50f;
     public float majorTickSpacing = 100f;
@@ -27,8 +28,11 @@ public class SniperRangeFinder : MonoBehaviour
     public Color majorTickColor = new Color(1f, 1f, 1f, 0.95f);
     public Color indicatorColor = new Color(1f, 0.87f, 0.2f, 1f);
     public int fontSize = 24;
+    public Vector2 scopePanelOffset = new Vector2(320f, 0f);
+    public Vector2 centerCrosshairSize = new Vector2(42f, 42f);
 
     private RectTransform _root;
+    private RectTransform _crosshairRoot;
     private RectTransform _ticksRoot;
     private Image _indicator;
     private TextMeshProUGUI _rangeLabel;
@@ -38,6 +42,9 @@ public class SniperRangeFinder : MonoBehaviour
     private float _lastRange;
     private TankBallistics.Solution _lastSolution;
     private bool _hasSolution;
+
+    public Vector2 ScopePanelAnchoredPosition => _root != null ? _root.anchoredPosition : scopePanelOffset;
+    public Vector2 CrosshairAnchoredPosition => _crosshairRoot != null ? _crosshairRoot.anchoredPosition : Vector2.zero;
 
     private void Awake()
     {
@@ -65,10 +72,14 @@ public class SniperRangeFinder : MonoBehaviour
 
     private void Update()
     {
-        bool sniping = Input.GetMouseButton(1);
+        bool sniping = allowScope && Input.GetMouseButton(1);
         if (_root != null)
         {
             _root.gameObject.SetActive(sniping);
+        }
+        if (_crosshairRoot != null)
+        {
+            _crosshairRoot.gameObject.SetActive(sniping);
         }
 
         if (!sniping)
@@ -97,7 +108,7 @@ public class SniperRangeFinder : MonoBehaviour
         _root.anchorMax = new Vector2(0.5f, 0.5f);
         _root.pivot = new Vector2(0.5f, 0.5f);
         _root.sizeDelta = new Vector2(panelWidth, panelHeight);
-        _root.anchoredPosition = new Vector2(0f, 0f);
+        _root.anchoredPosition = scopePanelOffset;
 
         Image background = rootGo.GetComponent<Image>();
         background.color = panelColor;
@@ -114,8 +125,13 @@ public class SniperRangeFinder : MonoBehaviour
         CreateTicks();
         CreateIndicator();
         CreateHint();
+        CreateCenterCrosshair();
 
         _root.gameObject.SetActive(false);
+        if (_crosshairRoot != null)
+        {
+            _crosshairRoot.gameObject.SetActive(false);
+        }
     }
 
     private void CreateLabels()
@@ -160,6 +176,61 @@ public class SniperRangeFinder : MonoBehaviour
         _hintLabel.fontSize = fontSize - 7;
         _hintLabel.color = new Color(1f, 1f, 1f, 0.65f);
         _hintLabel.text = "RMB range finder";
+    }
+
+    private void CreateCenterCrosshair()
+    {
+        if (targetCanvas == null)
+        {
+            return;
+        }
+
+        GameObject crosshairGo = new GameObject("SniperCenterCrosshair", typeof(RectTransform));
+        crosshairGo.transform.SetParent(targetCanvas.transform, false);
+        _crosshairRoot = crosshairGo.GetComponent<RectTransform>();
+        _crosshairRoot.anchorMin = new Vector2(0.5f, 0.5f);
+        _crosshairRoot.anchorMax = new Vector2(0.5f, 0.5f);
+        _crosshairRoot.pivot = new Vector2(0.5f, 0.5f);
+        _crosshairRoot.anchoredPosition = Vector2.zero;
+        _crosshairRoot.sizeDelta = centerCrosshairSize;
+
+        CreateCrosshairLine("VerticalTop", _crosshairRoot, new Vector2(2f, centerCrosshairSize.y * 0.22f), new Vector2(0f, centerCrosshairSize.y * 0.18f));
+        CreateCrosshairLine("VerticalBottom", _crosshairRoot, new Vector2(2f, centerCrosshairSize.y * 0.22f), new Vector2(0f, -centerCrosshairSize.y * 0.18f));
+        CreateCrosshairLine("HorizontalLeft", _crosshairRoot, new Vector2(centerCrosshairSize.x * 0.22f, 2f), new Vector2(-centerCrosshairSize.x * 0.18f, 0f));
+        CreateCrosshairLine("HorizontalRight", _crosshairRoot, new Vector2(centerCrosshairSize.x * 0.22f, 2f), new Vector2(centerCrosshairSize.x * 0.18f, 0f));
+        CreateScopeRing(_crosshairRoot);
+    }
+
+    private void CreateScopeRing(Transform parent)
+    {
+        GameObject ringGo = new GameObject("ScopeRing", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        ringGo.transform.SetParent(parent, false);
+        RectTransform rt = ringGo.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.sizeDelta = centerCrosshairSize * 1.35f;
+        Image ring = ringGo.GetComponent<Image>();
+        ring.color = new Color(1f, 1f, 1f, 0.22f);
+        ring.raycastTarget = false;
+        Outline outline = ringGo.AddComponent<Outline>();
+        outline.effectColor = new Color(0f, 0f, 0f, 0.55f);
+        outline.effectDistance = new Vector2(1f, -1f);
+    }
+
+    private void CreateCrosshairLine(string name, Transform parent, Vector2 size, Vector2 anchoredPosition)
+    {
+        GameObject lineGo = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        lineGo.transform.SetParent(parent, false);
+        RectTransform rt = lineGo.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.sizeDelta = size;
+        rt.anchoredPosition = anchoredPosition;
+        Image image = lineGo.GetComponent<Image>();
+        image.color = new Color(1f, 1f, 1f, 0.86f);
+        image.raycastTarget = false;
     }
 
     private void CreateTicks()
@@ -283,14 +354,20 @@ public class SniperRangeFinder : MonoBehaviour
 
     private float EstimateBallisticRange()
     {
-        if (tank == null || tank.firePoint == null)
+        Transform muzzle = tank != null ? tank.cannonFirePoint : null;
+        if (muzzle == null && tank != null)
+        {
+            muzzle = tank.firePoint;
+        }
+
+        if (muzzle == null)
         {
             return 0f;
         }
 
-        Vector3 origin = tank.firePoint.position;
+        Vector3 origin = muzzle.position;
         float muzzleSpeed = TankBallistics.GetMuzzleSpeed(tank.maxPower, tank.powerPercentage);
-        Vector3 velocity = tank.firePoint.forward * muzzleSpeed + GetTankVelocity();
+        Vector3 velocity = muzzle.forward * muzzleSpeed + GetTankVelocity();
         Vector3 current = origin;
         float traveled = 0f;
         float step = Mathf.Max(0.02f, simulationStep);

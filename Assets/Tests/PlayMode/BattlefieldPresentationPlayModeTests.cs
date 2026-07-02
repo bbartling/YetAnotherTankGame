@@ -44,6 +44,45 @@ public class BattlefieldPresentationPlayModeTests
     }
 
     [Test]
+    public void TankAudioController_PrefersAuthoredEngineLoopWhenAvailable()
+    {
+        AudioClip running = TankEngineAudioLibrary.RunningLoop;
+        if (running == null)
+        {
+            Assert.Ignore("Authored engine loop is not present under Resources/Audio/tank_sounds.");
+        }
+
+        GameObject root = new GameObject("AuthoredAudioTank");
+        TankAudioController audio = root.AddComponent<TankAudioController>();
+        audio.EnsureEngineAudioSources();
+        audio.EnsureFallbackClips();
+
+        Assert.That(audio.engineSource, Is.Not.Null);
+        Assert.That(audio.engineSource.clip, Is.SameAs(running));
+
+        Object.DestroyImmediate(root);
+    }
+
+    [Test]
+    public void TankAudioController_StopsEngineAfterIdleTimeout()
+    {
+        GameObject root = new GameObject("IdleAudioTank");
+        TankAudioController audio = root.AddComponent<TankAudioController>();
+        audio.idleShutdownSeconds = 0.1f;
+        audio.EnsureEngineAudioSources();
+        audio.EnsureFallbackClips();
+
+        audio.SetEngineStrain(0.8f);
+        Assert.That(audio.engineSource.isPlaying, Is.True);
+
+        audio.SetEngineStrain(0f);
+        audio.AdvanceIdleShutdown(0.12f);
+
+        Assert.That(audio.engineSource.isPlaying, Is.False);
+        Object.DestroyImmediate(root);
+    }
+
+    [Test]
     public void TankAudioController_GeneratesReplaceableFallbackEngineClip()
     {
         GameObject root = new GameObject("AudioTank");
@@ -53,7 +92,37 @@ public class BattlefieldPresentationPlayModeTests
         audio.EnsureFallbackClips();
 
         Assert.That(audio.engineSource.clip, Is.Not.Null);
+        AudioClip running = TankEngineAudioLibrary.RunningLoop;
+        if (running != null)
+        {
+            Assert.That(audio.engineSource.clip, Is.SameAs(running));
+        }
+        else
+        {
+            Assert.That(audio.engineSource.clip.name, Does.Contain("Silly"));
+        }
+        Assert.That(audio.idleVolume, Is.GreaterThanOrEqualTo(0.4f));
+        Assert.That(audio.engineSource.spatialBlend, Is.EqualTo(0f).Within(0.001f));
+        Assert.That(audio.engineSource.loop, Is.True);
         Object.DestroyImmediate(root);
+    }
+
+    [Test]
+    public void ProceduralBattlefieldAudio_ProvidesDistinctExplosionAndTreeFlattenClips()
+    {
+        AudioClip cannonExplosion = ProceduralBattlefieldAudio.CreateCannonballExplosion();
+        AudioClip tankExplosion = ProceduralBattlefieldAudio.CreateTankExplosion();
+        AudioClip treeFlatten = ProceduralBattlefieldAudio.CreateTreeFlatten();
+
+        Assert.That(cannonExplosion, Is.Not.Null);
+        Assert.That(tankExplosion, Is.Not.Null);
+        Assert.That(treeFlatten, Is.Not.Null);
+        Assert.That(cannonExplosion.name, Is.Not.EqualTo(tankExplosion.name));
+        Assert.That(treeFlatten.name, Does.Contain("Tree"));
+
+        Object.DestroyImmediate(cannonExplosion);
+        Object.DestroyImmediate(tankExplosion);
+        Object.DestroyImmediate(treeFlatten);
     }
 
     [Test]
@@ -212,6 +281,8 @@ public class BattlefieldPresentationPlayModeTests
         Assert.That(slots.playerCannonShot, Is.SameAs(authored));
         Assert.That(slots.enemyCannonShot, Is.Not.Null);
         Assert.That(slots.cannonGroundExplosion, Is.Not.Null);
+        Assert.That(slots.cannonGroundExplosion.name, Does.Contain("CannonballExplosion"));
+        Assert.That(slots.enemyTankKill.name, Does.Contain("TankExplosion"));
         Object.DestroyImmediate(root);
         Object.DestroyImmediate(authored);
     }

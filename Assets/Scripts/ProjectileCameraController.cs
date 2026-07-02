@@ -43,6 +43,8 @@ public class ProjectileCameraController : MonoBehaviour
     public GameObject explosionVFX;
     public float explosionRadius = 10f;
     public float explosionForce = 0.7f;
+    public float playerTankImpactDamageMultiplier = 1f;
+    public float playerTankExplosionDamageMultiplier = 1f;
     
     [Header("Impact")]
     public float groundImpactMultiplier = 4.5f;
@@ -66,6 +68,8 @@ public class ProjectileCameraController : MonoBehaviour
 
     private Vector3 _cameraVelocity;
     private Vector3 _lastGoodFlightDirection;
+    private Vector3 _impactLookPoint;
+    private bool _holdingImpactView;
 
     void Start()
     {
@@ -74,7 +78,7 @@ public class ProjectileCameraController : MonoBehaviour
         if (projectileAudio == null) projectileAudio = gameObject.AddComponent<ProjectileAudioController>();
         projectileAudio.EnsureFallbackClip();
         if (flyingShellSound == null) flyingShellSound = projectileAudio.whistleClip;
-        if (explosionSound == null) explosionSound = ProceduralBattlefieldAudio.CreateImpact();
+        if (explosionSound == null) explosionSound = ProceduralBattlefieldAudio.CreateCannonballExplosion();
         _audio.clip = flyingShellSound;
         if (!_audio.isPlaying) _audio.Play();
         _trailRenderer = GetComponent<TrailRenderer>();
@@ -152,7 +156,11 @@ public class ProjectileCameraController : MonoBehaviour
             _audio.clip = flyingShellSound;
         }
 
-        Invoke(nameof(SelfDestruct), GetSelfDestructSeconds());
+        float selfDestructSeconds = GetSelfDestructSeconds();
+        if (!float.IsPositiveInfinity(selfDestructSeconds))
+        {
+            Invoke(nameof(SelfDestruct), selfDestructSeconds);
+        }
     }
 
     void LateUpdate()
@@ -175,8 +183,23 @@ public class ProjectileCameraController : MonoBehaviour
 
     private void UpdateProjectileCamera()
     {
-        if (_projCamTransform == null || _isDestroying)
+        if (_projCamTransform == null)
             return;
+
+        if (_holdingImpactView)
+        {
+            Vector3 impactLookDir = _impactLookPoint - _projCamTransform.position;
+            if (impactLookDir.sqrMagnitude > 0.001f)
+            {
+                Quaternion impactRotation = Quaternion.LookRotation(impactLookDir.normalized, Vector3.up);
+                _projCamTransform.rotation = Quaternion.Slerp(
+                    _projCamTransform.rotation,
+                    impactRotation,
+                    Time.deltaTime * rotationSmoothSpeed);
+            }
+
+            return;
+        }
 
         Vector3 flightDir = GetFlightDirection();
 
@@ -244,9 +267,7 @@ public class ProjectileCameraController : MonoBehaviour
 
     private float GetSelfDestructSeconds()
     {
-        float powerT = Mathf.InverseLerp(50f, 100f, launchPowerPercentage);
-        float multiplier = Mathf.Lerp(1f, 2f, powerT);
-        return baseSelfDestructSeconds * multiplier;
+        return float.PositiveInfinity;
     }
 
     private void UpdateTrailColor()
@@ -288,7 +309,7 @@ public class ProjectileCameraController : MonoBehaviour
         BattlefieldWind wind = BattlefieldWind.Instance;
         if (wind == null)
         {
-            wind = Object.FindFirstObjectByType<BattlefieldWind>();
+            wind = Object.FindAnyObjectByType<BattlefieldWind>();
         }
 
         if (wind == null)
@@ -316,6 +337,8 @@ public class ProjectileCameraController : MonoBehaviour
         }
 
         ContactPoint contact = collision.GetContact(0);
+        _impactLookPoint = contact.point;
+        _holdingImpactView = true;
         float impactForce = Mathf.Max(1f, _rb != null ? _rb.mass * GetRigidbodyVelocity().magnitude : 1f);
 
         CraterTerrain craterTerrain = collision.collider.GetComponentInParent<CraterTerrain>();
@@ -341,7 +364,21 @@ public class ProjectileCameraController : MonoBehaviour
         TankController tank = collision.collider.GetComponentInParent<TankController>();
         if (tank != null)
         {
-            tank.ApplyProjectileDamage(Mathf.Max(15f, impactForce * 1.4f), contact.point, contact.normal);
+            TankController owner = trackingBase != null ? trackingBase.GetComponentInParent<TankController>() : null;
+            if (owner != null && tank == owner)
+            {
+                return;
+            }
+
+            float damage = Mathf.Max(15f, impactForce * 1.4f) * Mathf.Max(0f, playerTankImpactDamageMultiplier);
+            if (playerTankImpactDamageMultiplier < 0.999f)
+            {
+                tank.ApplyBulletDamage(damage, contact.point, contact.normal);
+            }
+            else
+            {
+                tank.ApplyProjectileDamage(damage, contact.point, contact.normal);
+            }
             return;
         }
 
@@ -438,10 +475,23 @@ public class ProjectileCameraController : MonoBehaviour
                 TankController tank = h.GetComponentInParent<TankController>();
                 if (tank != null)
                 {
+                    TankController owner = trackingBase != null ? trackingBase.GetComponentInParent<TankController>() : null;
+                    if (owner != null && tank == owner)
+                    {
+                        continue;
+                    }
+
                     float distance = Vector3.Distance(transform.position, tank.transform.position);
                     float falloff = 1f - Mathf.Clamp01(distance / Mathf.Max(0.01f, explosionRadius));
-                    float damage = Mathf.Max(10f, explosionForce * 70f * falloff + GetRigidbodyVelocity().magnitude * 0.6f);
-                    tank.ApplyExplosionDamage(damage, transform.position, Vector3.up, falloff);
+                    float damage = Mathf.Max(10f, explosionForce * 70f * falloff + GetRigidbodyVelocity().magnitude * 0.6f) * Mathf.Max(0f, playerTankExplosionDamageMultiplier);
+                    if (playerTankExplosionDamageMultiplier < 0.999f)
+                    {
+                        tank.ApplyBulletDamage(damage, transform.position, Vector3.up);
+                    }
+                    else
+                    {
+                        tank.ApplyExplosionDamage(damage, transform.position, Vector3.up, falloff);
+                    }
                     continue;
                 }
 
@@ -486,16 +536,49 @@ public class ProjectileCameraController : MonoBehaviour
         else
             yield return new WaitForSeconds(explosionLingerTime);
 
-        if (projectileCamera != null)
-            projectileCamera.enabled = false;
+        EnsureReturnCamera();
 
         if (_tankCamera != null)
             _tankCamera.enabled = true;
+
+        if (projectileCamera != null && projectileCamera != _tankCamera)
+            projectileCamera.enabled = false;
 
         if (_cannonLineRenderer != null)
             _cannonLineRenderer.enabled = true;
 
         Destroy(gameObject);
+    }
+
+    private void EnsureReturnCamera()
+    {
+        if (_tankCamera != null)
+        {
+            return;
+        }
+
+        if (trackingBase != null)
+        {
+            _tankCamera = trackingBase.GetComponentInChildren<Camera>(true);
+        }
+
+        if (_tankCamera == null)
+        {
+            _tankCamera = Camera.main;
+        }
+
+        if (_tankCamera == null)
+        {
+            Camera[] cameras = Object.FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            for (int i = 0; i < cameras.Length; i++)
+            {
+                if (cameras[i] != null && cameras[i] != projectileCamera)
+                {
+                    _tankCamera = cameras[i];
+                    return;
+                }
+            }
+        }
     }
 
     void OnDestroy()

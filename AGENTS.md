@@ -8,9 +8,9 @@ This block is the authoritative feature contract. Update it in the same validate
 
 ### Game Identity And Feel
 
-- Working title: `SILLY TANK HILL WAR`.
+- Working title: `YET ANOTHER TANK GAME` (silly tank hill war).
 - The target feel is silly cartoon armored vehicles with deliberate War Thunder-ish combat pacing.
-- Player vehicle reaches approximately `7.5 m/s` with gradual acceleration, never FPS-sprint movement.
+- Player vehicle reaches approximately `8.5 m/s` with gradual acceleration, never FPS-sprint movement.
 - Player vehicle must follow terrain into craters.
 - Player vehicle must lose traction on steep slopes and may realistically tip or roll.
 - Player chassis must use heavy, low-center-of-mass physics; sustained rollover ends gameplay.
@@ -18,6 +18,13 @@ This block is the authoritative feature contract. Update it in the same validate
 - Player tank must visually contrast with terrain and retain a readable proper turret silhouette.
 - Enemy health bars must show green remaining health over a red damage background with percentage text.
 - Shift may provide low gear or aim stabilization, never sprint.
+- Main menu must keep three gameplay entries: Driving Practice, Cannon Practice, and WAR.
+- `Assets/Scenes/Practice.unity` remains the WAR scene and is the only main-menu path that may start the ranged enemy battle/randomized generated map flow.
+- `Assets/Scenes/TankDrivingPractice.unity` is a small fixed indoor-stadium obstacle course for tank handling, climbing, traction, rollover, and future AI route testing.
+- `Assets/Scenes/TankDrivingPractice.unity` must lock out turret input, cannon firing, cannon power, machine gun, and sniper scope while preserving tank drive input.
+- `Assets/Scenes/TankTargetPractice.unity` is a small fixed tank shooting range for normal cannon fire and right-click scope/rangefinder dialing.
+- `Assets/Scenes/TankTargetPractice.unity` must lock out WASD/arrow driving and machine gun while preserving turret, cannon, cannon power, and sniper scope/rangefinder.
+- Defeat screen must allow gameplay restart with left click.
 
 ### Locked Weapons And Cameras
 
@@ -28,6 +35,7 @@ This block is the authoritative feature contract. Update it in the same validate
 - Right-click scope/rangefinder must remain and must be aligned with actual aiming.
 - Scope/rangefinder must report useful ballistic information.
 - Trajectory preview or equivalent aim assistance must remain available.
+- Scope/rangefinder must keep the aim-aligned crosshair centered while the range scale/readout sits off to the right side.
 
 ### Locked Enemy Behavior
 
@@ -42,6 +50,8 @@ This block is the authoritative feature contract. Update it in the same validate
 
 - Terrain crater effects must remain.
 - Trees must remain damageable and knockdown-capable.
+- Procedurally generated trees must include `BreakableTree`, flatten from tank collision, and have a fallback tree-flatten sound.
+- Player tank engine audio must remain audible through the procedural fallback loop; do not reduce idle volume below `0.4` without replacing it with a tested authored loop/mix.
 - Castle, turrets, player tank, and enemy tanks must have damage/destruction states.
 - Destruction must be WebGL-safe and bounded. Do not add unbounded runtime debris, primitives, materials, projectiles, impact marks, or crater meshes.
 
@@ -127,3 +137,7 @@ The process pattern is modeled after:
 - `https://github.com/bbartling/TheHoneyManEscape`
 
 Use its locked `AGENTS.md`, Blender source/runtime pairing, WebGL build script, Flask hosting layout, and regression audits as process references. Do not copy unrelated HoneyMan gameplay behavior into this tank game.
+
+## Unity 6 API Notes
+
+See `docs/UNITY_API_UPDATES.md` before editing `PracticeSceneBuilder.cs` or assigning physics materials. Use `PhysicsMaterial` (not `PhysicMaterial`). Rebuild dedicated practice scenes after course collision changes.

@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using NUnit.Framework;
+using System.Reflection;
 using UnityEngine;
 
 public class TankCameraPlayModeTests
@@ -10,9 +11,10 @@ public class TankCameraPlayModeTests
         GameObject cameraObject = new GameObject("ChaseCamera");
         TankOrbitCamera orbit = cameraObject.AddComponent<TankOrbitCamera>();
 
-        Assert.That(orbit.targetOffset.y, Is.InRange(2f, 3.5f));
-        Assert.That(orbit.cameraHeight, Is.GreaterThanOrEqualTo(3.5f));
-        Assert.That(orbit.followDistance, Is.GreaterThanOrEqualTo(10f));
+        Assert.That(orbit.targetOffset.y, Is.GreaterThanOrEqualTo(7f));
+        Assert.That(orbit.cameraHeight, Is.GreaterThanOrEqualTo(9f));
+        Assert.That(orbit.positionSmoothTime, Is.GreaterThanOrEqualTo(0.25f));
+        Assert.That(orbit.focusSmoothTime, Is.GreaterThan(0f));
         Object.DestroyImmediate(cameraObject);
     }
 
@@ -32,6 +34,86 @@ public class TankCameraPlayModeTests
         Assert.That(camera.fieldOfView, Is.EqualTo(scope.scopeFieldOfView).Within(0.01f));
         Object.DestroyImmediate(cameraObject);
         Object.DestroyImmediate(sight.gameObject);
+    }
+
+    [Test]
+    public void SniperRangeFinder_BuildsRightOffsetPanelAndCenteredCrosshair()
+    {
+        GameObject canvasObject = new GameObject("Canvas");
+        Canvas canvas = canvasObject.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+
+        GameObject rangeObject = new GameObject("SniperRangeFinderHost");
+        SniperRangeFinder rangeFinder = rangeObject.AddComponent<SniperRangeFinder>();
+        rangeFinder.targetCanvas = canvas;
+
+        Assert.That(rangeFinder.ScopePanelAnchoredPosition.x, Is.GreaterThan(150f));
+        Assert.That(rangeFinder.ScopePanelAnchoredPosition.y, Is.EqualTo(0f).Within(0.01f));
+        Assert.That(rangeFinder.CrosshairAnchoredPosition, Is.EqualTo(Vector2.zero));
+
+        Object.DestroyImmediate(rangeObject);
+        Object.DestroyImmediate(canvasObject);
+    }
+
+    [Test]
+    public void ChaseCamera_CollisionSlidesIntoLowForwardViewInsteadOfTopDown()
+    {
+        GameObject target = new GameObject("CameraTarget");
+        target.transform.position = Vector3.zero;
+        GameObject sight = new GameObject("Sight");
+        sight.transform.SetParent(target.transform, false);
+        sight.transform.localRotation = Quaternion.identity;
+
+        GameObject blocker = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        blocker.name = "BehindBlocker";
+        blocker.transform.position = new Vector3(0f, 2f, -2f);
+        blocker.transform.localScale = new Vector3(4f, 4f, 0.5f);
+        Physics.SyncTransforms();
+
+        GameObject cameraObject = new GameObject("ChaseCamera");
+        TankOrbitCamera orbit = cameraObject.AddComponent<TankOrbitCamera>();
+        orbit.target = target.transform;
+        orbit.aimDirectionSource = sight.transform;
+        orbit.targetOffset = new Vector3(0f, 2f, 0f);
+        orbit.followDistance = 12f;
+        orbit.cameraHeight = 8f;
+        orbit.positionSmoothTime = 0f;
+        orbit.collisionMask = ~0;
+
+        orbit.SendMessage("LateUpdate");
+
+        Assert.That(cameraObject.transform.position.y, Is.LessThan(5f));
+        Assert.That(Vector3.Dot(cameraObject.transform.forward, sight.transform.forward), Is.GreaterThan(0.45f));
+
+        Object.DestroyImmediate(cameraObject);
+        Object.DestroyImmediate(blocker);
+        Object.DestroyImmediate(target);
+    }
+
+    [Test]
+    public void ProjectileCamera_DisablesLifetimeSelfDestructForFlyingShells()
+    {
+        GameObject projectile = new GameObject("TimerFreeProjectile");
+        ProjectileCameraController controller = projectile.AddComponent<ProjectileCameraController>();
+        controller.baseSelfDestructSeconds = 0.05f;
+
+        MethodInfo lifetimeMethod = typeof(ProjectileCameraController).GetMethod("GetSelfDestructSeconds", BindingFlags.Instance | BindingFlags.NonPublic);
+        float lifetime = (float)lifetimeMethod.Invoke(controller, null);
+        Assert.That(float.IsPositiveInfinity(lifetime), Is.True, "Projectile flight must end by impact/cancel, not by a lifetime timer.");
+
+        Object.DestroyImmediate(projectile);
+    }
+
+    [Test]
+    public void ProjectileCamera_DefaultsToFullPlayerTankDamageForPlayerShells()
+    {
+        GameObject projectile = new GameObject("PlayerDamageProjectile");
+        ProjectileCameraController controller = projectile.AddComponent<ProjectileCameraController>();
+
+        Assert.That(controller.playerTankImpactDamageMultiplier, Is.EqualTo(1f).Within(0.001f));
+        Assert.That(controller.playerTankExplosionDamageMultiplier, Is.EqualTo(1f).Within(0.001f));
+
+        Object.DestroyImmediate(projectile);
     }
 }
 #endif

@@ -80,6 +80,18 @@ public class EnemyTankOperationsPlayModeTests
     }
 
     [Test]
+    public void EnemyPathing_ChoosesSideRouteWhenForwardSlopeIsTooSteep()
+    {
+        TankPathingBrain pathing = new TankPathingBrain { MaxSlopeDegrees = 55f };
+        MethodInfo method = typeof(TankPathingBrain).GetMethod("ChooseSlopeAwareDirection", BindingFlags.Instance | BindingFlags.Public);
+
+        Assert.That(method, Is.Not.Null);
+        Vector3 chosen = (Vector3)method.Invoke(pathing, new object[] { Vector3.forward, Vector3.right, 64f, 48f, 68f });
+
+        Assert.That(Vector3.Dot(chosen.normalized, -Vector3.right), Is.GreaterThan(0.65f));
+    }
+
+    [Test]
     public void GameplayTestApi_ExposesEnemyOperationalEvidence()
     {
         Assert.That(typeof(GameplayTestApi).GetProperty("EnemyDistanceToPlayer", BindingFlags.Instance | BindingFlags.Public), Is.Not.Null);
@@ -90,8 +102,16 @@ public class EnemyTankOperationsPlayModeTests
     [Test]
     public void EnemySpawner_UsesSafeHullClearanceAboveGround()
     {
-        Assert.That(EnemyTankSpawner.GetSafeGroundLift(0.35f), Is.GreaterThanOrEqualTo(2.5f));
+        Assert.That(EnemyTankSpawner.GetSafeGroundLift(0.35f), Is.InRange(0.35f, 0.85f));
         Assert.That(EnemyTankSpawner.GetSafeGroundLift(4f), Is.EqualTo(4f));
+    }
+
+    [Test]
+    public void EnemySpawner_CalculatesGroundSnapFromColliderBottom()
+    {
+        float delta = EnemyTankSpawner.CalculateGroundSnapDelta(-0.4f, 0f, 0.05f);
+
+        Assert.That(delta, Is.EqualTo(0.45f).Within(0.001f));
     }
 
     [Test]

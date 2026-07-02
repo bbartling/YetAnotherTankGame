@@ -93,6 +93,65 @@ public class DamageStatePlayModeTests
     }
 
     [Test]
+    public void Tree_TankImpactCanFlattenImmediatelyWithFallbackSound()
+    {
+        GameObject treeObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        treeObject.AddComponent<Rigidbody>();
+        BreakableTree tree = treeObject.AddComponent<BreakableTree>();
+        tree.smashSound = null;
+        tree.tankFlattenDamage = 999f;
+
+        tree.ApplyImpact(Vector3.zero, Vector3.up, tree.tankFlattenDamage, true);
+
+        Assert.That(tree.IsBroken, Is.True);
+        Assert.That(tree.SmashClipForTest, Is.Not.Null);
+        Assert.That(tree.SmashClipForTest.name, Does.Contain("Tree"));
+
+        if (treeObject != null) Object.DestroyImmediate(treeObject);
+    }
+
+    [Test]
+    public void TreeFieldSpawner_GeneratesFlattenableTreesWithFallbackSounds()
+    {
+        GameObject terrainObject = new GameObject("TreeAuditTerrain");
+        terrainObject.SetActive(false);
+        terrainObject.AddComponent<MeshFilter>();
+        terrainObject.AddComponent<MeshRenderer>();
+        terrainObject.AddComponent<MeshCollider>();
+        CraterTerrain terrain = terrainObject.AddComponent<CraterTerrain>();
+        terrain.xSegments = 8;
+        terrain.zSegments = 8;
+        terrain.terrainWidth = 160f;
+        terrain.terrainLength = 160f;
+        terrain.seedRandomCraters = false;
+        terrain.seedRandomHills = false;
+        terrain.randomizeSeedEachRun = false;
+        terrainObject.SetActive(true);
+
+        GameObject spawnerObject = new GameObject("TreeAuditSpawner");
+        TreeFieldSpawner spawner = spawnerObject.AddComponent<TreeFieldSpawner>();
+        spawner.generateOnAwake = false;
+        spawner.terrainSource = terrain;
+        spawner.treeCount = 6;
+        spawner.clearRadiusFromPlayer = 0f;
+        spawner.clearRadiusFromCastle = 0f;
+        spawner.treeSmashSound = null;
+
+        spawner.SpawnTrees();
+
+        BreakableTree[] trees = spawnerObject.GetComponentsInChildren<BreakableTree>(true);
+        Assert.That(trees.Length, Is.EqualTo(6));
+        for (int i = 0; i < trees.Length; i++)
+        {
+            Assert.That(trees[i].SmashClipForTest, Is.Not.Null);
+            Assert.That(trees[i].tankFlattenDamage, Is.LessThanOrEqualTo(trees[i].maxHealth * 1.5f));
+        }
+
+        Object.DestroyImmediate(spawnerObject);
+        Object.DestroyImmediate(terrainObject);
+    }
+
+    [Test]
     public void EffectPool_DeactivatesOldestBeyondBudget()
     {
         GameObject root = new GameObject("EffectPool");
@@ -128,6 +187,21 @@ public class DamageStatePlayModeTests
 
         Assert.That(states.CurrentState, Is.EqualTo(DamageStateController.State.Smoking));
         Assert.That(enemy.CurrentDamageState, Is.EqualTo("Smoking"));
+        Object.DestroyImmediate(enemyObject);
+    }
+
+    [Test]
+    public void EnemyTankDeath_UsesRandomizedRendererBurstInsteadOfOrderedLoop()
+    {
+        GameObject enemyObject = new GameObject("RandomDeathEnemy");
+        enemyObject.AddComponent<Rigidbody>();
+        enemyObject.AddComponent<AudioSource>();
+        EnemyTankAI enemy = enemyObject.AddComponent<EnemyTankAI>();
+
+        Assert.That(enemy.randomizeDeathRendererBursts, Is.True);
+        Assert.That(enemy.deathRendererBatchMin, Is.GreaterThan(1));
+        Assert.That(enemy.deathRendererBatchMax, Is.GreaterThanOrEqualTo(enemy.deathRendererBatchMin));
+
         Object.DestroyImmediate(enemyObject);
     }
 
@@ -182,6 +256,12 @@ public class DamageStatePlayModeTests
         Assert.That(states.fireEffect, Is.Not.Null);
         Assert.That(states.smokeEffect.GetComponent<ParticleSystem>().main.maxParticles, Is.LessThanOrEqualTo(32));
         Assert.That(states.fireEffect.GetComponent<ParticleSystem>().main.maxParticles, Is.LessThanOrEqualTo(32));
+
+        ParticleSystemRenderer fireRenderer = states.fireEffect.GetComponent<ParticleSystemRenderer>();
+        Assert.That(fireRenderer, Is.Not.Null);
+        Assert.That(fireRenderer.sharedMaterial, Is.Not.Null);
+        Assert.That(fireRenderer.sharedMaterial.shader, Is.Not.Null);
+        Assert.That(fireRenderer.sharedMaterial.shader.name, Does.Not.Contain("Error"));
 
         Object.DestroyImmediate(root);
     }

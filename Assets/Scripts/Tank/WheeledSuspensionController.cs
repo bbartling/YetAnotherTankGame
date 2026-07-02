@@ -7,14 +7,29 @@ public class WheeledSuspensionController : MonoBehaviour
     public float frontOffset = 0.85f;
     public float wheelSpacing = 0.57f;
     public float probeHeight = 1.2f;
-    public float suspensionTravel = 2.2f;
+    public float suspensionTravel = 1f;
     public float wheelRadius = 0.34f;
-    public float springStrength = 30f;
-    public float damperStrength = 8f;
+    public float springStrength = 3f;
+    public float damperStrength = 1.2f;
     public LayerMask groundMask = ~0;
 
     public int WheelCount => 8;
     public int GroundedWheelCount { get; private set; }
+    public Vector3 LastGroundNormal { get; private set; } = Vector3.up;
+    public float RecentBumpStrength { get; private set; }
+    public float SpringBoostScale { get; set; } = 1f;
+    public float DamperScale { get; set; } = 1f;
+    public float BumpLaunchScale { get; set; } = 1f;
+    public float WheelSpinLaunchBoost { get; set; }
+
+    private readonly float[] _lastCompression = new float[8];
+
+    private void OnEnable()
+    {
+        suspensionTravel = Mathf.Clamp(suspensionTravel, 0.55f, 1.1f);
+        springStrength = Mathf.Clamp(springStrength, 2.4f, 3.6f);
+        damperStrength = Mathf.Clamp(damperStrength, 0.8f, 1.8f);
+    }
 
     public Vector3 GetLocalWheelMount(int index)
     {
@@ -27,17 +42,20 @@ public class WheeledSuspensionController : MonoBehaviour
 
     public static float CalculateSpringForce(float compression, float springStrength, float contactVelocity, float damperStrength)
     {
-        return Mathf.Max(0f, compression * springStrength - contactVelocity * damperStrength);
+        return compression * springStrength - contactVelocity * damperStrength;
     }
 
     public int ApplySuspension(Rigidbody body)
     {
         GroundedWheelCount = 0;
+        Vector3 normalSum = Vector3.zero;
         if (body == null)
         {
+            LastGroundNormal = Vector3.up;
             return 0;
         }
 
+        float forwardSpeed = Mathf.Max(0f, Vector3.Dot(ReadBodyVelocity(body), transform.forward));
         float distance = probeHeight + suspensionTravel + wheelRadius;
         for (int i = 0; i < WheelCount; i++)
         {
@@ -45,17 +63,49 @@ public class WheeledSuspensionController : MonoBehaviour
             Vector3 origin = mount + transform.up * probeHeight;
             if (!TryGetNearestNonSelfHit(origin, -transform.up, distance, out RaycastHit hit))
             {
+                _lastCompression[i] = 0f;
                 continue;
             }
 
             float travelDistance = Mathf.Max(0f, hit.distance - probeHeight - wheelRadius);
             float compression = Mathf.Clamp01(1f - travelDistance / Mathf.Max(0.01f, suspensionTravel));
             float contactVelocity = Vector3.Dot(body.GetPointVelocity(hit.point), hit.normal);
-            float force = CalculateSpringForce(compression, springStrength, contactVelocity, damperStrength);
-            body.AddForceAtPosition(hit.normal * (force / WheelCount), hit.point, ForceMode.Acceleration);
+            float spring = springStrength * SpringBoostScale;
+            float damper = damperStrength * DamperScale;
+            float force = CalculateSpringForce(compression, spring, contactVelocity, damper);
+            body.AddForceAtPosition(hit.normal * force, hit.point, ForceMode.Acceleration);
+
+            float release = _lastCompression[i] - compression;
+            if (release > 0.16f && _lastCompression[i] > 0.48f)
+            {
+                float speedFactor = Mathf.Max(forwardSpeed * 0.0025f, WheelSpinLaunchBoost);
+                float bumpStrength = release * (0.0085f + speedFactor) * BumpLaunchScale;
+                RecentBumpStrength = Mathf.Max(RecentBumpStrength, bumpStrength);
+
+                if (TankGameplayTuning.BumpLaunchGlobalScale > 0.0001f)
+                {
+                    float deltaV = bumpStrength * TankGameplayTuning.BumpLaunchGlobalScale;
+                    deltaV = Mathf.Clamp(deltaV, 0f, TankGameplayTuning.OverdriveMaxBumpDeltaV);
+                    if (deltaV > 0.002f)
+                    {
+                        Vector3 launchDir = (
+                            hit.normal * TankGameplayTuning.BumpLaunchVerticalBias
+                            + transform.forward * TankGameplayTuning.BumpLaunchForwardBias).normalized;
+                        float impulse = deltaV * body.mass;
+                        body.AddForceAtPosition(launchDir * impulse, hit.point, ForceMode.Impulse);
+                    }
+                }
+            }
+
+            _lastCompression[i] = compression;
             GroundedWheelCount++;
+            normalSum += hit.normal;
         }
 
+        LastGroundNormal = GroundedWheelCount > 0 && normalSum.sqrMagnitude > 0.0001f
+            ? normalSum.normalized
+            : Vector3.up;
+        RecentBumpStrength = Mathf.MoveTowards(RecentBumpStrength, 0f, Time.fixedDeltaTime * 3f);
         return GroundedWheelCount;
     }
 
@@ -80,5 +130,19 @@ public class WheeledSuspensionController : MonoBehaviour
         }
 
         return nearest.collider != null;
+    }
+
+    private static Vector3 ReadBodyVelocity(Rigidbody body)
+    {
+        if (body == null)
+        {
+            return Vector3.zero;
+        }
+
+#if UNITY_6000_0_OR_NEWER
+        return body.linearVelocity;
+#else
+        return body.velocity;
+#endif
     }
 }

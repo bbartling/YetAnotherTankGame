@@ -6,7 +6,16 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/MainMenu.unity
+    guid: 8bf61f0672fc56a4ebdcd34471d5044a
+  - enabled: 1
     path: Assets/Scenes/Practice.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 1
+    path: Assets/Scenes/TankDrivingPractice.unity
+    guid: fbed35e4a1a85ba47a03df92ef272189
+  - enabled: 1
+    path: Assets/Scenes/TankTargetPractice.unity
+    guid: 217ad385f9fa92f46991fa15c711fb98
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}

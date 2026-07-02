@@ -16,15 +16,41 @@ public class TankVisualAnimator : MonoBehaviour
     private Quaternion _antennaRestRotation = Quaternion.identity;
     private float _recoil;
     private Rigidbody _body;
+    private TankController _tank;
+    private TankDriveController _drive;
+    private TankOverdriveController _overdrive;
 
     private void Awake()
     {
         _body = GetComponent<Rigidbody>();
+        _tank = GetComponent<TankController>();
+        _drive = GetComponent<TankDriveController>();
+        _overdrive = GetComponent<TankOverdriveController>();
     }
 
     private void Update()
     {
-        float speed = _body != null ? Vector3.Dot(_body.linearVelocity, transform.forward) : 0f;
+        float speed = _body != null ? Vector3.Dot(ReadVelocity(), transform.forward) : 0f;
+        float throttle = 0f;
+        _drive?.ReadInput(out throttle, out _, out _);
+
+        if (_overdrive != null && _overdrive.IsOverdriveActive && throttle > 0.25f)
+        {
+            float rpmRatio = Mathf.InverseLerp(TankGameplayTuning.RpmIdle, TankGameplayTuning.RpmRedline, _overdrive.DisplayRpm);
+            float spinSpeed = (_drive != null ? _drive.maxForwardSpeed : 8.5f) * Mathf.Lerp(1.2f, 2.8f, rpmRatio);
+            if (speed < spinSpeed * 0.65f)
+            {
+                speed = Mathf.Lerp(speed, spinSpeed, _overdrive.IsWheelSpinOut ? 0.85f : 0.55f);
+            }
+        }
+        else if (_tank != null && _tank.IsOverturned && _drive != null)
+        {
+            if (Mathf.Abs(throttle) > 0.01f)
+            {
+                speed = throttle * _drive.maxForwardSpeed;
+            }
+        }
+
         TickVisuals(Time.deltaTime, speed, 0f);
     }
 
@@ -63,7 +89,13 @@ public class TankVisualAnimator : MonoBehaviour
             antenna.localRotation = _antennaRestRotation * Quaternion.Euler(wobble, 0f, wobble * 0.55f);
         }
 
-        float trackDegrees = speed * deltaTime * 95f;
+        float wheelMultiplier = _overdrive != null ? _overdrive.WheelVisualMultiplier : 1f;
+        if (_overdrive != null && _overdrive.IsWheelSpinOut)
+        {
+            wheelMultiplier *= 1.6f;
+        }
+
+        float trackDegrees = speed * deltaTime * 95f * wheelMultiplier;
         if (leftTrack != null) leftTrack.Rotate(trackDegrees, 0f, 0f, Space.Self);
         if (rightTrack != null) rightTrack.Rotate(trackDegrees, 0f, 0f, Space.Self);
         if (wheels != null)
@@ -73,5 +105,19 @@ public class TankVisualAnimator : MonoBehaviour
                 if (wheels[i] != null) wheels[i].Rotate(trackDegrees, 0f, 0f, Space.Self);
             }
         }
+    }
+
+    private Vector3 ReadVelocity()
+    {
+        if (_body == null)
+        {
+            return Vector3.zero;
+        }
+
+#if UNITY_6000_0_OR_NEWER
+        return _body.linearVelocity;
+#else
+        return _body.velocity;
+#endif
     }
 }

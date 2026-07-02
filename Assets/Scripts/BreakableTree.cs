@@ -11,6 +11,8 @@ public class BreakableTree : MonoBehaviour
     [Header("Health")]
     public float maxHealth = 18f;
     public float tankCollisionDamage = 4f;
+    public float tankFlattenDamage = 28f;
+    public float tankFlattenSpeed = 1.8f;
     public float shellCollisionDamage = 12f;
     public float destroyDelay = 4f;
 
@@ -27,6 +29,7 @@ public class BreakableTree : MonoBehaviour
     private bool _broken;
 
     public bool IsBroken => _broken;
+    public AudioClip SmashClipForTest => smashSound;
 
     private void Awake()
     {
@@ -48,6 +51,11 @@ public class BreakableTree : MonoBehaviour
             _audio.loop = false;
             _audio.spatialBlend = 0f;
         }
+
+        if (smashSound == null)
+        {
+            smashSound = ProceduralBattlefieldAudio.CreateTreeFlatten();
+        }
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -58,9 +66,14 @@ public class BreakableTree : MonoBehaviour
         }
 
         ContactPoint contact = collision.GetContact(0);
-        if (collision.collider.GetComponentInParent<TankController>() != null)
+        TankController tank = collision.collider.GetComponentInParent<TankController>();
+        if (tank != null)
         {
-            ApplyImpact(contact.point, contact.normal, tankCollisionDamage, true);
+            float relativeSpeed = collision.relativeVelocity.magnitude;
+            float flattenForce = relativeSpeed >= tankFlattenSpeed
+                ? Mathf.Max(tankFlattenDamage, tankCollisionDamage + relativeSpeed * 8f)
+                : tankCollisionDamage;
+            ApplyImpact(contact.point, contact.normal, flattenForce, true);
             return;
         }
 
@@ -75,6 +88,11 @@ public class BreakableTree : MonoBehaviour
         if (_broken)
         {
             return;
+        }
+
+        if (smashSound == null)
+        {
+            smashSound = ProceduralBattlefieldAudio.CreateTreeFlatten();
         }
 
         if (_audio != null && smashSound != null && !_audio.isPlaying)
@@ -99,7 +117,7 @@ public class BreakableTree : MonoBehaviour
         }
 
         _health -= force;
-        if (_health <= 0f || !fromTank && force >= shellCollisionDamage * 0.9f)
+        if (_health <= 0f || (fromTank && force >= tankFlattenDamage * 0.9f) || (!fromTank && force >= shellCollisionDamage * 0.9f))
         {
             BreakTree(worldPoint, worldNormal, force);
         }

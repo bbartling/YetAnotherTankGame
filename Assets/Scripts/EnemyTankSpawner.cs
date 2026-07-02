@@ -33,7 +33,7 @@ public class EnemyTankSpawner : MonoBehaviour
         ResolveReferences();
     }
 
-    public void SpawnEnemyTanks(int desiredCount)
+    public virtual void SpawnEnemyTanks(int desiredCount)
     {
         enemyCount = Mathf.Max(0, desiredCount);
         ResolveReferences();
@@ -209,7 +209,12 @@ public class EnemyTankSpawner : MonoBehaviour
 
     public static float GetSafeGroundLift(float requestedGroundLift)
     {
-        return Mathf.Max(2.5f, requestedGroundLift);
+        return Mathf.Max(0.35f, requestedGroundLift);
+    }
+
+    public static float CalculateGroundSnapDelta(float colliderBottomY, float groundY, float skin)
+    {
+        return groundY + Mathf.Max(0.02f, skin) - colliderBottomY;
     }
 
     private GameObject SpawnEnemyAt(Vector3 spawnPosition, Quaternion rotation, int index, int totalCount)
@@ -225,6 +230,8 @@ public class EnemyTankSpawner : MonoBehaviour
             body.linearVelocity = Vector3.zero;
             body.angularVelocity = Vector3.zero;
         }
+
+        SnapEnemyToGround(enemy, body);
 
         EnemyTankAI ai = enemy.GetComponent<EnemyTankAI>();
         if (ai != null)
@@ -248,6 +255,50 @@ public class EnemyTankSpawner : MonoBehaviour
         }
 
         return enemy;
+    }
+
+    private void SnapEnemyToGround(GameObject enemy, Rigidbody body)
+    {
+        if (enemy == null)
+        {
+            return;
+        }
+
+        Vector3 ground = SampleGround(enemy.transform.position + Vector3.up * spawnHeight);
+        if (ground == Vector3.zero)
+        {
+            return;
+        }
+
+        Physics.SyncTransforms();
+        Collider[] colliders = enemy.GetComponentsInChildren<Collider>(true);
+        float bottom = float.MaxValue;
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider collider = colliders[i];
+            if (collider == null || !collider.enabled || collider.isTrigger)
+            {
+                continue;
+            }
+
+            bottom = Mathf.Min(bottom, collider.bounds.min.y);
+        }
+
+        if (bottom == float.MaxValue)
+        {
+            return;
+        }
+
+        Vector3 adjusted = enemy.transform.position + Vector3.up * CalculateGroundSnapDelta(bottom, ground.y, 0.05f);
+        enemy.transform.position = adjusted;
+        if (body != null)
+        {
+            body.position = adjusted;
+            body.linearVelocity = Vector3.zero;
+            body.angularVelocity = Vector3.zero;
+        }
+
+        Physics.SyncTransforms();
     }
 
     private void ResolveReferences()
@@ -391,9 +442,9 @@ public class EnemyTankSpawner : MonoBehaviour
         ai.turnTorque = Mathf.Min(ai.turnTorque, 32f);
         ai.strafeForce = 0f;
         ai.shellPower = Mathf.Max(145f, ai.shellPower * Mathf.Lerp(1f, 1.2f, difficulty - 1f));
-        ai.fireCooldown = Mathf.Max(6f, ai.fireCooldown / Mathf.Lerp(1f, 1.08f, difficulty - 1f));
+        ai.fireCooldown = Mathf.Max(12f, ai.fireCooldown / Mathf.Lerp(1f, 1.04f, difficulty - 1f));
         ai.aimSpeed = Mathf.Min(ai.aimSpeed, 1.5f);
-        ai.accuracy = Mathf.Clamp01(ai.accuracy + 0.04f * difficulty + (0.03f * normalizedCount));
+        ai.accuracy = Mathf.Clamp(ai.accuracy + 0.015f * difficulty + (0.015f * normalizedCount), 0.25f, 0.44f);
         ai.lastKnownMemorySeconds = Mathf.Clamp(ai.lastKnownMemorySeconds + difficulty * 0.6f, 5f, 12f);
         ai.searchOrbitSpeed *= Mathf.Lerp(1f, 1.18f, normalizedCount);
         ai.searchMoveForce = Mathf.Min(ai.searchMoveForce, 20f);

@@ -11,6 +11,7 @@ public class TankMachineGun : MonoBehaviour
 
     [Header("Input")]
     public KeyCode fireKey = KeyCode.F;
+    public bool allowInputFire = true;
 
     [Header("Machine Gun Feel")]
     public float roundsPerSecond = 14f;
@@ -68,7 +69,7 @@ public class TankMachineGun : MonoBehaviour
         if (tankController == null || firePoint == null) return;
         if (tankController.IsDestroyed) return;
 
-        if (Input.GetKey(fireKey) && Time.time >= _nextFireTime)
+        if (allowInputFire && Input.GetKey(fireKey) && Time.time >= _nextFireTime)
         {
             FireOneRound();
             _nextFireTime = Time.time + (1f / Mathf.Max(1f, roundsPerSecond));
