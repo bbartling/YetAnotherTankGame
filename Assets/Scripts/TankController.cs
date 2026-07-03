@@ -33,10 +33,10 @@ public class TankController : MonoBehaviour
     public float maxForwardSpeed = 13f;
     public float maxReverseSpeed = 7.5f;
     public float trackDriveResponse = 5.5f;
-    public float turnAcceleration = 21f;
-    public float pivotTurnAcceleration = 24f;
-    public float lateralGrip = 36f;
-    public float headingGrip = 14f;
+    public float turnAcceleration = 12f;
+    public float pivotTurnAcceleration = 14f;
+    public float lateralGrip = 52f;
+    public float headingGrip = 22f;
     public float groundCheckDistance = 1.4f;
     public LayerMask groundMask = ~0;
     public float terrainSurfaceSkin = 0.08f;
@@ -51,32 +51,34 @@ public class TankController : MonoBehaviour
     public float suspensionProbeHeight = 1.1f;
     public float suspensionProbeDistance = 2.8f;
     public float suspensionRideHeight = 0.38f;
-    public float suspensionSpring = 34f;
-    public float suspensionDamper = 7f;
-    public float trackDownforce = 26f;
-    public float slopeAlignmentTorque = 52f;
-    public float slopeAlignmentDamping = 7f;
+    public float suspensionSpring = 18f;
+    public float suspensionDamper = 16f;
+    public float trackDownforce = 48f;
+    public float slopeAlignmentTorque = 95f;
+    public float slopeAlignmentDamping = 22f;
     public float maxAssistedSlopeAngle = 55f;
+    public float climbAntiTipTorque = 55f;
     public float maxDriveSlopeAngle = 55f;
-    public float brakeDrag = 7f;
+    public float brakeDrag = 10f;
 
     [Header("Tank Stability")]
     public float playerVisualScale = 3f;
     public float chassisMass = TankGameplayTuning.ChassisMass;
-    public Vector3 centerOfMassOffset = new Vector3(0f, -1.15f, 0f);
-    public float uprightAssist = 12f;
-    public float angularDamping = 4.5f;
-    public float linearDamping = 0.65f;
-    public float rolloverDefeatAngle = 75f;
-    public float rolloverDefeatDelay = 2f;
+    // Centered, low COM — planted MBT, not nose-heavy RC toy.
+    public Vector3 centerOfMassOffset = new Vector3(0f, -0.95f, 0.1f);
+    public float uprightAssist = 18f;
+    public float angularDamping = 14f;
+    public float linearDamping = 1.35f;
+    public float rolloverDefeatAngle = 155f;
+    public float rolloverDefeatDelay = 1.4f;
     public float rolloverStartupGraceSeconds = 6f;
     public float rolloverStableArmSeconds = 2f;
     public bool disableRolloverDefeat = false;
 
     [Header("Mouse Turret")]
     [Tooltip("Mouse X yaws the turret left/right. This is intentionally local to turretYawPivot so the turret does not orbit the map.")]
-    public float mouseYawDegreesPerSecond = TankCombatProfile.MouseYawDegreesPerSecond;
-    public float turretYawSpeed = TankCombatProfile.TurretYawSpeed;
+    public float mouseYawDegreesPerSecond = 42.5f;
+    public float turretYawSpeed = 110f;
 
     [Tooltip("Mouse wheel plus PageUp/PageDown pitch the barrel.")]
     public float mouseWheelPitchSensitivity = 18f;
@@ -192,10 +194,12 @@ public class TankController : MonoBehaviour
 
     private void Start()
     {
-        GameAudioVolume.LoadAndApply();
-        TankCombatProfile.ApplyToTankController(this);
         string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-        TankVoidFallController.Ensure(this, sceneName == "TankTargetPractice");
+        if (sceneName == "TankTargetPractice")
+        {
+            return;
+        }
+
         SnapToTerrainClearance(terrainSurfaceSkin, true);
         AlignHullToGroundSurface();
         SnapToTerrainClearance(terrainSurfaceSkin, true);
@@ -210,16 +214,19 @@ public class TankController : MonoBehaviour
             chassisMass = TankGameplayTuning.ChassisMass;
         }
 
-        _rb.mass = Mathf.Max(15000f, chassisMass);
-        centerOfMassOffset.y = Mathf.Min(centerOfMassOffset.y, -1f);
+        chassisMass = TankGameplayTuning.ChassisMass;
+        _rb.mass = Mathf.Max(30000f, chassisMass);
+        // Centered low COM for life-size weight. PreventBackwardTip stops climb flip-overs.
+        centerOfMassOffset = new Vector3(0f, -0.95f, 0.1f);
         _rb.centerOfMass = centerOfMassOffset;
         _rb.constraints = RigidbodyConstraints.None;
 
         _rb.interpolation = RigidbodyInterpolation.Interpolate;
         _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-        _rb.angularDamping = Mathf.Max(4f, angularDamping);
-        _rb.linearDamping = linearDamping;
-        _rb.maxAngularVelocity = 5f;
+        _rb.angularDamping = Mathf.Max(12f, angularDamping);
+        _rb.linearDamping = Mathf.Max(1.2f, linearDamping);
+        _rb.maxAngularVelocity = 2.2f;
+        _rb.sleepThreshold = 0.02f;
     }
 
     private void AutoWireReferences()
@@ -331,6 +338,7 @@ public class TankController : MonoBehaviour
         _suspensionVisual?.RecordGroundNormal(groundInfo.normal, Time.fixedDeltaTime);
         _tankAudioController?.SetEngineStrain(EngineStrain);
         AlignHullToTrackGrade(groundInfo);
+        PreventBackwardTip(groundInfo);
         if (CheckRolloverDefeat())
         {
             return;
@@ -438,21 +446,11 @@ public class TankController : MonoBehaviour
 
         _tankAudioController = GetComponent<TankAudioController>();
         if (_tankAudioController == null) _tankAudioController = gameObject.AddComponent<TankAudioController>();
-        _tankAudioController.EnsureEngineAudioSources();
-        _tankAudioController.EnsureFallbackClips();
-
-        if (GetComponent<TankCombatMechanicalAudio>() == null)
-        {
-            TankCombatMechanicalAudio mechanical = gameObject.AddComponent<TankCombatMechanicalAudio>();
-            mechanical.tank = this;
-        }
 
         _overdriveController = GetComponent<TankOverdriveController>();
 
         if (gameplayCamera != null)
         {
-            gameplayCamera.transform.SetParent(null, true);
-
             TankOrbitCamera orbitCamera = gameplayCamera.GetComponent<TankOrbitCamera>();
             if (orbitCamera == null) orbitCamera = gameplayCamera.gameObject.AddComponent<TankOrbitCamera>();
             orbitCamera.target = transform;
@@ -477,8 +475,10 @@ public class TankController : MonoBehaviour
         maxDriveSlopeAngle = _driveController.maxClimbSlopeDegrees;
         forwardAcceleration = _driveController.GetAccelerationLimit(false, 0f);
         reverseAcceleration = _driveController.GetAccelerationLimit(true, 0f);
-        turnAcceleration = Mathf.Min(turnAcceleration, 10f);
-        pivotTurnAcceleration = Mathf.Min(pivotTurnAcceleration, 12f);
+        turnAcceleration = Mathf.Min(turnAcceleration, 8f);
+        pivotTurnAcceleration = Mathf.Min(pivotTurnAcceleration, 10f);
+        lateralGrip = Mathf.Max(lateralGrip, 48f);
+        headingGrip = Mathf.Max(headingGrip, 20f);
         trackDriveResponse = Mathf.Max(trackDriveResponse, 5f);
         brakeDrag = Mathf.Max(brakeDrag, _driveController.GetBrakingResponse());
     }
@@ -509,10 +509,9 @@ public class TankController : MonoBehaviour
 
     public void SyncCombatControllers()
     {
-        TankCombatProfile.ApplyToTankController(this);
-
         if (_turretController != null)
         {
+            _turretController.Bind(turretYawPivot, turretYawSpeed, mouseYawDegreesPerSecond);
             _turretYaw = _turretController.DesiredYawDegrees;
         }
 
@@ -895,6 +894,62 @@ public class TankController : MonoBehaviour
 
         Vector3 angularDampingTorque = -Vector3.Project(_rb.angularVelocity, tiltAxis.normalized) * slopeAlignmentDamping;
         _rb.AddTorque(tiltAxis * slopeAlignmentTorque + angularDampingTorque, ForceMode.Acceleration);
+    }
+
+    /// <summary>
+    /// Real tanks do not tip over backwards on climbs — they lose traction first.
+    /// Hard-lock pitch to the ground grade whenever the nose tries to rise above it.
+    /// </summary>
+    private void PreventBackwardTip(TrackGroundInfo groundInfo)
+    {
+        if (!groundInfo.grounded || _rb == null)
+        {
+            return;
+        }
+
+        Vector3 groundNormal = groundInfo.normal;
+        Vector3 gradeForward = Vector3.ProjectOnPlane(transform.forward, groundNormal);
+        if (gradeForward.sqrMagnitude < 0.0001f)
+        {
+            return;
+        }
+
+        gradeForward.Normalize();
+        Vector3 pitchAxis = Vector3.Cross(groundNormal, gradeForward);
+        if (pitchAxis.sqrMagnitude < 0.0001f)
+        {
+            return;
+        }
+
+        pitchAxis.Normalize();
+
+        // Positive when the nose is above the grade plane (tipping backwards).
+        // pitchAxis = Cross(normal, gradeForward) => positive rotation pitches nose DOWN.
+        float noseAboveGrade = Vector3.Dot(transform.forward, groundNormal);
+        float pitchRate = Vector3.Dot(_rb.angularVelocity, pitchAxis);
+
+        // Kill any angular velocity that raises the nose above the grade.
+        if (noseAboveGrade > -0.01f && pitchRate < 0f)
+        {
+            _rb.angularVelocity -= pitchAxis * pitchRate;
+            pitchRate = 0f;
+        }
+
+        if (noseAboveGrade <= 0.01f)
+        {
+            return;
+        }
+
+        // Snap pitch back onto the grade — tanks never tip over backwards.
+        float correction = Mathf.Clamp(noseAboveGrade * 220f + climbAntiTipTorque * 4f, 40f, 320f);
+        _rb.AddTorque(pitchAxis * correction, ForceMode.Acceleration);
+
+        Vector3 alignAxis = Vector3.Cross(transform.up, groundNormal);
+        Vector3 alignPitch = Vector3.Project(alignAxis, pitchAxis);
+        if (alignPitch.sqrMagnitude > 0.0001f)
+        {
+            _rb.AddTorque(alignPitch * (slopeAlignmentTorque * 2.5f), ForceMode.Acceleration);
+        }
     }
 
     private void ClampGroundSpeed(TrackGroundInfo groundInfo)
@@ -1519,7 +1574,6 @@ public class TankController : MonoBehaviour
         }
         GetComponent<TankVisualAnimator>()?.TriggerRecoil();
         IgnoreShellOwnerCollision(shell);
-        Physics.SyncTransforms();
 
         ProjectileCameraController projectileCamera = shell.GetComponent<ProjectileCameraController>();
         if (projectileCamera != null)
@@ -1591,11 +1645,16 @@ public class TankController : MonoBehaviour
         if (TankDrivingProfile.ShouldApplyToScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name))
         {
             ApplySharedDrivingHandling();
+            TankCombatProfile.ApplyToTankController(this);
         }
 
-        SnapToTerrainClearance(terrainSurfaceSkin, true);
-        AlignHullToGroundSurface();
-        SnapToTerrainClearance(terrainSurfaceSkin, true);
+        string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        if (sceneName != "TankTargetPractice")
+        {
+            SnapToTerrainClearance(terrainSurfaceSkin, true);
+            AlignHullToGroundSurface();
+            SnapToTerrainClearance(terrainSurfaceSkin, true);
+        }
         _rb.isKinematic = false;
         SetVelocity(Vector3.zero);
         _rb.angularVelocity = Vector3.zero;

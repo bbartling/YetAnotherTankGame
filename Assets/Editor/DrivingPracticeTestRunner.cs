@@ -76,6 +76,7 @@ public static class DrivingPracticeTestRunner
 
         autopilot.autoRunOnPlay = true;
         autopilot.muteAudioDuringTest = true;
+        EditorUtility.SetDirty(autopilot);
         EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
     }
 
@@ -133,6 +134,8 @@ public static class DrivingPracticeTestRunner
         EditorApplication.update -= WaitForCompletion;
         _waiting = false;
 
+        RestoreHumanDrivingInScene();
+
         if (EditorApplication.isPlaying)
         {
             EditorApplication.isPlaying = false;
@@ -146,6 +149,21 @@ public static class DrivingPracticeTestRunner
         {
             EditorApplication.Exit(success ? 0 : 1);
         }
+    }
+
+    private static void RestoreHumanDrivingInScene()
+    {
+        DrivingPracticeAutopilot autopilot = UnityEngine.Object.FindAnyObjectByType<DrivingPracticeAutopilot>();
+        if (autopilot == null)
+        {
+            return;
+        }
+
+        autopilot.autoRunOnPlay = false;
+        autopilot.StopAutopilot();
+        EditorUtility.SetDirty(autopilot);
+        EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+        EditorSceneManager.SaveOpenScenes();
     }
 }
 #endif

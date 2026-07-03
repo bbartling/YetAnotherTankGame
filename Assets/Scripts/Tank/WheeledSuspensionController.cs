@@ -9,8 +9,8 @@ public class WheeledSuspensionController : MonoBehaviour
     public float probeHeight = 1.2f;
     public float suspensionTravel = 1f;
     public float wheelRadius = 0.34f;
-    public float springStrength = 3f;
-    public float damperStrength = 1.2f;
+    public float springStrength = 2.2f;
+    public float damperStrength = 2.8f;
     public LayerMask groundMask = ~0;
 
     public int WheelCount => 8;
@@ -26,9 +26,9 @@ public class WheeledSuspensionController : MonoBehaviour
 
     private void OnEnable()
     {
-        suspensionTravel = Mathf.Clamp(suspensionTravel, 0.55f, 1.1f);
-        springStrength = Mathf.Clamp(springStrength, 2.4f, 3.6f);
-        damperStrength = Mathf.Clamp(damperStrength, 0.8f, 1.8f);
+        suspensionTravel = Mathf.Clamp(suspensionTravel, 0.4f, 0.85f);
+        springStrength = Mathf.Clamp(springStrength, 1.6f, 2.6f);
+        damperStrength = Mathf.Clamp(damperStrength, 2.0f, 3.6f);
     }
 
     public Vector3 GetLocalWheelMount(int index)

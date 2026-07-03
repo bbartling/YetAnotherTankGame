@@ -1,6 +1,8 @@
 # Player Tank Playability State
 
-Updated: 2026-06-23
+Updated: 2026-07-03
+
+Authoritative driving settings live in `AGENTS.md` (Best-Known Shared Driving Settings) and `Assets/Scripts/Tank/TankDrivingProfile.cs`. Baseline commit: `4b6842e7`.
 
 ## Controls
 
@@ -20,19 +22,17 @@ Updated: 2026-06-23
 ## Current Main Menu Modes
 
 - `Driving Practice`: loads `Assets/Scenes/TankDrivingPractice.unity`, a small fixed indoor-stadium obstacle course for handling, climbing, bumps, narrow bridge, traction loss, and rollover testing. Driving is enabled; turret movement, cannon fire, cannon power, machine gun, and scope are locked out.
-- `Cannon Practice`: loads `Assets/Scenes/TankTargetPractice.unity`, a small fixed shooting range with lane markers, backstop berm, background tank silhouette, and shootable cannon targets. Turret, cannon, cannon power, and right-click scope/rangefinder are enabled; WASD/arrow driving and machine gun are locked out.
+- `Cannon Practice`: loads `Assets/Scenes/TankTargetPractice.unity`, a small fixed shooting range with lane markers, backstop berm, background tank silhouette, and shootable cannon targets. Drive, turret, cannon, cannon power, and right-click scope/rangefinder are enabled; machine gun is locked out.
 - `WAR`: loads/uses `Assets/Scenes/Practice.unity`; this is the only main-menu mode that spawns the ranged enemy wave and uses the generated/randomized battle setup.
 - On Defeat, left mouse restarts the current selected mode.
 
 ## Current Locked Gameplay Settings
 
 - Player cannon power defaults to `100%`.
-- Tank road speed policy is `8.5 m/s` max forward and `4.2 m/s` max reverse.
-- Tank drive acceleration remains deliberate, now `1.2 s` to target speed so the tank can climb normal hills and tank-height bumps.
-- Maximum sustained climb angle is `55 degrees`; this replaced the earlier `17`, `28`, and `38 degree` caps because normal crater-terrain hills were being treated as unclimbable.
-- Uphill speed starts dropping above `40 degrees` and reaches `0` at the climb cap; tanks can stall, slide, tip, or roll on cliff-like faces and should route around them.
-- Continuous terrain clearance is enabled on the player tank.
-- Wheel suspension uses `1.0 m` travel, `3.0` spring acceleration, and `1.2` damping so eight wheel contacts do not over-lift the chassis.
+- Shared drive profile (`TankDrivingProfile`): `12` m/s max forward, `6` m/s max reverse, `0.62 s` accel, `1.1 s` brake, `60°` max climb, `44°` traction loss start.
+- Overdrive: hold forward `3 s` to unlock speed/climb burst; one black rear smoke puff on unlock (no fire, not pink).
+- Chassis mass `22000` (`TankGameplayTuning`).
+- Continuous terrain clearance is enabled on WAR/driving practice; disabled on cannon practice (range anchor placement).
 - Wheel suspension contacts are allowed to mark the tank grounded when the narrower track probe misses terrain.
 - Enemy spawn ground lift is `0.35 m`, with collider-bottom snapping to terrain plus `0.05 m` skin.
 - Enemy AI pathing rejects travel slopes over about `55 degrees` and evaluates side routes before driving straight into steep terrain.

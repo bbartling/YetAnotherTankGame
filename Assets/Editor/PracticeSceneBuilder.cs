@@ -92,19 +92,6 @@ public static class PracticeSceneBuilder
         Physics.SyncTransforms();
         anchor.ApplyNow();
         Physics.SyncTransforms();
-
-        if (controller != null && controller.transform.position.y > 4f)
-        {
-            float pivotToBottom = anchor.GetPivotToBottomOffset();
-            Vector3 corrected = controller.transform.position;
-            corrected.y = 0.08f + anchor.hullClearance + pivotToBottom;
-            controller.transform.position = corrected;
-            Rigidbody body = tank.GetComponent<Rigidbody>();
-            if (body != null)
-            {
-                body.position = corrected;
-            }
-        }
     }
 
     private static GameObject InstantiatePracticeTank(GameObject sourceTank, Vector3 position, Quaternion rotation)

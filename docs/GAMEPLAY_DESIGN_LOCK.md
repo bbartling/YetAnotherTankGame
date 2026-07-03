@@ -8,8 +8,9 @@ The game is a silly cartoon armored-vehicle battle with deliberate War Thunder-i
 
 ## Locked Player Experience
 
-- Player wheeled vehicle reaches approximately `8.5 m/s` with gradual acceleration and braking, never FPS-sprint movement.
+- Player wheeled vehicle uses the best-known shared drive profile in `AGENTS.md` / `TankDrivingProfile` (`12` m/s max forward, `6` m/s reverse, gradual accel/brake). Never FPS-sprint movement.
 - Reverse is slower than forward.
+- Hold forward to charge overdrive; on unlock, apply speed/climb burst and emit one black rear smoke puff (no fire, not pink).
 - Low-speed turning is possible but heavy.
 - High-speed turning is wide and limited.
 - Uphill movement loses speed and produces engine strain.
@@ -34,7 +35,7 @@ The game is a silly cartoon armored-vehicle battle with deliberate War Thunder-i
 - `Driving Practice` loads `Assets/Scenes/TankDrivingPractice.unity`, a bounded hard-coded indoor-stadium obstacle course for tank climb, bump, bridge, traction, and rollover testing.
 - `Driving Practice` allows only tank driving controls; turret movement, cannon fire, cannon power changes, machine gun, and right-click scope are locked out.
 - `Cannon Practice` loads `Assets/Scenes/TankTargetPractice.unity`, a bounded fixed shooting range for normal cannon fire and far right-click scope/rangefinder dialing.
-- `Cannon Practice` locks out WASD/arrow tank movement and machine gun; turret movement, cannon fire, cannon power changes, and scope/rangefinder remain available.
+- `Cannon Practice` allows drive + turret + cannon + scope; machine gun is locked out.
 - Defeat screen must support left-click restart into the current selected mode.
 
 ## Locked Camera Experience

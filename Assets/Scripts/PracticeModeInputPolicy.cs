@@ -53,17 +53,11 @@ public class PracticeModeInputPolicy : MonoBehaviour
         tank.leftClickFiresCannon = AllowsCannon;
         tank.disableRolloverDefeat = mode == PracticeControlMode.DrivingOnly;
 
+        ApplySharedGameplayProfiles(tank);
+
         if (AllowsTurret)
         {
             tank.SyncCombatControllers();
-        }
-
-        if (mode == PracticeControlMode.War
-            || mode == PracticeControlMode.DrivingOnly
-            || mode == PracticeControlMode.TargetPractice)
-        {
-            tank.ApplySharedDrivingHandling();
-            TankCombatProfile.ApplyToTankController(tank);
         }
 
         if (mode == PracticeControlMode.DrivingOnly)
@@ -78,21 +72,15 @@ public class PracticeModeInputPolicy : MonoBehaviour
 
             recovery.tank = tank;
             DrivingLapProgressHud.Ensure(tank);
+            PracticeReturnController.Ensure(mode, tank);
         }
 
         if (mode == PracticeControlMode.TargetPractice)
         {
+            tank.continuousTerrainSnapEnabled = false;
             TargetRangeTankAnchor.Apply(tank);
             TargetPracticeProgressHud.Ensure();
             TankVoidFallController.Ensure(tank, useRangeBounds: true);
-        }
-        else
-        {
-            TankVoidFallController.Ensure(tank, useRangeBounds: false);
-        }
-
-        if (mode == PracticeControlMode.DrivingOnly || mode == PracticeControlMode.TargetPractice)
-        {
             PracticeReturnController.Ensure(mode, tank);
         }
 
@@ -117,5 +105,11 @@ public class PracticeModeInputPolicy : MonoBehaviour
                 scopeCamera.allowScope = AllowsScope;
             }
         }
+    }
+
+    private static void ApplySharedGameplayProfiles(TankController tank)
+    {
+        TankDrivingProfile.ApplyToTankController(tank);
+        TankCombatProfile.ApplyToTankController(tank);
     }
 }

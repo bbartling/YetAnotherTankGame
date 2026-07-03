@@ -11,9 +11,11 @@ public class TankVoidFallController : MonoBehaviour
     public float minZ = -70f;
     public float maxZ = 550f;
     public float boundsGraceSeconds = 0.35f;
+    public float spawnGraceSeconds = 4f;
     public AudioClip fallScreamClip;
 
     private float _outsideBoundsSeconds;
+    private float _spawnGraceRemaining;
     private bool _triggered;
 
     public static TankVoidFallController Ensure(TankController targetTank, bool useRangeBounds)
@@ -45,6 +47,7 @@ public class TankVoidFallController : MonoBehaviour
             tank = GetComponent<TankController>();
         }
 
+        _spawnGraceRemaining = spawnGraceSeconds;
         EnsureFallScreamClip();
     }
 
@@ -52,6 +55,12 @@ public class TankVoidFallController : MonoBehaviour
     {
         if (_triggered || tank == null || tank.IsDestroyed)
         {
+            return;
+        }
+
+        if (_spawnGraceRemaining > 0f)
+        {
+            _spawnGraceRemaining -= Time.deltaTime;
             return;
         }
 

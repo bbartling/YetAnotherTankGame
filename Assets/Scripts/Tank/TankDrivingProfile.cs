@@ -16,7 +16,9 @@ public static class TankDrivingProfile
 
     public static bool ShouldApplyToScene(string sceneName)
     {
-        return sceneName == "Practice" || sceneName == "TankDrivingPractice" || sceneName == "TankTargetPractice";
+        return sceneName == "Practice"
+            || sceneName == "TankDrivingPractice"
+            || sceneName == "TankTargetPractice";
     }
 
     public static void ApplyToDriveController(TankDriveController drive)
@@ -33,5 +35,15 @@ public static class TankDrivingProfile
         drive.minimumUphillSpeedMultiplier = MinimumUphillSpeedMultiplier;
         drive.tractionLossSlopeDegrees = TractionLossSlopeDegrees;
         drive.maxClimbSlopeDegrees = MaxClimbSlopeDegrees;
+    }
+
+    public static void ApplyToTankController(TankController tank)
+    {
+        if (tank == null)
+        {
+            return;
+        }
+
+        tank.ApplySharedDrivingHandling();
     }
 }

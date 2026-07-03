@@ -87,13 +87,10 @@ public class PracticeReturnController : MonoBehaviour
             return false;
         }
 
-        if (playerTank.disableRolloverDefeat)
-        {
-            return playerTank.IsOverturned
-                && playerTank.RolloverSeconds >= playerTank.rolloverDefeatDelay;
-        }
-
-        return playerTank.IsOverturned && playerTank.RolloverSeconds >= playerTank.rolloverDefeatDelay;
+        // Only OOF when the tank is fully upside-down, not merely steeply tipped.
+        bool fullyUpsideDown = playerTank.transform.up.y < -0.35f
+            && playerTank.RolloverAngle >= playerTank.rolloverDefeatAngle;
+        return fullyUpsideDown && playerTank.RolloverSeconds >= playerTank.rolloverDefeatDelay;
     }
 
     private static bool AreAllPracticeTargetsCleared()

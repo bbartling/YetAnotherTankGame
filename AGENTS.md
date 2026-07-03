@@ -10,7 +10,6 @@ This block is the authoritative feature contract. Update it in the same validate
 
 - Working title: `YET ANOTHER TANK GAME` (silly tank hill war).
 - The target feel is silly cartoon armored vehicles with deliberate War Thunder-ish combat pacing.
-- Player vehicle reaches approximately `8.5 m/s` with gradual acceleration, never FPS-sprint movement.
 - Player vehicle must follow terrain into craters.
 - Player vehicle must lose traction on steep slopes and may realistically tip or roll.
 - Player chassis must use heavy, low-center-of-mass physics; sustained rollover ends gameplay.
@@ -23,8 +22,76 @@ This block is the authoritative feature contract. Update it in the same validate
 - `Assets/Scenes/TankDrivingPractice.unity` is a small fixed indoor-stadium obstacle course for tank handling, climbing, traction, rollover, and future AI route testing.
 - `Assets/Scenes/TankDrivingPractice.unity` must lock out turret input, cannon firing, cannon power, machine gun, and sniper scope while preserving tank drive input.
 - `Assets/Scenes/TankTargetPractice.unity` is a small fixed tank shooting range for normal cannon fire and right-click scope/rangefinder dialing.
-- `Assets/Scenes/TankTargetPractice.unity` must lock out WASD/arrow driving and machine gun while preserving turret, cannon, cannon power, and sniper scope/rangefinder.
+- `Assets/Scenes/TankTargetPractice.unity` preserves drive + turret + cannon + scope; lock out machine gun only.
 - Defeat screen must allow gameplay restart with left click.
+
+### Best-Known Shared Driving Settings (LOCKED)
+
+Authoritative baseline commit: [`4b6842e7`](https://github.com/bbartling/YetAnotherTankGame/commit/4b6842e7d37490288f86221949fc410643511e29) ("driving course good enough").
+Shooting-range placement baseline: [`78210fb`](https://github.com/bbartling/YetAnotherTankGame/commit/78210fbd9f04f94f8b1a44c38122b4f60b6c0aec).
+
+**Same settings apply to WAR (`Practice`), Driving Practice, and Cannon Practice.** Do not invent separate practice-only physics. Apply via `TankDrivingProfile` + `TankGameplayTuning` + `TankOverdriveSetup` only.
+
+Source of truth files (do not regress without intentional validated change):
+
+- `Assets/Scripts/Tank/TankDrivingProfile.cs`
+- `Assets/Scripts/Tank/TankGameplayTuning.cs`
+- `Assets/Scripts/Tank/TankDriveController.cs`
+- `Assets/Scripts/Tank/WheeledSuspensionController.cs`
+- `Assets/Scripts/Tank/TankOverdriveController.cs`
+- `Assets/Scripts/TankController.cs` (physics body from `4b6842e7`)
+
+Locked drive profile (`TankDrivingProfile`):
+
+| Setting | Value |
+|---|---|
+| MaxForwardSpeed | `12` m/s |
+| MaxReverseSpeed | `6` m/s |
+| AccelerationSeconds | `0.62` |
+| BrakingSeconds | `1.1` |
+| MinimumUphillSpeedMultiplier | `0.72` |
+| TractionLossSlopeDegrees | `44` |
+| MaxClimbSlopeDegrees | `60` |
+| TrackDriveResponse | `6.5` |
+| ForwardAcceleration | `65` |
+| ReverseAcceleration | `42` |
+
+Locked chassis / overdrive (`TankGameplayTuning`):
+
+| Setting | Value |
+|---|---|
+| ChassisMass | `42000` (planted MBT weight; centered low COM) |
+| OverdriveHoldSeconds | `3` (hold W to charge) |
+| OverdriveSpeedMultiplier | `3 * MassTuningRatio` |
+| OverdriveAccelerationMultiplier | `3.5 * MassTuningRatio` |
+| OverdriveClimbMultiplier | `3 * MassTuningRatio` |
+| OverdriveBurstPush | `1.8` |
+| PracticeBasePlanarSpeedCap | `13` |
+
+Locked combat profile (shared turret feel, `TankCombatProfile`):
+
+| Setting | Value |
+|---|---|
+| TurretYawSpeed | `55` °/s |
+| MouseYawDegreesPerSecond | `32` |
+| MouseWheelPitchSensitivity | `18` |
+| KeyboardPitchSpeed | `24` |
+
+Driving practice scene: restore from `4b6842e7` when physics feel regresses. Do **not** leave `DrivingPracticeAutopilot.autoRunOnPlay = true` in the scene (human drives by default). Autopilot is editor-test only.
+
+Cannon practice: place tank with `TargetRangeTankAnchor` (`hullClearance = 1.05`, rear-lane spawn). Do **not** freeze rigidbody / disable suspension for range placement. Skip `SnapToTerrainClearance` on `TankTargetPractice` so the tank does not float or fall through.
+
+### Locked Overdrive Exhaust Puff
+
+- After speed/climb overdrive unlocks (hold forward until charge completes), emit **2–4 random black smoke puffs** from the tank rear (`ExhaustPoint`, local `0, 0.65, -2.35`) with random sizes and particle counts.
+- Smoke only — **no fire**, no continuous plume, no pink default Unity particle material.
+- Implemented in `TankOverdriveController.PlayRandomBlackSmokePuffs()` with an explicit black-tinted particle material.
+- Do not remove or replace with default pink particles.
+
+### Locked Rollover / OOF
+
+- Practice "TANK OOF!" only when the tank is **fully upside-down** (`transform.up.y < -0.35` and rollover angle ≥ `155°`), not merely steeply tipped on a climb.
+- Climb stability: low/forward COM and hard `PreventBackwardTip` — tanks must **never tip over backwards** on climbs (lose traction instead). Do not regress this.
 
 ### Locked Weapons And Cameras
 
@@ -96,6 +163,9 @@ This block is the authoritative feature contract. Update it in the same validate
 - Destructible models.
 - WebGL deployment scripts.
 - Validation tests.
+- Best-known shared driving settings above (`TankDrivingProfile` / `TankGameplayTuning` / `4b6842e7` physics).
+- Overdrive rear black smoke puff (single puff, no fire, not pink).
+- HoneyFallScream void-fall audio on range fall-off.
 
 ## Required Startup Checks
 
