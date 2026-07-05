@@ -21,6 +21,15 @@ public static class TankOverdriveSetup
         overdrive.allowOverdrive = true;
         overdrive.exhaustPoint = EnsureExhaustPoint(tank.transform);
 
+        BuiltInWheelTankDrive wheelDrive = tank.GetComponent<BuiltInWheelTankDrive>();
+        if (wheelDrive == null)
+        {
+            wheelDrive = tank.AddComponent<BuiltInWheelTankDrive>();
+        }
+
+        wheelDrive.enabled = true;
+        wheelDrive.ApplyTuning();
+
         TankRpmGaugeUI gauge = tank.GetComponent<TankRpmGaugeUI>();
         if (gauge == null)
         {

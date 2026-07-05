@@ -123,6 +123,7 @@ public class TankController : MonoBehaviour
     private TankAudioController _tankAudioController;
     private TankOverdriveController _overdriveController;
     private WheeledSuspensionController _wheeledSuspension;
+    private BuiltInWheelTankDrive _builtInWheelDrive;
     private AudioSource _audio;
     private float _turretYaw;
     private float _barrelElevation;
@@ -162,9 +163,15 @@ public class TankController : MonoBehaviour
     public float CurrentHealth => Mathf.Max(0f, _health);
     public float HealthPercent => maxHealth > 0f ? Mathf.Clamp01(_health / maxHealth) * 100f : 0f;
     public float CurrentGroundSpeed => Vector3.ProjectOnPlane(ReadVelocity(), Vector3.up).magnitude;
-    public float CurrentSlopeAngle => _driveController != null ? _driveController.CurrentSlopeAngle : 0f;
-    public bool IsGrounded => _driveController != null && _driveController.IsGrounded;
-    public int GroundedWheelCount => _wheeledSuspension != null ? _wheeledSuspension.GroundedWheelCount : 0;
+    public float CurrentSlopeAngle => _builtInWheelDrive != null && _builtInWheelDrive.enabled
+        ? _builtInWheelDrive.CurrentSlopeAngle
+        : _driveController != null ? _driveController.CurrentSlopeAngle : 0f;
+    public bool IsGrounded => _builtInWheelDrive != null && _builtInWheelDrive.enabled
+        ? _builtInWheelDrive.IsGrounded
+        : _driveController != null && _driveController.IsGrounded;
+    public int GroundedWheelCount => _builtInWheelDrive != null && _builtInWheelDrive.enabled
+        ? _builtInWheelDrive.GroundedWheelCount
+        : _wheeledSuspension != null ? _wheeledSuspension.GroundedWheelCount : 0;
     public float EngineStrain => _driveController != null ? _driveController.EngineStrain : 0f;
     public string CurrentDamageState => _damageStateController != null ? _damageStateController.CurrentState.ToString() : (_dead ? "Wrecked" : "Intact");
     public float RolloverAngle => Vector3.Angle(transform.up, Vector3.up);
@@ -328,6 +335,19 @@ public class TankController : MonoBehaviour
         }
 
         ApplyOverdriveSuspensionTuning();
+        if (UseBuiltInWheelDrive())
+        {
+            _builtInWheelDrive.allowDrivingInput = allowDrivingInput;
+            _driveController?.RecordGroundState(
+                _builtInWheelDrive.IsGrounded,
+                _builtInWheelDrive.CurrentSlopeAngle,
+                _builtInWheelDrive.CurrentThrottle);
+            _suspensionVisual?.RecordGroundNormal(Vector3.up, Time.fixedDeltaTime);
+            _tankAudioController?.SetEngineStrain(EngineStrain);
+            CheckRolloverDefeat();
+            return;
+        }
+
         int groundedWheelCount = _wheeledSuspension != null ? _wheeledSuspension.ApplySuspension(_rb) : 0;
         TrackGroundInfo groundInfo = ProbeTrackGround();
         RejectUnclimbableRayGround(ref groundInfo, groundedWheelCount);
@@ -350,6 +370,7 @@ public class TankController : MonoBehaviour
         ApplyHeavyTankAirConstraints(groundInfo);
         ResolveHullPenetration(telemetryThrottle);
         ApplyObstacleWallSlide(telemetryThrottle);
+        ApplyCrawlerContactAssist(groundInfo, telemetryThrottle);
         if (continuousTerrainSnapEnabled && !HasStaticHullPenetration())
         {
             PreventTerrainPenetration();
@@ -437,6 +458,14 @@ public class TankController : MonoBehaviour
         _wheeledSuspension = GetComponent<WheeledSuspensionController>();
         if (_wheeledSuspension == null) _wheeledSuspension = gameObject.AddComponent<WheeledSuspensionController>();
 
+        _builtInWheelDrive = GetComponent<BuiltInWheelTankDrive>();
+        if (_builtInWheelDrive == null) _builtInWheelDrive = gameObject.AddComponent<BuiltInWheelTankDrive>();
+        _builtInWheelDrive.allowDrivingInput = allowDrivingInput;
+        if (_wheeledSuspension != null)
+        {
+            _wheeledSuspension.enabled = false;
+        }
+
         _turretController = GetComponent<TankTurretController>();
         if (_turretController == null) _turretController = gameObject.AddComponent<TankTurretController>();
 
@@ -494,6 +523,13 @@ public class TankController : MonoBehaviour
         maxReverseSpeed = _driveController.maxReverseSpeed;
         maxDriveSlopeAngle = _driveController.maxClimbSlopeDegrees;
         TankOverdriveSetup.Configure(gameObject);
+        _overdriveController = GetComponent<TankOverdriveController>();
+        _builtInWheelDrive = GetComponent<BuiltInWheelTankDrive>();
+        if (_builtInWheelDrive != null)
+        {
+            _builtInWheelDrive.ApplyTuning();
+            _builtInWheelDrive.enabled = true;
+        }
     }
 
     public void ApplyPracticeDrivingConstraints()
@@ -539,6 +575,11 @@ public class TankController : MonoBehaviour
         return _overdriveController != null ? _overdriveController.ClimbSlopeMultiplier : 1f;
     }
 
+    private bool UseBuiltInWheelDrive()
+    {
+        return _builtInWheelDrive != null && _builtInWheelDrive.enabled;
+    }
+
     private void ApplyOverdriveSuspensionTuning()
     {
         if (_wheeledSuspension == null)
@@ -556,10 +597,26 @@ public class TankController : MonoBehaviour
         }
 
         float charge = Mathf.Max(_overdriveController.ChargeRatio, _overdriveController.IsOverdriveActive ? 1f : 0f);
+        bool plantedClimb = IsPlantedClimbAttempt();
         _wheeledSuspension.SpringBoostScale = Mathf.Lerp(1f, TankGameplayTuning.OverdriveSuspensionSpringBoost, charge);
-        _wheeledSuspension.DamperScale = Mathf.Lerp(1f, TankGameplayTuning.OverdriveSuspensionDamperScale, charge);
+        float targetDamper = plantedClimb
+            ? TankGameplayTuning.PlantedClimbSuspensionDamperScale
+            : TankGameplayTuning.OverdriveSuspensionDamperScale;
+        _wheeledSuspension.DamperScale = Mathf.Lerp(1f, targetDamper, charge);
         _wheeledSuspension.BumpLaunchScale = 1f;
         _wheeledSuspension.WheelSpinLaunchBoost = 0f;
+    }
+
+    private bool IsPlantedClimbAttempt()
+    {
+        if (_overdriveController == null || !_overdriveController.IsOverdriveActive)
+        {
+            return false;
+        }
+
+        ReadDriveInput(out float throttle, out _, out _);
+        return throttle > 0.25f
+            && (_overdriveController.IsWheelSpinOut || CurrentSlopeAngle > 12f || CurrentGroundSpeed < TankGameplayTuning.OverdriveStuckSpeedThreshold);
     }
 
     private void ApplyOverdriveTerrainAssist(TrackGroundInfo groundInfo, float throttle, float slopeAngle)
@@ -569,13 +626,15 @@ public class TankController : MonoBehaviour
             return;
         }
 
-        Vector3 driveForward = Vector3.ProjectOnPlane(transform.forward, groundInfo.normal);
+        Vector3 driveForward = CalculatePlantedClimbDirection(
+            transform.forward,
+            groundInfo.normal,
+            TankGameplayTuning.PlantedClimbMaxAssistUpwardComponent);
         if (driveForward.sqrMagnitude < 0.0001f)
         {
             return;
         }
 
-        driveForward.Normalize();
         float climbMult = GetOverdriveClimbMultiplier();
         float assistStrength = _overdriveController.TerrainAssistStrength;
 
@@ -584,21 +643,134 @@ public class TankController : MonoBehaviour
             : 0f;
         float effectiveAssist = Mathf.Max(assistStrength, baseAssist);
 
+        bool activePlantedClimb = _overdriveController.IsOverdriveActive
+            && slopeAngle > 12f
+            && effectiveAssist > 0.05f;
+
         if (slopeAngle > 6f && effectiveAssist > 0.05f)
         {
-            float climbForce = throttle * (18f + slopeAngle * 1.1f) * climbMult * effectiveAssist;
+            float climbForce = throttle * (12f + slopeAngle * 0.65f) * climbMult * effectiveAssist;
             if (_overdriveController.IsOverdriveActive)
             {
-                climbForce *= _practiceDrivingMode ? 2.4f : 1.2f;
+                climbForce *= _practiceDrivingMode ? 1.25f : 0.9f;
+            }
+            if (_overdriveController.IsWheelSpinOut)
+            {
+                climbForce *= TankGameplayTuning.UltraTractionClimbForceMultiplier;
             }
 
             _rb.AddForce(driveForward * climbForce, ForceMode.Acceleration);
         }
 
+        if (activePlantedClimb)
+        {
+            _rb.AddForce(Vector3.down * TankGameplayTuning.PlantedClimbDownforce, ForceMode.Acceleration);
+            ClampPlantedClimbUpwardVelocity();
+        }
+
         if (_overdriveController.IsWheelSpinOut)
         {
-            _rb.AddForce(driveForward * TankGameplayTuning.OverdriveStuckPushForce, ForceMode.Acceleration);
+            ApplyUltraTractionStability(groundInfo.normal);
+
+            Vector3 crawlForward = Vector3.ProjectOnPlane(transform.forward, Vector3.up);
+            if (crawlForward.sqrMagnitude > 0.0001f)
+            {
+                crawlForward.Normalize();
+                _rb.AddForce(crawlForward * TankGameplayTuning.PlantedClimbCrawlForce, ForceMode.Acceleration);
+            }
+
+            _rb.AddForce(
+                driveForward * TankGameplayTuning.OverdriveStuckPushForce * TankGameplayTuning.UltraTractionClimbForceMultiplier,
+                ForceMode.Acceleration);
         }
+    }
+
+    public static Vector3 CalculatePlantedClimbDirection(Vector3 tankForward, Vector3 groundNormal, float maxUpwardComponent)
+    {
+        Vector3 driveForward = Vector3.ProjectOnPlane(tankForward, groundNormal);
+        if (driveForward.sqrMagnitude < 0.0001f)
+        {
+            driveForward = Vector3.ProjectOnPlane(tankForward, Vector3.up);
+        }
+
+        if (driveForward.sqrMagnitude < 0.0001f)
+        {
+            return Vector3.zero;
+        }
+
+        driveForward.Normalize();
+        float maxY = Mathf.Clamp(maxUpwardComponent, 0f, 0.45f);
+        if (driveForward.y <= maxY)
+        {
+            return driveForward;
+        }
+
+        Vector3 horizontal = Vector3.ProjectOnPlane(driveForward, Vector3.up);
+        if (horizontal.sqrMagnitude < 0.0001f)
+        {
+            return Vector3.up * maxY;
+        }
+
+        horizontal.Normalize();
+        float horizontalScale = Mathf.Sqrt(Mathf.Max(0f, 1f - maxY * maxY));
+        return (horizontal * horizontalScale + Vector3.up * maxY).normalized;
+    }
+
+    private void ClampPlantedClimbUpwardVelocity()
+    {
+        Vector3 velocity = ReadVelocity();
+        if (velocity.y <= TankGameplayTuning.PlantedClimbMaxUpwardSpeed)
+        {
+            return;
+        }
+
+        velocity.y = TankGameplayTuning.PlantedClimbMaxUpwardSpeed;
+        SetVelocity(velocity);
+    }
+
+    private void ApplyUltraTractionStability(Vector3 groundNormal)
+    {
+        SetVelocity(CalculateUltraTractionVelocity(
+            ReadVelocity(),
+            groundNormal,
+            transform.forward,
+            TankGameplayTuning.UltraTractionLateralSlipDamping));
+
+        Vector3 angularVelocity = _rb.angularVelocity;
+        Vector3 normal = groundNormal.sqrMagnitude > 0.0001f ? groundNormal.normalized : Vector3.up;
+        float yawVelocity = Vector3.Dot(angularVelocity, normal);
+        angularVelocity -= normal * (yawVelocity * TankGameplayTuning.UltraTractionYawDamping);
+        _rb.angularVelocity = angularVelocity;
+    }
+
+    public static Vector3 CalculateUltraTractionVelocity(
+        Vector3 velocity,
+        Vector3 groundNormal,
+        Vector3 tankForward,
+        float lateralDamping)
+    {
+        Vector3 normal = groundNormal.sqrMagnitude > 0.0001f ? groundNormal.normalized : Vector3.up;
+        Vector3 forward = Vector3.ProjectOnPlane(tankForward, normal);
+        if (forward.sqrMagnitude < 0.0001f)
+        {
+            forward = Vector3.ProjectOnPlane(Vector3.forward, normal);
+        }
+
+        if (forward.sqrMagnitude < 0.0001f)
+        {
+            return velocity;
+        }
+
+        forward.Normalize();
+        Vector3 lateral = Vector3.Cross(normal, forward);
+        if (lateral.sqrMagnitude < 0.0001f)
+        {
+            return velocity;
+        }
+
+        lateral.Normalize();
+        float slipSpeed = Vector3.Dot(velocity, lateral);
+        return velocity - lateral * slipSpeed * Mathf.Clamp01(lateralDamping);
     }
 
     private void ReadDriveInput(out float throttle, out float steer, out bool lowGear)
@@ -683,9 +855,23 @@ public class TankController : MonoBehaviour
             float steeringMultiplier = _driveController != null
                 ? _driveController.GetSteeringMultiplier(Mathf.Abs(Vector3.Dot(ReadVelocity(), driveForward)))
                 : 1f;
+            if (IsUltraTractionClimb(throttle, slopeAngle))
+            {
+                steeringMultiplier *= TankGameplayTuning.UltraTractionSteeringMultiplier;
+            }
+
             float torque = (Mathf.Abs(throttle) > 0.01f ? turnAcceleration : pivotTurnAcceleration) * steeringMultiplier;
             _rb.AddTorque(groundNormal * (steer * torque), ForceMode.Acceleration);
         }
+    }
+
+    private bool IsUltraTractionClimb(float throttle, float slopeAngle)
+    {
+        return _overdriveController != null
+            && _overdriveController.IsOverdriveActive
+            && _overdriveController.IsWheelSpinOut
+            && throttle > 0.25f
+            && slopeAngle > 12f;
     }
 
     private bool TryGetGroundNormal(out Vector3 groundNormal)
@@ -1283,6 +1469,159 @@ public class TankController : MonoBehaviour
 
         Vector3 slideForce = totalSlide / slideCount * (52f + throttle * 42f);
         _rb.AddForce(slideForce, ForceMode.Acceleration);
+    }
+
+    private void ApplyCrawlerContactAssist(TrackGroundInfo groundInfo, float throttle)
+    {
+        if (_rb == null || throttle < 0.1f || !groundInfo.grounded)
+        {
+            return;
+        }
+
+        float slopeAngle = Vector3.Angle(groundInfo.normal, Vector3.up);
+        bool steepGrade = slopeAngle >= TankGameplayTuning.CrawlerContactSlopeDegrees;
+        bool frontObstacle = TryFindForwardCrawlerObstacle(out Vector3 obstacleNormal);
+        if (!steepGrade && !frontObstacle)
+        {
+            return;
+        }
+
+        Vector3 crawlForward = CalculateCrawlerForward(transform.forward, groundInfo.normal);
+        if (crawlForward.sqrMagnitude < 0.0001f)
+        {
+            return;
+        }
+
+        DampCrawlerVelocity(crawlForward, groundInfo.normal);
+        DampCrawlerAngularVelocity(steepGrade ? groundInfo.normal : Vector3.up);
+
+        float forwardForce = TankGameplayTuning.CrawlerContactForwardAcceleration * throttle;
+        if (frontObstacle)
+        {
+            forwardForce *= 1.25f;
+        }
+
+        _rb.AddForce(crawlForward * forwardForce, ForceMode.Acceleration);
+        _rb.AddForce(-groundInfo.normal * TankGameplayTuning.PlantedClimbDownforce, ForceMode.Acceleration);
+
+        if (frontObstacle)
+        {
+            _rb.AddForce(Vector3.up * TankGameplayTuning.CrawlerContactLiftAcceleration, ForceMode.Acceleration);
+            ClampUpwardVelocity(TankGameplayTuning.CrawlerContactMaxUpwardSpeed);
+        }
+    }
+
+    private bool TryFindForwardCrawlerObstacle(out Vector3 obstacleNormal)
+    {
+        obstacleNormal = Vector3.zero;
+        Vector3 forward = Vector3.ProjectOnPlane(transform.forward, Vector3.up);
+        if (forward.sqrMagnitude < 0.0001f)
+        {
+            return false;
+        }
+
+        forward.Normalize();
+        Vector3 origin = transform.position + Vector3.up * 0.75f + forward * 0.9f;
+        float radius = Mathf.Max(0.35f, trackHalfWidth * 0.55f);
+        if (!Physics.SphereCast(
+                origin,
+                radius,
+                forward,
+                out RaycastHit hit,
+                TankGameplayTuning.CrawlerContactProbeDistance,
+                groundMask,
+                QueryTriggerInteraction.Ignore))
+        {
+            return false;
+        }
+
+        if (hit.collider == null || hit.collider.transform == transform || hit.collider.transform.IsChildOf(transform))
+        {
+            return false;
+        }
+
+        float facing = Vector3.Dot(hit.normal, -forward);
+        if (facing < 0.35f || hit.normal.y > 0.65f)
+        {
+            return false;
+        }
+
+        obstacleNormal = hit.normal;
+        return true;
+    }
+
+    public static Vector3 CalculateCrawlerForward(Vector3 tankForward, Vector3 groundNormal)
+    {
+        Vector3 normal = groundNormal.sqrMagnitude > 0.0001f ? groundNormal.normalized : Vector3.up;
+        Vector3 forward = Vector3.ProjectOnPlane(tankForward, normal);
+        if (forward.sqrMagnitude < 0.0001f)
+        {
+            forward = Vector3.ProjectOnPlane(tankForward, Vector3.up);
+        }
+
+        if (forward.sqrMagnitude < 0.0001f)
+        {
+            return Vector3.zero;
+        }
+
+        return forward.normalized;
+    }
+
+    private void DampCrawlerVelocity(Vector3 crawlForward, Vector3 groundNormal)
+    {
+        SetVelocity(CalculateCrawlerDampedVelocity(
+            ReadVelocity(),
+            groundNormal,
+            crawlForward,
+            TankGameplayTuning.CrawlerContactLateralDamping));
+    }
+
+    public static Vector3 CalculateCrawlerDampedVelocity(
+        Vector3 velocity,
+        Vector3 groundNormal,
+        Vector3 crawlForward,
+        float lateralDamping)
+    {
+        Vector3 normal = groundNormal.sqrMagnitude > 0.0001f ? groundNormal.normalized : Vector3.up;
+        Vector3 forward = Vector3.ProjectOnPlane(crawlForward, normal);
+        if (forward.sqrMagnitude < 0.0001f)
+        {
+            return velocity;
+        }
+
+        forward.Normalize();
+        Vector3 lateral = Vector3.Cross(normal, forward);
+        if (lateral.sqrMagnitude < 0.0001f)
+        {
+            return velocity;
+        }
+
+        lateral.Normalize();
+        float lateralSpeed = Vector3.Dot(velocity, lateral);
+        return velocity - lateral * lateralSpeed * Mathf.Clamp01(lateralDamping);
+    }
+
+    private void DampCrawlerAngularVelocity(Vector3 groundNormal)
+    {
+        Vector3 normal = groundNormal.sqrMagnitude > 0.0001f ? groundNormal.normalized : Vector3.up;
+        Vector3 angularVelocity = _rb.angularVelocity;
+        Vector3 yaw = normal * Vector3.Dot(angularVelocity, normal);
+        Vector3 pitchRoll = angularVelocity - yaw;
+        angularVelocity = yaw * (1f - TankGameplayTuning.CrawlerContactAngularDamping)
+            + pitchRoll * (1f - TankGameplayTuning.CrawlerContactAngularDamping * 0.75f);
+        _rb.angularVelocity = angularVelocity;
+    }
+
+    private void ClampUpwardVelocity(float maxUpwardSpeed)
+    {
+        Vector3 velocity = ReadVelocity();
+        if (velocity.y <= maxUpwardSpeed)
+        {
+            return;
+        }
+
+        velocity.y = maxUpwardSpeed;
+        SetVelocity(velocity);
     }
 
     private void SnapToTerrainClearance(float clearance, bool allowDownwardCorrection)

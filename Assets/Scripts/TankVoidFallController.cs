@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -12,10 +13,18 @@ public class TankVoidFallController : MonoBehaviour
     public float maxZ = 550f;
     public float boundsGraceSeconds = 0.35f;
     public float spawnGraceSeconds = 4f;
+    public float fallScreamDelaySeconds = 1.1f;
+    public float voidFallScreenDelaySeconds = 1.0f;
+    public float voidFallReturnDelaySeconds = 4.4f;
+    public float voidFallDownwardSpeed = 32f;
+    public float voidFallSpinSpeed = 10f;
+    public float voidCameraHeightAboveMap = 5.5f;
+    public float voidCameraBackDistance = 16f;
     public AudioClip fallScreamClip;
 
     private float _outsideBoundsSeconds;
     private float _spawnGraceRemaining;
+    private float _lastSafeMapY;
     private bool _triggered;
 
     public static TankVoidFallController Ensure(TankController targetTank, bool useRangeBounds)
@@ -48,6 +57,7 @@ public class TankVoidFallController : MonoBehaviour
         }
 
         _spawnGraceRemaining = spawnGraceSeconds;
+        _lastSafeMapY = transform.position.y;
         EnsureFallScreamClip();
     }
 
@@ -67,6 +77,11 @@ public class TankVoidFallController : MonoBehaviour
         Vector3 position = tank.transform.position;
         bool belowVoid = position.y <= fallYThreshold;
         bool outsideBounds = useHorizontalBounds && IsOutsideHorizontalBounds(position);
+
+        if (!belowVoid && !outsideBounds)
+        {
+            _lastSafeMapY = position.y;
+        }
 
         if (outsideBounds)
         {
@@ -93,12 +108,14 @@ public class TankVoidFallController : MonoBehaviour
     private void TriggerVoidFall()
     {
         _triggered = true;
-        PlayFallScream();
+        PinVoidFallCamera();
+        AccelerateVoidFall();
+        StartCoroutine(PlayFallScreamAfterDelay());
 
         PracticeReturnController practiceReturn = Object.FindAnyObjectByType<PracticeReturnController>();
         if (practiceReturn != null)
         {
-            practiceReturn.TriggerVoidFallReturn();
+            StartCoroutine(TriggerPracticeReturnAfterDelay(practiceReturn));
             return;
         }
 
@@ -109,6 +126,116 @@ public class TankVoidFallController : MonoBehaviour
         }
 
         tank.enabled = false;
+    }
+
+    private IEnumerator TriggerPracticeReturnAfterDelay(PracticeReturnController practiceReturn)
+    {
+        yield return new WaitForSecondsRealtime(Mathf.Max(0f, voidFallScreenDelaySeconds));
+        if (practiceReturn != null)
+        {
+            practiceReturn.TriggerVoidFallReturn(voidFallReturnDelaySeconds);
+        }
+    }
+
+    private IEnumerator PlayFallScreamAfterDelay()
+    {
+        yield return new WaitForSecondsRealtime(Mathf.Max(0f, fallScreamDelaySeconds));
+        PlayFallScream();
+    }
+
+    private void AccelerateVoidFall()
+    {
+        if (tank == null)
+        {
+            return;
+        }
+
+        Rigidbody body = tank.GetComponent<Rigidbody>();
+        if (body == null)
+        {
+            return;
+        }
+
+        body.maxAngularVelocity = Mathf.Max(body.maxAngularVelocity, voidFallSpinSpeed);
+#if UNITY_6000_0_OR_NEWER
+        Vector3 velocity = body.linearVelocity;
+#else
+        Vector3 velocity = body.velocity;
+#endif
+        velocity.y = Mathf.Min(velocity.y, -Mathf.Abs(voidFallDownwardSpeed));
+#if UNITY_6000_0_OR_NEWER
+        body.linearVelocity = velocity;
+#else
+        body.velocity = velocity;
+#endif
+        Vector3 spinAxis = Vector3.Cross(Vector3.up, tank.transform.forward);
+        if (spinAxis.sqrMagnitude < 0.0001f)
+        {
+            spinAxis = Vector3.right;
+        }
+
+        body.angularVelocity = (spinAxis.normalized + Vector3.up * 0.45f).normalized * Mathf.Abs(voidFallSpinSpeed);
+        body.WakeUp();
+    }
+
+    private void PinVoidFallCamera()
+    {
+        Camera camera = tank != null && tank.gameplayCamera != null ? tank.gameplayCamera : Camera.main;
+        if (camera == null || tank == null)
+        {
+            return;
+        }
+
+        TankOrbitCamera orbitCamera = camera.GetComponent<TankOrbitCamera>();
+        if (orbitCamera != null)
+        {
+            orbitCamera.enabled = false;
+        }
+
+        TankBarrelScopeCamera scopeCamera = camera.GetComponent<TankBarrelScopeCamera>();
+        if (scopeCamera != null)
+        {
+            scopeCamera.allowScope = false;
+        }
+
+        Vector3 flatBack = Vector3.ProjectOnPlane(-tank.transform.forward, Vector3.up);
+        if (flatBack.sqrMagnitude < 0.0001f)
+        {
+            flatBack = Vector3.ProjectOnPlane(-camera.transform.forward, Vector3.up);
+        }
+
+        if (flatBack.sqrMagnitude < 0.0001f)
+        {
+            flatBack = Vector3.back;
+        }
+
+        flatBack.Normalize();
+        float mapY = ResolveMapHeight(tank.transform.position);
+        Vector3 pinnedPosition = tank.transform.position + flatBack * voidCameraBackDistance;
+        pinnedPosition.y = mapY + voidCameraHeightAboveMap;
+        camera.transform.position = pinnedPosition;
+
+        VoidFallPinnedCamera pinned = camera.GetComponent<VoidFallPinnedCamera>();
+        if (pinned == null)
+        {
+            pinned = camera.gameObject.AddComponent<VoidFallPinnedCamera>();
+        }
+
+        pinned.target = tank.transform;
+        pinned.pinnedPosition = pinnedPosition;
+    }
+
+    private float ResolveMapHeight(Vector3 nearPosition)
+    {
+        Vector3 origin = new Vector3(nearPosition.x, Mathf.Max(nearPosition.y + 200f, 200f), nearPosition.z);
+        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, 500f, ~0, QueryTriggerInteraction.Ignore)
+            && hit.collider != null
+            && !hit.collider.transform.IsChildOf(transform))
+        {
+            return hit.point.y;
+        }
+
+        return _lastSafeMapY;
     }
 
     private void PlayFallScream()
@@ -143,5 +270,31 @@ public class TankVoidFallController : MonoBehaviour
             fallScreamClip = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/HoneyFallScream.wav");
         }
 #endif
+    }
+}
+
+public class VoidFallPinnedCamera : MonoBehaviour
+{
+    public Transform target;
+    public Vector3 pinnedPosition;
+
+    private void LateUpdate()
+    {
+        ApplyNow();
+    }
+
+    public void ApplyNow()
+    {
+        transform.position = pinnedPosition;
+        if (target == null)
+        {
+            return;
+        }
+
+        Vector3 lookVector = target.position - pinnedPosition;
+        if (lookVector.sqrMagnitude > 0.0001f)
+        {
+            transform.rotation = Quaternion.LookRotation(lookVector.normalized, Vector3.up);
+        }
     }
 }

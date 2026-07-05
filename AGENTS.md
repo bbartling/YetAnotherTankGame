@@ -30,12 +30,13 @@ This block is the authoritative feature contract. Update it in the same validate
 Authoritative baseline commit: [`4b6842e7`](https://github.com/bbartling/YetAnotherTankGame/commit/4b6842e7d37490288f86221949fc410643511e29) ("driving course good enough").
 Shooting-range placement baseline: [`78210fb`](https://github.com/bbartling/YetAnotherTankGame/commit/78210fbd9f04f94f8b1a44c38122b4f60b6c0aec).
 
-**Same settings apply to WAR (`Practice`), Driving Practice, and Cannon Practice.** Do not invent separate practice-only physics. Apply via `TankDrivingProfile` + `TankGameplayTuning` + `TankOverdriveSetup` only.
+**Same settings apply to WAR (`Practice`), Driving Practice, and Cannon Practice.** Do not invent separate practice-only physics. Driving now routes through Unity's built-in `WheelCollider` vehicle physics via `BuiltInWheelTankDrive`, while `TankDriveController` remains only as input/profile telemetry compatibility. Apply shared movement through `TankDrivingProfile` + `TankGameplayTuning` + `TankOverdriveSetup` + `BuiltInWheelTankDrive` only.
 
 Source of truth files (do not regress without intentional validated change):
 
 - `Assets/Scripts/Tank/TankDrivingProfile.cs`
 - `Assets/Scripts/Tank/TankGameplayTuning.cs`
+- `Assets/Scripts/Tank/BuiltInWheelTankDrive.cs`
 - `Assets/Scripts/Tank/TankDriveController.cs`
 - `Assets/Scripts/Tank/WheeledSuspensionController.cs`
 - `Assets/Scripts/Tank/TankOverdriveController.cs`
@@ -45,16 +46,16 @@ Locked drive profile (`TankDrivingProfile`):
 
 | Setting | Value |
 |---|---|
-| MaxForwardSpeed | `12` m/s |
-| MaxReverseSpeed | `6` m/s |
-| AccelerationSeconds | `0.62` |
-| BrakingSeconds | `1.1` |
+| MaxForwardSpeed | `15` m/s |
+| MaxReverseSpeed | `7.5` m/s |
+| AccelerationSeconds | `0.52` |
+| BrakingSeconds | `0.9` |
 | MinimumUphillSpeedMultiplier | `0.72` |
-| TractionLossSlopeDegrees | `44` |
-| MaxClimbSlopeDegrees | `60` |
-| TrackDriveResponse | `6.5` |
-| ForwardAcceleration | `65` |
-| ReverseAcceleration | `42` |
+| TractionLossSlopeDegrees | `52` |
+| MaxClimbSlopeDegrees | `75` |
+| TrackDriveResponse | `8.5` |
+| ForwardAcceleration | `82` |
+| ReverseAcceleration | `52` |
 
 Locked chassis / overdrive (`TankGameplayTuning`):
 
@@ -62,11 +63,34 @@ Locked chassis / overdrive (`TankGameplayTuning`):
 |---|---|
 | ChassisMass | `42000` (planted MBT weight; centered low COM) |
 | OverdriveHoldSeconds | `3` (hold W to charge) |
-| OverdriveSpeedMultiplier | `3 * MassTuningRatio` |
-| OverdriveAccelerationMultiplier | `3.5 * MassTuningRatio` |
-| OverdriveClimbMultiplier | `3 * MassTuningRatio` |
-| OverdriveBurstPush | `1.8` |
-| PracticeBasePlanarSpeedCap | `13` |
+| OverdriveSpeedMultiplier | `2.2` |
+| OverdriveAccelerationMultiplier | `3.2` |
+| OverdriveClimbMultiplier | `5.6` |
+| OverdriveBurstPush | `1.15` |
+| OverdriveStuckSpeedThreshold | `4.4` |
+| OverdriveStuckPushForce | `56` |
+| OverdriveStuckClimbMultiplier | `4.8` |
+| PlantedClimbMaxAssistUpwardComponent | `0.16` |
+| PlantedClimbDownforce | `38` |
+| PlantedClimbMaxUpwardSpeed | `0.35` |
+| PlantedClimbCrawlForce | `96` |
+| UltraTractionClimbForceMultiplier | `3` |
+| UltraTractionLateralSlipDamping | `0.82` |
+| UltraTractionYawDamping | `0.68` |
+| UltraTractionSteeringMultiplier | `0.35` |
+| CrawlerContactForwardAcceleration | `115` |
+| CrawlerContactLiftAcceleration | `18` |
+| CrawlerContactMaxUpwardSpeed | `1.2` |
+| CrawlerContactLateralDamping | `0.9` |
+| CrawlerContactAngularDamping | `0.72` |
+| BuiltInWheelMotorTorque | `9000` |
+| BuiltInWheelBrakeTorque | `18000` |
+| BuiltInWheelClimbAssist | `24` |
+| BuiltInWheelSteerAngle | `24` |
+| BuiltInWheelSuspensionDistance | `0.85` |
+| BuiltInWheelSpring | `65000` |
+| BuiltInWheelDamper | `9000` |
+| PracticeBasePlanarSpeedCap | `16` |
 
 Locked combat profile (shared turret feel, `TankCombatProfile`):
 
@@ -83,7 +107,7 @@ Cannon practice: place tank with `TargetRangeTankAnchor` (`hullClearance = 1.05`
 
 ### Locked Overdrive Exhaust Puff
 
-- After speed/climb overdrive unlocks (hold forward until charge completes), emit **2–4 random black smoke puffs** from the tank rear (`ExhaustPoint`, local `0, 0.65, -2.35`) with random sizes and particle counts.
+- After speed/climb overdrive unlocks (hold forward until charge completes), emit **4–8 random black smoke puffs** from the tank rear (`ExhaustPoint`, local `0, 0.65, -2.35`) with doubled random sizes, lifetimes, velocities, and particle counts.
 - Smoke only — **no fire**, no continuous plume, no pink default Unity particle material.
 - Implemented in `TankOverdriveController.PlayRandomBlackSmokePuffs()` with an explicit black-tinted particle material.
 - Do not remove or replace with default pink particles.
@@ -92,6 +116,10 @@ Cannon practice: place tank with `TargetRangeTankAnchor` (`hullClearance = 1.05`
 
 - Practice "TANK OOF!" only when the tank is **fully upside-down** (`transform.up.y < -0.35` and rollover angle ≥ `155°`), not merely steeply tipped on a climb.
 - Climb stability: low/forward COM and hard `PreventBackwardTip` — tanks must **never tip over backwards** on climbs (lose traction instead). Do not regress this.
+- Void fall must pin the gameplay camera in place near map height and keep it looking at the falling tank.
+- Void fall scream must be delayed by at least `1.1` seconds so the fall starts before the sound.
+- Void fall screen/return must wait at least `1` additional second after the camera pins.
+- Void fall must force a faster downward fall and spin the tank while the pinned camera watches.
 
 ### Locked Weapons And Cameras
 

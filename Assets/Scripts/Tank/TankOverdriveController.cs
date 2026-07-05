@@ -227,7 +227,9 @@ public class TankOverdriveController : MonoBehaviour
         _burstSmoke.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         _burstSmoke.Clear(true);
 
-        int puffCount = Random.Range(2, 5);
+        int puffCount = Random.Range(
+            TankGameplayTuning.OverdriveSmokeMinPuffs,
+            TankGameplayTuning.OverdriveSmokeMaxPuffsExclusive);
         for (int i = 0; i < puffCount; i++)
         {
             _burstSmoke.transform.localPosition = new Vector3(
@@ -238,14 +240,22 @@ public class TankOverdriveController : MonoBehaviour
             ParticleSystem.EmitParams emit = new ParticleSystem.EmitParams
             {
                 startColor = SmokeBlack,
-                startSize = Random.Range(1.6f, 4.4f),
-                startLifetime = Random.Range(1.2f, 2.4f),
+                startSize = Random.Range(
+                    TankGameplayTuning.OverdriveSmokeMinStartSize,
+                    TankGameplayTuning.OverdriveSmokeMaxStartSize),
+                startLifetime = Random.Range(
+                    TankGameplayTuning.OverdriveSmokeMinLifetime,
+                    TankGameplayTuning.OverdriveSmokeMaxLifetime),
                 velocity = anchor.TransformDirection(new Vector3(
-                    Random.Range(-0.8f, 0.8f),
-                    Random.Range(0.4f, 1.6f),
-                    Random.Range(1.5f, 4.5f)))
+                    Random.Range(-1.6f, 1.6f),
+                    Random.Range(0.8f, 3.2f),
+                    Random.Range(3f, 9f)))
             };
-            _burstSmoke.Emit(emit, Random.Range(8, 22));
+            _burstSmoke.Emit(
+                emit,
+                Random.Range(
+                    TankGameplayTuning.OverdriveSmokeMinParticlesPerPuff,
+                    TankGameplayTuning.OverdriveSmokeMaxParticlesPerPuffExclusive));
         }
 
         _burstSmoke.transform.localPosition = Vector3.zero;
@@ -260,10 +270,10 @@ public class TankOverdriveController : MonoBehaviour
         ParticleSystem.MainModule main = particles.main;
         main.loop = false;
         main.playOnAwake = false;
-        main.maxParticles = 96;
-        main.startLifetime = new ParticleSystem.MinMaxCurve(1.4f, 2.2f);
-        main.startSize = new ParticleSystem.MinMaxCurve(2.4f, 3.8f);
-        main.startSpeed = new ParticleSystem.MinMaxCurve(2.5f, 5.5f);
+        main.maxParticles = TankGameplayTuning.OverdriveSmokeMaxParticles;
+        main.startLifetime = new ParticleSystem.MinMaxCurve(2.8f, 4.4f);
+        main.startSize = new ParticleSystem.MinMaxCurve(4.8f, 7.6f);
+        main.startSpeed = new ParticleSystem.MinMaxCurve(5f, 11f);
         main.startColor = SmokeBlack;
         main.simulationSpace = ParticleSystemSimulationSpace.World;
         main.gravityModifier = -0.05f;
@@ -277,16 +287,16 @@ public class TankOverdriveController : MonoBehaviour
         shape.enabled = true;
         shape.shapeType = ParticleSystemShapeType.Cone;
         shape.angle = 22f;
-        shape.radius = 0.35f;
+        shape.radius = 0.7f;
         // ExhaustPoint faces rear (yaw 180); emit along local +Z out the back.
         shape.rotation = Vector3.zero;
 
         ParticleSystem.SizeOverLifetimeModule sizeOverLifetime = particles.sizeOverLifetime;
         sizeOverLifetime.enabled = true;
         sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, new AnimationCurve(
-            new Keyframe(0f, 0.55f),
-            new Keyframe(0.2f, 1f),
-            new Keyframe(1f, 1.7f)));
+                new Keyframe(0f, 0.65f),
+                new Keyframe(0.25f, 1.15f),
+                new Keyframe(1f, 2.2f)));
 
         ParticleSystem.ColorOverLifetimeModule colorOverLifetime = particles.colorOverLifetime;
         colorOverLifetime.enabled = true;
@@ -312,8 +322,8 @@ public class TankOverdriveController : MonoBehaviour
         velocity.enabled = true;
         velocity.space = ParticleSystemSimulationSpace.Local;
         velocity.x = new ParticleSystem.MinMaxCurve(0f);
-        velocity.y = new ParticleSystem.MinMaxCurve(0.8f);
-        velocity.z = new ParticleSystem.MinMaxCurve(2.5f);
+        velocity.y = new ParticleSystem.MinMaxCurve(1.6f);
+        velocity.z = new ParticleSystem.MinMaxCurve(5f);
 
         ParticleSystemRenderer renderer = particles.GetComponent<ParticleSystemRenderer>();
         if (renderer != null)

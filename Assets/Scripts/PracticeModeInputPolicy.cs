@@ -72,6 +72,7 @@ public class PracticeModeInputPolicy : MonoBehaviour
 
             recovery.tank = tank;
             DrivingLapProgressHud.Ensure(tank);
+            TankVoidFallController.Ensure(tank, useRangeBounds: false);
             PracticeReturnController.Ensure(mode, tank);
         }
 

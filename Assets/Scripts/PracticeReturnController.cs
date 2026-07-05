@@ -80,6 +80,11 @@ public class PracticeReturnController : MonoBehaviour
         BeginReturn("TANK OOF!", rolloverReturnDelaySeconds, true, "nice try...");
     }
 
+    public void TriggerVoidFallReturn(float delaySeconds)
+    {
+        BeginReturn("TANK OOF!", delaySeconds, true, "nice try...");
+    }
+
     private bool IsTankOof()
     {
         if (playerTank == null)
