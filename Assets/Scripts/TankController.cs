@@ -194,6 +194,10 @@ public class TankController : MonoBehaviour
         AutoWireReferences();
         CacheStartingAngles();
         EnsureFocusedControllers();
+        if (TankDrivingProfile.ShouldApplyToScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name))
+        {
+            ApplySharedDrivingHandling();
+        }
         ValidatePivotSetup();
         SillyModelInstaller.Ensure(gameObject, "Models/Tanks/SillyPlayerTank", Mathf.Clamp(playerVisualScale, 2.5f, 3.5f), true);
         SyncCombatControllers();

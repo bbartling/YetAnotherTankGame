@@ -100,7 +100,7 @@ public class PracticeReturnController : MonoBehaviour
 
     private static bool AreAllPracticeTargetsCleared()
     {
-        CastleDamageReceiver[] targets = Object.FindObjectsByType<CastleDamageReceiver>(FindObjectsSortMode.None);
+        CastleDamageReceiver[] targets = Object.FindObjectsByType<CastleDamageReceiver>();
         if (targets == null || targets.Length == 0)
         {
             return false;

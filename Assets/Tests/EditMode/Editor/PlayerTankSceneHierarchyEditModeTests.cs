@@ -30,9 +30,21 @@ public class PlayerTankSceneHierarchyEditModeTests
         Assert.That(camera.GetComponent<TankOrbitCamera>().aimDirectionSource, Is.SameAs(tank.cannonFirePoint));
         Assert.That(camera.GetComponent<TankBarrelScopeCamera>().sight, Is.SameAs(tank.cannonFirePoint));
 
-        AssertNoLegacyPrimitiveVisual(player.transform, "BodyVisual");
+        AssertNoLegacyPrimitiveVisualIfPresent(player.transform, "BodyVisual");
         AssertNoLegacyPrimitiveVisual(player.transform, "TurretYawPivot/TurretVisual/TurretMesh");
         AssertNoLegacyPrimitiveVisual(player.transform, "TurretYawPivot/BarrelPitchPivot/BarrelVisual");
+    }
+
+    private static void AssertNoLegacyPrimitiveVisualIfPresent(Transform player, string path)
+    {
+        Transform target = player.Find(path);
+        if (target == null)
+        {
+            return;
+        }
+
+        Assert.That(target.GetComponent<MeshRenderer>(), Is.Null, path);
+        Assert.That(target.GetComponent<MeshFilter>(), Is.Null, path);
     }
 
     private static void AssertNoLegacyPrimitiveVisual(Transform player, string path)

@@ -350,7 +350,7 @@ private TextMeshProUGUI _titleLabel;
 
 private void UpdateEnemyMarkers()
     {
-        EnemyTankAI[] enemies = Object.FindObjectsByType<EnemyTankAI>(FindObjectsSortMode.None);
+        EnemyTankAI[] enemies = Object.FindObjectsByType<EnemyTankAI>();
         int liveIndex = 0;
 
         for (int i = 0; i < enemies.Length; i++)

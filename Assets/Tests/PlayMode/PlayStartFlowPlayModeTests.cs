@@ -152,6 +152,30 @@ public class PlayStartFlowPlayModeTests
     }
 
     [Test]
+    public void AuthoredMenuButtons_DoNotCreateRuntimeMenuPresentationObjects()
+    {
+        GameObject menuObject = new GameObject("MenuManager");
+        MenuManager menu = menuObject.AddComponent<MenuManager>();
+        menu.mainPanel = new GameObject("MainPanel", typeof(RectTransform));
+        menu.drivingPracticeButton = CreateButton("DrivingPracticeButton", menu.mainPanel.transform);
+        menu.cannonPracticeButton = CreateButton("CannonPracticeButton", menu.mainPanel.transform);
+        menu.warButton = CreateButton("WarButton", menu.mainPanel.transform);
+        menu.playButton = menu.warButton;
+
+        menu.SendMessage("Start");
+
+        Assert.That(menu.mainPanel.transform.Find("InstructionsText"), Is.Null);
+        Assert.That(menu.mainPanel.transform.Find("ModeTutorialText"), Is.Null);
+        Assert.That(menu.mainPanel.transform.Find("EnemyCountPanel"), Is.Null);
+        Assert.That(menu.mainPanel.transform.Find("DrivingPracticeButton"), Is.Not.Null);
+        Assert.That(menu.mainPanel.transform.Find("CannonPracticeButton"), Is.Not.Null);
+        Assert.That(menu.mainPanel.transform.Find("WarButton"), Is.Not.Null);
+
+        Object.DestroyImmediate(menu.mainPanel);
+        Object.DestroyImmediate(menuObject);
+    }
+
+    [Test]
     public void PracticeModes_DoNotSpawnEnemyWaveButWarDoes()
     {
         GameObject tankRoot = CreateTank(out TankController tank);
@@ -221,6 +245,13 @@ public class PlayStartFlowPlayModeTests
         tank.barrelPitchPivot = barrel;
         tank.cannonFirePoint = firePoint;
         return root;
+    }
+
+    private static Button CreateButton(string name, Transform parent)
+    {
+        GameObject buttonObject = new GameObject(name, typeof(RectTransform), typeof(Button));
+        buttonObject.transform.SetParent(parent, false);
+        return buttonObject.GetComponent<Button>();
     }
 
     private sealed class CountingEnemySpawner : EnemyTankSpawner

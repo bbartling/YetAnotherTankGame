@@ -101,7 +101,7 @@ public class EnemyTankSpawner : MonoBehaviour
 
     public void ClearExistingEnemies(bool immediate)
     {
-        EnemyTankAI[] existing = Object.FindObjectsByType<EnemyTankAI>(FindObjectsSortMode.None);
+        EnemyTankAI[] existing = Object.FindObjectsByType<EnemyTankAI>();
         foreach (EnemyTankAI tank in existing)
         {
             if (tank == null)
@@ -132,7 +132,7 @@ public class EnemyTankSpawner : MonoBehaviour
             "CastleImpactMark"
         };
 
-        GameObject[] allObjects = Object.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+        GameObject[] allObjects = Object.FindObjectsByType<GameObject>();
         for (int i = 0; i < allObjects.Length; i++)
         {
             GameObject go = allObjects[i];
@@ -169,7 +169,7 @@ public class EnemyTankSpawner : MonoBehaviour
 
     public Vector3 SampleGround(Vector3 origin)
     {
-        CraterTerrain terrain = Object.FindFirstObjectByType<CraterTerrain>();
+        CraterTerrain terrain = Object.FindAnyObjectByType<CraterTerrain>();
         Collider terrainCollider = terrain != null ? terrain.GetComponent<Collider>() : null;
         Renderer terrainRenderer = terrain != null ? terrain.GetComponent<Renderer>() : null;
 
@@ -328,7 +328,7 @@ public class EnemyTankSpawner : MonoBehaviour
 
         if (battlefieldDirector == null)
         {
-            battlefieldDirector = Object.FindFirstObjectByType<BattlefieldDirector>();
+            battlefieldDirector = Object.FindAnyObjectByType<BattlefieldDirector>();
         }
 
         if (spawnParent == null)
@@ -343,7 +343,7 @@ public class EnemyTankSpawner : MonoBehaviour
 
     private Vector3 FindSpawnPosition(int index)
     {
-        CraterTerrain terrain = Object.FindFirstObjectByType<CraterTerrain>();
+        CraterTerrain terrain = Object.FindAnyObjectByType<CraterTerrain>();
         float halfWidth = terrain != null ? terrain.terrainWidth * 0.5f : 520f;
         float halfLength = terrain != null ? terrain.terrainLength * 0.5f : 620f;
         Vector3 playerPosition = playerTank != null ? playerTank.position : Vector3.zero;

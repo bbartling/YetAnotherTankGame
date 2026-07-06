@@ -59,7 +59,7 @@ public class TargetRangeValidationPlayModeTests
         shellPrefab.AddComponent<Rigidbody>();
         shellPrefab.AddComponent<ProjectileCameraController>();
 
-        ProjectileCameraController[] existing = Object.FindObjectsByType<ProjectileCameraController>(FindObjectsSortMode.None);
+        ProjectileCameraController[] existing = Object.FindObjectsByType<ProjectileCameraController>();
         for (int i = 0; i < existing.Length; i++)
         {
             if (existing[i] != null)
@@ -78,7 +78,7 @@ public class TargetRangeValidationPlayModeTests
         tank.shellPrefab = shellPrefab;
         tank.FireCannon();
 
-        ProjectileCameraController[] shells = Object.FindObjectsByType<ProjectileCameraController>(FindObjectsSortMode.None);
+        ProjectileCameraController[] shells = Object.FindObjectsByType<ProjectileCameraController>();
         shells = System.Array.FindAll(shells, s => s != null && s.gameObject != shellPrefab);
         Assert.That(shells.Length, Is.EqualTo(1));
         float separation = Vector3.Distance(shells[0].transform.position, tank.cannonFirePoint.position);

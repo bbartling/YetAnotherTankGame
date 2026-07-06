@@ -2549,7 +2549,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 441589407}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.017452406, y: 0, z: 0, w: 0.9998477}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.08, z: 0.95}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -3910,8 +3910,8 @@ Transform:
   m_GameObject: {fileID: 817366695}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.08, z: 240}
-  m_LocalScale: {x: 90, y: 0.16, z: 620}
+  m_LocalPosition: {x: 0, y: -0.08, z: -53.7827}
+  m_LocalScale: {x: 90, y: 0.16, z: 32.426}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 445948516}
@@ -6066,6 +6066,8 @@ MonoBehaviour:
   localSightOffset: {x: 0.35, y: 0.25, z: 0.75}
   scopeFieldOfView: 16
   normalFieldOfView: 58
+  scopeBlendSpeed: 12
+  scopeSwayDegrees: 0.08
 --- !u!114 &1255253578
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6089,6 +6091,8 @@ MonoBehaviour:
   lookAheadDistance: 8
   collisionRadius: 0.35
   positionSmoothTime: 0.08
+  focusSmoothTime: 0.24
+  focusVerticalSmoothTime: 0.34
   collisionMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -6446,7 +6450,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4067679231
   m_fontColor: {r: 1, g: 0.86, b: 0.45, a: 0.95}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -6459,7 +6463,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -6542,6 +6546,9 @@ GameObject:
   - component: {fileID: 1321946627}
   - component: {fileID: 1321946626}
   - component: {fileID: 1321946625}
+  - component: {fileID: 1321946641}
+  - component: {fileID: 1321946640}
+  - component: {fileID: 1321946639}
   m_Layer: 0
   m_Name: PlayerTank
   m_TagString: Untagged
@@ -6570,15 +6577,15 @@ MonoBehaviour:
   barrel: {fileID: 441589408}
   firePoint: {fileID: 47559119}
   lineRenderer: {fileID: 1321946623}
-  forwardAcceleration: 55
-  reverseAcceleration: 38
-  maxForwardSpeed: 7.5
-  maxReverseSpeed: 3.5
-  trackDriveResponse: 5.5
-  turnAcceleration: 21
-  pivotTurnAcceleration: 24
-  lateralGrip: 36
-  headingGrip: 14
+  forwardAcceleration: 82
+  reverseAcceleration: 52
+  maxForwardSpeed: 15
+  maxReverseSpeed: 7.5
+  trackDriveResponse: 8.5
+  turnAcceleration: 8
+  pivotTurnAcceleration: 10
+  lateralGrip: 48
+  headingGrip: 20
   groundCheckDistance: 2.5
   groundMask:
     serializedVersion: 2
@@ -6599,14 +6606,15 @@ MonoBehaviour:
   slopeAlignmentTorque: 58
   slopeAlignmentDamping: 9
   maxAssistedSlopeAngle: 17
-  maxDriveSlopeAngle: 17
+  climbAntiTipTorque: 55
+  maxDriveSlopeAngle: 75
   brakeDrag: 8
   playerVisualScale: 3
-  chassisMass: 18000
-  centerOfMassOffset: {x: 0, y: -1.15, z: 0}
+  chassisMass: 42000
+  centerOfMassOffset: {x: 0, y: -0.95, z: 0.1}
   uprightAssist: 12
-  angularDamping: 4.5
-  linearDamping: 0.9
+  angularDamping: 12
+  linearDamping: 1.2
   rolloverDefeatAngle: 75
   rolloverDefeatDelay: 2
   rolloverStartupGraceSeconds: 6
@@ -6774,6 +6782,7 @@ Transform:
   - {fileID: 676263515}
   - {fileID: 1631574998}
   - {fileID: 1255253581}
+  - {fileID: 1713193745}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1321946625
@@ -6803,7 +6812,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1321946621}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8138cdc8cbe455f4db94133c98a1014b, type: 3}
   m_Name: 
@@ -6836,6 +6845,7 @@ MonoBehaviour:
   strainedPitch: 1.05
   idleVolume: 0.25
   strainedVolume: 0.7
+  idleShutdownSeconds: 3
 --- !u!114 &1321946628
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6848,9 +6858,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10735761d68ca9e43b23e86d2ace07ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankAimController
-  barrelPitchPivot: {fileID: 0}
+  barrelPitchPivot: {fileID: 441589408}
   mouseWheelPitchSensitivity: 18
-  keyboardPitchSpeed: 24
+  keyboardPitchSpeed: 35
   minElevation: -8
   maxElevation: 35
   elevateUpKey: 101
@@ -6867,9 +6877,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db829a7cab527314289e82753fabf845, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankTurretController
-  turretYawPivot: {fileID: 0}
-  mouseYawDegreesPerSecond: 32
-  turretYawSpeed: 55
+  turretYawPivot: {fileID: 1631574998}
+  mouseYawDegreesPerSecond: 42.5
+  turretYawSpeed: 110
 --- !u!114 &1321946630
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6896,15 +6906,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99b3d9e7d5c4d27458522c867406ced2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankDriveController
-  maxForwardSpeed: 7.5
-  maxReverseSpeed: 3.5
-  accelerationSeconds: 4
-  brakingSeconds: 2
+  maxForwardSpeed: 15
+  maxReverseSpeed: 7.5
+  accelerationSeconds: 0.52
+  brakingSeconds: 0.9
   highSpeedSteeringMultiplier: 0.35
   lowGearSpeedMultiplier: 0.55
-  tractionLossSlopeDegrees: 10
-  maxClimbSlopeDegrees: 17
-  minimumUphillSpeedMultiplier: 0
+  tractionLossSlopeDegrees: 52
+  maxClimbSlopeDegrees: 75
+  minimumUphillSpeedMultiplier: 0.72
 --- !u!114 &1321946632
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7364,10 +7374,10 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1321946621}
   serializedVersion: 5
-  m_Mass: 18000
-  m_LinearDamping: 0.9
-  m_AngularDamping: 4.5
-  m_CenterOfMass: {x: 0, y: -1.15, z: 0}
+  m_Mass: 42000
+  m_LinearDamping: 1.2
+  m_AngularDamping: 12
+  m_CenterOfMass: {x: 0, y: -0.95, z: 0.1}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
   m_IncludeLayers:
@@ -7383,6 +7393,60 @@ Rigidbody:
   m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 2
+--- !u!114 &1321946639
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1321946621}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2529331e46b876d42bea6d55141909d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TankRpmGaugeUI
+  overdrive: {fileID: 1321946640}
+  showOnlyWhileDriving: 1
+  gaugeTiltDegrees: -35
+  needleMinAngle: 135
+  needleMaxAngle: -45
+--- !u!114 &1321946640
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1321946621}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db32ed3c33806d943ac0024e9af6e6fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TankOverdriveController
+  allowOverdrive: 1
+  exhaustPoint: {fileID: 1713193745}
+--- !u!114 &1321946641
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1321946621}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf7b575e94b64fa4fbe2026ca0ee2069, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BuiltInWheelTankDrive
+  motorTorque: 9000
+  brakeTorque: 18000
+  maxSteerAngle: 24
+  climbAssistAcceleration: 24
+  wheelRadius: 0.48
+  suspensionDistance: 0.85
+  wheelHalfWidth: 1.25
+  frontAxleZ: 1.75
+  rearAxleZ: -1.75
+  wheelLocalY: -0.55
+  allowDrivingInput: 1
 --- !u!21 &1376481038
 Material:
   serializedVersion: 8
@@ -7543,7 +7607,7 @@ Canvas:
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
   m_UseReflectionProbes: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -8813,6 +8877,37 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1713193744
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1713193745}
+  m_Layer: 0
+  m_Name: ExhaustPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1713193745
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1713193744}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: -0.00000004371139}
+  m_LocalPosition: {x: 0, y: 0.65, z: -2.35}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1321946624}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1719279083
 GameObject:

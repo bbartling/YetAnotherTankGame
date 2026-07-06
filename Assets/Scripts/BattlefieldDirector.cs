@@ -424,7 +424,7 @@ public class BattlefieldDirector : MonoBehaviour
 
     private int CountLiveEnemies()
     {
-        EnemyTankAI[] enemies = Object.FindObjectsByType<EnemyTankAI>(FindObjectsSortMode.None);
+        EnemyTankAI[] enemies = Object.FindObjectsByType<EnemyTankAI>();
         int count = 0;
         for (int i = 0; i < enemies.Length; i++)
         {
@@ -448,7 +448,7 @@ public class BattlefieldDirector : MonoBehaviour
         CastleDamageReceiver receiver = castle != null ? castle.GetComponentInChildren<CastleDamageReceiver>() : null;
         if (receiver == null)
         {
-            receiver = Object.FindFirstObjectByType<CastleDamageReceiver>();
+            receiver = Object.FindAnyObjectByType<CastleDamageReceiver>();
         }
 
         return receiver != null && receiver.IsCollapsed;
@@ -585,7 +585,7 @@ public class BattlefieldDirector : MonoBehaviour
         CastleDamageReceiver receiver = castle != null ? castle.GetComponentInChildren<CastleDamageReceiver>() : null;
         if (receiver == null)
         {
-            receiver = Object.FindFirstObjectByType<CastleDamageReceiver>();
+            receiver = Object.FindAnyObjectByType<CastleDamageReceiver>();
         }
 
         return receiver != null ? receiver.HealthPercent.ToString("0") + "%" : "--";

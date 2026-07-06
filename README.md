@@ -13,7 +13,14 @@ A silly-looking tactical armored-vehicle game built in Unity 6000.4.6f1. The eig
 
 ## Development
 
-Open `Assets/Scenes/Practice.unity`. Locked behavior and agent workflow are documented in `AGENTS.md` and `Docs/GAMEPLAY_DESIGN_LOCK.md`.
+Open `Assets/Scenes/MainMenu.unity` for the simple scene selector, or open a gameplay scene directly:
+
+- `Assets/Scenes/TankDrivingPractice.unity` - driving practice.
+- `Assets/Scenes/TankTargetPractice.unity` - cannon practice / shooting range.
+- `Assets/Scenes/Practice.unity` - WAR / randomized battlefield.
+- `Assets/Scenes/BallDriveTest.unity` - duplicated driving course with a bare-bones WASD rolling sphere test controller.
+
+The menu is authored/static and loads those gameplay scenes plus the ball-drive test scene. Current agent workflow is documented in `AGENTS.md`.
 
 Run Unity Test Framework EditMode and PlayMode suites before release. The current release validation procedure is in `Docs/TESTING_AND_VALIDATION.md`.
 

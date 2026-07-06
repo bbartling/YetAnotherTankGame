@@ -18,6 +18,7 @@ This block is the authoritative feature contract. Update it in the same validate
 - Enemy health bars must show green remaining health over a red damage background with percentage text.
 - Shift may provide low gear or aim stabilization, never sprint.
 - Main menu must keep three gameplay entries: Driving Practice, Cannon Practice, and WAR.
+- Main menu must remain a simple authored/static scene selector; do not reintroduce dynamic title generation, action cutscene, animated backdrop, button pulse, runtime-created instruction panels, or runtime-created enemy-count widgets.
 - `Assets/Scenes/Practice.unity` remains the WAR scene and is the only main-menu path that may start the ranged enemy battle/randomized generated map flow.
 - `Assets/Scenes/TankDrivingPractice.unity` is a small fixed indoor-stadium obstacle course for tank handling, climbing, traction, rollover, and future AI route testing.
 - `Assets/Scenes/TankDrivingPractice.unity` must lock out turret input, cannon firing, cannon power, machine gun, and sniper scope while preserving tank drive input.
@@ -25,72 +26,33 @@ This block is the authoritative feature contract. Update it in the same validate
 - `Assets/Scenes/TankTargetPractice.unity` preserves drive + turret + cannon + scope; lock out machine gun only.
 - Defeat screen must allow gameplay restart with left click.
 
-### Best-Known Shared Driving Settings (LOCKED)
+### Tank Driving Rewrite Placeholder
 
-Authoritative baseline commit: [`4b6842e7`](https://github.com/bbartling/YetAnotherTankGame/commit/4b6842e7d37490288f86221949fc410643511e29) ("driving course good enough").
-Shooting-range placement baseline: [`78210fb`](https://github.com/bbartling/YetAnotherTankGame/commit/78210fbd9f04f94f8b1a44c38122b4f60b6c0aec).
+The old shared driving lock values have been intentionally removed. They were tied to the previous variable-heavy drive stack and must not be treated as a baseline for the next rewrite.
 
-**Same settings apply to WAR (`Practice`), Driving Practice, and Cannon Practice.** Do not invent separate practice-only physics. Driving now routes through Unity's built-in `WheelCollider` vehicle physics via `BuiltInWheelTankDrive`, while `TankDriveController` remains only as input/profile telemetry compatibility. Apply shared movement through `TankDrivingProfile` + `TankGameplayTuning` + `TankOverdriveSetup` + `BuiltInWheelTankDrive` only.
+Pending validation target:
 
-Source of truth files (do not regress without intentional validated change):
+- One shared tank-driving system for WAR (`Practice`), Driving Practice, and Cannon Practice.
+- Prefer a simple Rigidbody force/torque controller with a small tuning surface.
+- Placeholder tuning values must be replaced only after hands-on validation and user confirmation.
+- Do not reintroduce scene-specific drive hacks or large overlapping drive-variable sets.
 
-- `Assets/Scripts/Tank/TankDrivingProfile.cs`
-- `Assets/Scripts/Tank/TankGameplayTuning.cs`
-- `Assets/Scripts/Tank/BuiltInWheelTankDrive.cs`
-- `Assets/Scripts/Tank/TankDriveController.cs`
-- `Assets/Scripts/Tank/WheeledSuspensionController.cs`
-- `Assets/Scripts/Tank/TankOverdriveController.cs`
-- `Assets/Scripts/TankController.cs` (physics body from `4b6842e7`)
+Future validated drive values go here:
 
-Locked drive profile (`TankDrivingProfile`):
-
-| Setting | Value |
+| Setting | Validated Value |
 |---|---|
-| MaxForwardSpeed | `15` m/s |
-| MaxReverseSpeed | `7.5` m/s |
-| AccelerationSeconds | `0.52` |
-| BrakingSeconds | `0.9` |
-| MinimumUphillSpeedMultiplier | `0.72` |
-| TractionLossSlopeDegrees | `52` |
-| MaxClimbSlopeDegrees | `75` |
-| TrackDriveResponse | `8.5` |
-| ForwardAcceleration | `82` |
-| ReverseAcceleration | `52` |
-
-Locked chassis / overdrive (`TankGameplayTuning`):
-
-| Setting | Value |
-|---|---|
-| ChassisMass | `42000` (planted MBT weight; centered low COM) |
-| OverdriveHoldSeconds | `3` (hold W to charge) |
-| OverdriveSpeedMultiplier | `2.2` |
-| OverdriveAccelerationMultiplier | `3.2` |
-| OverdriveClimbMultiplier | `5.6` |
-| OverdriveBurstPush | `1.15` |
-| OverdriveStuckSpeedThreshold | `4.4` |
-| OverdriveStuckPushForce | `56` |
-| OverdriveStuckClimbMultiplier | `4.8` |
-| PlantedClimbMaxAssistUpwardComponent | `0.16` |
-| PlantedClimbDownforce | `38` |
-| PlantedClimbMaxUpwardSpeed | `0.35` |
-| PlantedClimbCrawlForce | `96` |
-| UltraTractionClimbForceMultiplier | `3` |
-| UltraTractionLateralSlipDamping | `0.82` |
-| UltraTractionYawDamping | `0.68` |
-| UltraTractionSteeringMultiplier | `0.35` |
-| CrawlerContactForwardAcceleration | `115` |
-| CrawlerContactLiftAcceleration | `18` |
-| CrawlerContactMaxUpwardSpeed | `1.2` |
-| CrawlerContactLateralDamping | `0.9` |
-| CrawlerContactAngularDamping | `0.72` |
-| BuiltInWheelMotorTorque | `9000` |
-| BuiltInWheelBrakeTorque | `18000` |
-| BuiltInWheelClimbAssist | `24` |
-| BuiltInWheelSteerAngle | `24` |
-| BuiltInWheelSuspensionDistance | `0.85` |
-| BuiltInWheelSpring | `65000` |
-| BuiltInWheelDamper | `9000` |
-| PracticeBasePlanarSpeedCap | `16` |
+| MaxForwardSpeed | `TBD after validation` |
+| MaxReverseSpeed | `TBD after validation` |
+| SecondsToMaxForwardSpeed | `TBD after validation` |
+| SecondsToMaxReverseSpeed | `TBD after validation` |
+| DriveForce | `TBD after validation` |
+| BrakeForce | `TBD after validation` |
+| TurnTorque | `TBD after validation` |
+| HighSpeedTurnMultiplier | `TBD after validation` |
+| SidewaysGrip | `TBD after validation` |
+| GroundedDownforce | `TBD after validation` |
+| GroundCheckDistance | `TBD after validation` |
+| SmokeSpeedThreshold | `TBD after validation` |
 
 Locked combat profile (shared turret feel, `TankCombatProfile`):
 
@@ -191,7 +153,7 @@ Cannon practice: place tank with `TargetRangeTankAnchor` (`hullClearance = 1.05`
 - Destructible models.
 - WebGL deployment scripts.
 - Validation tests.
-- Best-known shared driving settings above (`TankDrivingProfile` / `TankGameplayTuning` / `4b6842e7` physics).
+- New shared tank driving rewrite placeholder above; validated values are pending and must come from user-approved hands-on testing.
 - Overdrive rear black smoke puff (single puff, no fire, not pink).
 - HoneyFallScream void-fall audio on range fall-off.
 

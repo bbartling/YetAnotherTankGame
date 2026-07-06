@@ -29030,6 +29030,9 @@ GameObject:
   - component: {fileID: 396673840}
   - component: {fileID: 396673839}
   - component: {fileID: 396673845}
+  - component: {fileID: 396673848}
+  - component: {fileID: 396673847}
+  - component: {fileID: 396673846}
   m_Layer: 0
   m_Name: PlayerTank
   m_TagString: Untagged
@@ -29058,15 +29061,15 @@ MonoBehaviour:
   barrel: {fileID: 1365236061}
   firePoint: {fileID: 390513095}
   lineRenderer: {fileID: 396673829}
-  forwardAcceleration: 55
-  reverseAcceleration: 38
-  maxForwardSpeed: 7.5
-  maxReverseSpeed: 3.5
-  trackDriveResponse: 5.5
-  turnAcceleration: 21
-  pivotTurnAcceleration: 24
-  lateralGrip: 36
-  headingGrip: 14
+  forwardAcceleration: 82
+  reverseAcceleration: 52
+  maxForwardSpeed: 15
+  maxReverseSpeed: 7.5
+  trackDriveResponse: 8.5
+  turnAcceleration: 8
+  pivotTurnAcceleration: 10
+  lateralGrip: 48
+  headingGrip: 20
   groundCheckDistance: 2.5
   groundMask:
     serializedVersion: 2
@@ -29087,20 +29090,20 @@ MonoBehaviour:
   slopeAlignmentTorque: 58
   slopeAlignmentDamping: 9
   maxAssistedSlopeAngle: 17
-  maxDriveSlopeAngle: 17
+  climbAntiTipTorque: 55
+  maxDriveSlopeAngle: 75
   brakeDrag: 8
   playerVisualScale: 3
-  chassisMass: 18000
-  centerOfMassOffset: {x: 0, y: -1.15, z: 0}
+  chassisMass: 42000
+  centerOfMassOffset: {x: 0, y: -0.95, z: 0.1}
   uprightAssist: 12
-  angularDamping: 4.5
-  linearDamping: 0.9
+  angularDamping: 12
+  linearDamping: 1.2
   rolloverDefeatAngle: 75
   rolloverDefeatDelay: 2
   rolloverStartupGraceSeconds: 6
   rolloverStableArmSeconds: 2
   disableRolloverDefeat: 0
-  targetRangeAnchored: 0
   mouseYawDegreesPerSecond: 42.5
   turretYawSpeed: 110
   mouseWheelPitchSensitivity: 18
@@ -29262,6 +29265,7 @@ Transform:
   m_Children:
   - {fileID: 664998014}
   - {fileID: 963194228}
+  - {fileID: 1403547661}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!82 &396673831
@@ -29369,10 +29373,10 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 396673827}
   serializedVersion: 5
-  m_Mass: 18000
-  m_LinearDamping: 0.9
-  m_AngularDamping: 4.5
-  m_CenterOfMass: {x: 0, y: -1.15, z: 0}
+  m_Mass: 42000
+  m_LinearDamping: 1.2
+  m_AngularDamping: 12
+  m_CenterOfMass: {x: 0, y: -0.95, z: 0.1}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
   m_IncludeLayers:
@@ -29772,9 +29776,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10735761d68ca9e43b23e86d2ace07ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankAimController
-  barrelPitchPivot: {fileID: 0}
+  barrelPitchPivot: {fileID: 1365236061}
   mouseWheelPitchSensitivity: 18
-  keyboardPitchSpeed: 24
+  keyboardPitchSpeed: 35
   minElevation: -8
   maxElevation: 35
   elevateUpKey: 101
@@ -29791,9 +29795,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db829a7cab527314289e82753fabf845, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankTurretController
-  turretYawPivot: {fileID: 0}
-  mouseYawDegreesPerSecond: 32
-  turretYawSpeed: 55
+  turretYawPivot: {fileID: 664998014}
+  mouseYawDegreesPerSecond: 42.5
+  turretYawSpeed: 110
 --- !u!114 &396673842
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29820,15 +29824,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99b3d9e7d5c4d27458522c867406ced2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TankDriveController
-  maxForwardSpeed: 7.5
-  maxReverseSpeed: 3.5
-  accelerationSeconds: 4
-  brakingSeconds: 2
+  maxForwardSpeed: 15
+  maxReverseSpeed: 7.5
+  accelerationSeconds: 0.52
+  brakingSeconds: 0.9
   highSpeedSteeringMultiplier: 0.35
   lowGearSpeedMultiplier: 0.55
-  tractionLossSlopeDegrees: 10
-  maxClimbSlopeDegrees: 17
-  minimumUphillSpeedMultiplier: 0
+  tractionLossSlopeDegrees: 52
+  maxClimbSlopeDegrees: 75
+  minimumUphillSpeedMultiplier: 0.72
 --- !u!114 &396673845
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29836,7 +29840,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 396673827}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8138cdc8cbe455f4db94133c98a1014b, type: 3}
   m_Name: 
@@ -29852,6 +29856,60 @@ MonoBehaviour:
   groundMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &396673846
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 396673827}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2529331e46b876d42bea6d55141909d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TankRpmGaugeUI
+  overdrive: {fileID: 396673847}
+  showOnlyWhileDriving: 1
+  gaugeTiltDegrees: -35
+  needleMinAngle: 135
+  needleMaxAngle: -45
+--- !u!114 &396673847
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 396673827}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db32ed3c33806d943ac0024e9af6e6fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TankOverdriveController
+  allowOverdrive: 1
+  exhaustPoint: {fileID: 1403547661}
+--- !u!114 &396673848
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 396673827}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf7b575e94b64fa4fbe2026ca0ee2069, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BuiltInWheelTankDrive
+  motorTorque: 9000
+  brakeTorque: 18000
+  maxSteerAngle: 24
+  climbAssistAcceleration: 24
+  wheelRadius: 0.48
+  suspensionDistance: 0.85
+  wheelHalfWidth: 1.25
+  frontAxleZ: 1.75
+  rearAxleZ: -1.75
+  wheelLocalY: -0.55
+  allowDrivingInput: 1
 --- !u!1 &397380606
 GameObject:
   m_ObjectHideFlags: 0
@@ -58948,7 +59006,6 @@ GameObject:
   - component: {fileID: 753014808}
   - component: {fileID: 753014807}
   - component: {fileID: 753014811}
-  - component: {fileID: 753014812}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -59072,18 +59129,6 @@ MonoBehaviour:
   enemyMarkerSize: {x: 12, y: 16}
   turretColor: {r: 1, g: 0.55, b: 0.2, a: 1}
   borderColor: {r: 1, g: 1, b: 1, a: 0}
---- !u!114 &753014812
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 753014806}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 584f53eae8f37af4c8af4fb638dc7769, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MenuCanvasScalerBootstrap
 --- !u!1 &753493919
 GameObject:
   m_ObjectHideFlags: 0
@@ -103751,7 +103796,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1365236060}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.017452406, y: 0, z: 0, w: 0.9998477}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.08, z: 0.95}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -106841,6 +106886,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1402303479}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1403547660
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1403547661}
+  m_Layer: 0
+  m_Name: ExhaustPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1403547661
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1403547660}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: -0.00000004371139}
+  m_LocalPosition: {x: 0, y: 0.65, z: -2.35}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 396673830}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1405124946
 GameObject:
   m_ObjectHideFlags: 0
@@ -114741,52 +114817,13 @@ MonoBehaviour:
   drivingPracticeButton: {fileID: 876828848}
   cannonPracticeButton: {fileID: 0}
   warButton: {fileID: 0}
+  enemyCountInput: {fileID: 0}
   playerTank: {fileID: 396673828}
   enemyTankSpawner: {fileID: 1506984515}
-  instructionsText: {fileID: 0}
-  modeTutorialText: {fileID: 0}
-  enemyCountInput: {fileID: 0}
   drivingPracticeSceneName: TankDrivingPractice
   cannonPracticeSceneName: TankTargetPractice
   warSceneName: Practice
   loadDedicatedPracticeScenes: 1
-  controlsCopy: 'Controls:
-
-    W/S or arrows - heavy forward/reverse drive
-
-    A/D
-    or arrows - steer tracks
-
-    Shift - low gear / stabilized creeping
-
-    Mouse
-    X - rotate turret
-
-    Mouse wheel - elevate barrel
-
-    PageUp / PageDown -
-    fine barrel elevation
-
-    Right click - scope/rangefinder
-
-    Left click /
-    Space - fire cannon
-
-    F - machine gun
-
-    C - controls during game'
-  drivingPracticeCopy: 'DRIVING PRACTICE
-
-    Obstacle course only. Climb ramps,
-    cross bumps, test craters, and feel traction loss without enemies.'
-  cannonPracticeCopy: 'CANNON PRACTICE
-
-    Target range only. Use normal fire up
-    close, then right-click scope to dial far shots with range/elevation/time-of-flight.'
-  warCopy: 'WAR
-
-    Random battle setup. Enemies spawn at range, use line of sight,
-    and pressure the castle.'
   defaultEnemyCount: 6
 --- !u!4 &1506984514
 Transform:

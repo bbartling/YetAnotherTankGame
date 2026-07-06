@@ -284,7 +284,7 @@ private void FixedUpdate()
     private bool TryGetGroundSurface(Vector3 position, out RaycastHit groundHit)
     {
         groundHit = default;
-        CraterTerrain terrain = Object.FindFirstObjectByType<CraterTerrain>();
+        CraterTerrain terrain = Object.FindAnyObjectByType<CraterTerrain>();
         Collider terrainCollider = terrain != null ? terrain.GetComponent<Collider>() : null;
         Renderer terrainRenderer = terrain != null ? terrain.GetComponent<Renderer>() : null;
 
@@ -962,7 +962,7 @@ public void ApplyExplosionDamage(float explosionForce, Vector3 explosionPoint, V
         BattlefieldDirector director = BattlefieldDirector.Instance;
         if (director == null)
         {
-            director = Object.FindFirstObjectByType<BattlefieldDirector>();
+            director = Object.FindAnyObjectByType<BattlefieldDirector>();
         }
 
         if (director != null)
@@ -1063,14 +1063,14 @@ public void ApplyExplosionDamage(float explosionForce, Vector3 explosionPoint, V
     private void SpawnKillCrater(Vector3 worldPoint, Vector3 worldNormal, float force)
     {
         float craterForce = Mathf.Clamp(Mathf.Max(tankKillCraterForce, force * 0.55f), 0f, 130f);
-        CraterTerrain craterTerrain = Object.FindFirstObjectByType<CraterTerrain>();
+        CraterTerrain craterTerrain = Object.FindAnyObjectByType<CraterTerrain>();
         if (craterTerrain != null)
         {
             craterTerrain.ApplyImpact(worldPoint, worldNormal.sqrMagnitude > 0.001f ? worldNormal : Vector3.up, craterForce);
             return;
         }
 
-        DestructibleGround ground = Object.FindFirstObjectByType<DestructibleGround>();
+        DestructibleGround ground = Object.FindAnyObjectByType<DestructibleGround>();
         if (ground != null)
         {
             ground.ApplyImpact(worldPoint, worldNormal.sqrMagnitude > 0.001f ? worldNormal : Vector3.up, craterForce);
@@ -1114,7 +1114,7 @@ public void ApplyExplosionDamage(float explosionForce, Vector3 explosionPoint, V
 
     private void PlayKillSound(Vector3 worldPoint)
     {
-        CombatSoundSlots slots = Object.FindFirstObjectByType<CombatSoundSlots>();
+        CombatSoundSlots slots = Object.FindAnyObjectByType<CombatSoundSlots>();
         if (slots != null && slots.enemyTankKill != null)
         {
             AudioSource.PlayClipAtPoint(slots.enemyTankKill, worldPoint);

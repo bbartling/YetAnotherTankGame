@@ -17,5 +17,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/TankTargetPractice.unity
     guid: 217ad385f9fa92f46991fa15c711fb98
+  - enabled: 1
+    path: Assets/Scenes/BallDriveTest.unity
+    guid: 978eaaf00a1e032408550915aacb59a6
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}

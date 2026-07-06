@@ -5,7 +5,7 @@ public static class PracticeTargetTracker
 {
     public static int CountPracticeTargets()
     {
-        CastleDamageReceiver[] targets = Object.FindObjectsByType<CastleDamageReceiver>(FindObjectsSortMode.None);
+        CastleDamageReceiver[] targets = Object.FindObjectsByType<CastleDamageReceiver>();
         int count = 0;
         for (int i = 0; i < targets.Length; i++)
         {
@@ -20,7 +20,7 @@ public static class PracticeTargetTracker
 
     public static int CountClearedPracticeTargets()
     {
-        CastleDamageReceiver[] targets = Object.FindObjectsByType<CastleDamageReceiver>(FindObjectsSortMode.None);
+        CastleDamageReceiver[] targets = Object.FindObjectsByType<CastleDamageReceiver>();
         int count = 0;
         for (int i = 0; i < targets.Length; i++)
         {

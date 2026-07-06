@@ -182,7 +182,7 @@ public class GameplayTestApi : MonoBehaviour
             playerTank.ResetForBattle(resetPosition, resetRotation);
         }
 
-        CastleDamageReceiver castle = Object.FindFirstObjectByType<CastleDamageReceiver>();
+        CastleDamageReceiver castle = Object.FindAnyObjectByType<CastleDamageReceiver>();
         if (castle != null)
         {
             castle.ResetForBattle();
@@ -294,8 +294,8 @@ public class GameplayTestApi : MonoBehaviour
     {
         ResolveReferences();
         MonitorPlayerFallThrough();
-        EnemyTankAI[] enemies = Object.FindObjectsByType<EnemyTankAI>(FindObjectsSortMode.None);
-        CastleDamageReceiver castle = Object.FindFirstObjectByType<CastleDamageReceiver>();
+        EnemyTankAI[] enemies = Object.FindObjectsByType<EnemyTankAI>();
+        CastleDamageReceiver castle = Object.FindAnyObjectByType<CastleDamageReceiver>();
         BattlefieldDirector director = battlefieldDirector;
         float snapshotGroundY = 0f;
         bool playerBelowMap = director != null && director.IsBattleRunning && IsPlayerBelowMap(out snapshotGroundY);
@@ -560,7 +560,7 @@ private void MonitorPlayerFallThrough()
 
     private string BuildSmokeSummary()
     {
-        EnemyTankAI[] enemies = Object.FindObjectsByType<EnemyTankAI>(FindObjectsSortMode.None);
+        EnemyTankAI[] enemies = Object.FindObjectsByType<EnemyTankAI>();
         int damaged = 0;
         for (int i = 0; i < enemies.Length; i++)
         {
@@ -651,7 +651,7 @@ private void MonitorPlayerFallThrough()
 
     private EnemyTankAI FindNearestLiveEnemy()
     {
-        EnemyTankAI[] enemies = Object.FindObjectsByType<EnemyTankAI>(FindObjectsSortMode.None);
+        EnemyTankAI[] enemies = Object.FindObjectsByType<EnemyTankAI>();
         EnemyTankAI best = null;
         float bestDistance = float.MaxValue;
         Vector3 origin = playerTank != null ? playerTank.transform.position : Vector3.zero;
@@ -753,17 +753,17 @@ private void MonitorPlayerFallThrough()
 
         if (enemySpawner == null)
         {
-            enemySpawner = Object.FindFirstObjectByType<EnemyTankSpawner>();
+            enemySpawner = Object.FindAnyObjectByType<EnemyTankSpawner>();
         }
 
         if (menuManager == null)
         {
-            menuManager = Object.FindFirstObjectByType<MenuManager>();
+            menuManager = Object.FindAnyObjectByType<MenuManager>();
         }
 
         if (battlefieldDirector == null)
         {
-            battlefieldDirector = Object.FindFirstObjectByType<BattlefieldDirector>();
+            battlefieldDirector = Object.FindAnyObjectByType<BattlefieldDirector>();
         }
     }
 

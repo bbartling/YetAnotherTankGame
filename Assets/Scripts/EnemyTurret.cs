@@ -27,12 +27,13 @@ public class EnemyTurret : MonoBehaviour
     {
         _audio = GetComponent<AudioSource>();
         if (_audio == null) _audio = gameObject.AddComponent<AudioSource>();
-        _director = Object.FindFirstObjectByType<BattlefieldDirector>();
+        _director = Object.FindAnyObjectByType<BattlefieldDirector>();
         GameObject p = GameObject.Find("PlayerTank");
         if (p != null) _player = p.transform;
 
         gameObject.tag = "EnemyTurret";
-        _nextFireTime = Time.time + (Mathf.Abs(GetInstanceID()) % 17) * 0.05f;
+        int fireOffsetHash = Mathf.Abs((name + transform.position.ToString()).GetHashCode());
+        _nextFireTime = Time.time + (fireOffsetHash % 17) * 0.05f;
     }
 
     void Update()
@@ -98,7 +99,7 @@ public class EnemyTurret : MonoBehaviour
         AudioClip shot = fireSound;
         if (shot == null)
         {
-            CombatSoundSlots slots = Object.FindFirstObjectByType<CombatSoundSlots>();
+            CombatSoundSlots slots = Object.FindAnyObjectByType<CombatSoundSlots>();
             if (slots != null)
             {
                 shot = slots.turretShot;

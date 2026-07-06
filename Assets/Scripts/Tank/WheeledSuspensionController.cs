@@ -81,20 +81,6 @@ public class WheeledSuspensionController : MonoBehaviour
                 float speedFactor = Mathf.Max(forwardSpeed * 0.0025f, WheelSpinLaunchBoost);
                 float bumpStrength = release * (0.0085f + speedFactor) * BumpLaunchScale;
                 RecentBumpStrength = Mathf.Max(RecentBumpStrength, bumpStrength);
-
-                if (TankGameplayTuning.BumpLaunchGlobalScale > 0.0001f)
-                {
-                    float deltaV = bumpStrength * TankGameplayTuning.BumpLaunchGlobalScale;
-                    deltaV = Mathf.Clamp(deltaV, 0f, TankGameplayTuning.OverdriveMaxBumpDeltaV);
-                    if (deltaV > 0.002f)
-                    {
-                        Vector3 launchDir = (
-                            hit.normal * TankGameplayTuning.BumpLaunchVerticalBias
-                            + transform.forward * TankGameplayTuning.BumpLaunchForwardBias).normalized;
-                        float impulse = deltaV * body.mass;
-                        body.AddForceAtPosition(launchDir * impulse, hit.point, ForceMode.Impulse);
-                    }
-                }
             }
 
             _lastCompression[i] = compression;

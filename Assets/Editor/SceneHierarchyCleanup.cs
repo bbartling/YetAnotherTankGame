@@ -11,7 +11,7 @@ public static class SceneHierarchyCleanup
 {
     private static readonly string[] ScenePaths =
     {
-        MainMenuSceneBuilder.MainMenuScenePath,
+        "Assets/Scenes/MainMenu.unity",
         PracticeSceneBuilder.WarScenePath,
         PracticeSceneBuilder.DrivingScenePath,
         PracticeSceneBuilder.TargetScenePath
@@ -22,7 +22,6 @@ public static class SceneHierarchyCleanup
         "Menu Platform",
         "Left Berm",
         "Right Berm",
-        "MainMenuBackdrop",
         "MainMenuCamera",
         "ModesPanel",
         "ControlsPanel",

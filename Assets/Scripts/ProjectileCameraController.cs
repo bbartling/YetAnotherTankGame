@@ -569,7 +569,7 @@ public class ProjectileCameraController : MonoBehaviour
 
         if (_tankCamera == null)
         {
-            Camera[] cameras = Object.FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            Camera[] cameras = Object.FindObjectsByType<Camera>(FindObjectsInactive.Include);
             for (int i = 0; i < cameras.Length; i++)
             {
                 if (cameras[i] != null && cameras[i] != projectileCamera)
