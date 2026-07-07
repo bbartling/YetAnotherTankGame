@@ -1,0 +1,45 @@
+<h2>Hidden Ball Tank: Three Possible Directions</h2>
+<p class="subtitle">Goal: keep the good rolling-ball physics, hide the ball, and make the visible tank feel like it is driving.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Prototype In BallDriveTest Only</h3>
+      <p>Hide <code>BallDriveTestPlayer</code> renderer, add a tank visual child that follows the ball, and modify ball input so A/D yaw the intended tank heading while W/S roll the ball forward/back.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Fastest, safest validation.</li><li>No WAR scene regression.</li><li>Keeps the exact ball Rigidbody setup.</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Not yet wired into combat/practice scenes.</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Shared Hidden-Ball Tank Controller</h3>
+      <p>Create a reusable controller for BallDriveTest, Driving Practice, Cannon Practice, and WAR. The visible tank rides on an invisible sphere body everywhere.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Direct path to replacing the old tank drive stack.</li><li>One shared model if it works.</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Bigger blast radius.</li><li>Must reconcile combat, camera, rollover, projectile, and enemy assumptions.</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Hybrid Adapter</h3>
+      <p>Keep existing tank object hierarchy for combat, but move/drive it through a hidden ball proxy. Useful later, but heavier than needed for the first feel test.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Could preserve existing turret/projectile contracts.</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>More complex coupling.</li><li>Harder to know whether ball feel is actually the win.</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Recommended First Step</h3>
+  <p>Start with <strong>A</strong>: a deliberately small prototype in <code>BallDriveTest</code>. If the feel is right, promote the pattern into shared gameplay scenes in a later checkpoint.</p>
+</div>

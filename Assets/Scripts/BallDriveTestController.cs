@@ -24,10 +24,14 @@ public sealed class BallDriveTestController : MonoBehaviour
     public float cameraFollowSpeed = 8f;
     public float cameraLookHeight = 0.75f;
     public bool lockCursorOnPlay = true;
+    public float tankTurnDegreesPerSecond = 95f;
 
     private Rigidbody _rb;
     private float _cameraYaw;
+    private float _tankYaw;
     private Vector3 _cameraVelocity;
+
+    public float CurrentTankYaw => _tankYaw;
 
     private void Awake()
     {
@@ -44,6 +48,7 @@ public sealed class BallDriveTestController : MonoBehaviour
         }
 
         _cameraYaw = transform.eulerAngles.y;
+        _tankYaw = transform.eulerAngles.y;
         cameraPitch = Mathf.Clamp(cameraPitch, minCameraPitch, maxCameraPitch);
     }
 
@@ -75,7 +80,8 @@ public sealed class BallDriveTestController : MonoBehaviour
         ApplyExtraGravity();
 
         Vector2 rawInput = ReadInput();
-        Vector3 input = BuildCameraRelativeInput(rawInput, _cameraYaw);
+        _tankYaw = CalculateTankYaw(_tankYaw, rawInput.x, tankTurnDegreesPerSecond, Time.fixedDeltaTime);
+        Vector3 input = BuildTankDriveDirection(rawInput.y, _tankYaw);
         bool grounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundMask, QueryTriggerInteraction.Ignore);
         float control = grounded ? 1f : airControlMultiplier;
 
@@ -143,6 +149,30 @@ public sealed class BallDriveTestController : MonoBehaviour
         Vector3 direction = forward * input.y + right * input.x;
         direction.y = 0f;
         return direction.sqrMagnitude > 1f ? direction.normalized : direction;
+    }
+
+    public static Vector3 BuildTankDriveDirection(float throttle, float yawDegrees)
+    {
+        float clampedThrottle = Mathf.Clamp(throttle, -1f, 1f);
+        if (Mathf.Abs(clampedThrottle) < 0.001f)
+        {
+            return Vector3.zero;
+        }
+
+        Quaternion yaw = Quaternion.Euler(0f, yawDegrees, 0f);
+        Vector3 direction = yaw * Vector3.forward * clampedThrottle;
+        direction.y = 0f;
+        return direction.sqrMagnitude > 1f ? direction.normalized : direction;
+    }
+
+    public static float CalculateTankYaw(
+        float currentYawDegrees,
+        float turnInput,
+        float turnDegreesPerSecond,
+        float deltaTime)
+    {
+        float next = currentYawDegrees + Mathf.Clamp(turnInput, -1f, 1f) * turnDegreesPerSecond * Mathf.Max(0f, deltaTime);
+        return Mathf.Repeat(next, 360f);
     }
 
     private void UpdateCameraInput()

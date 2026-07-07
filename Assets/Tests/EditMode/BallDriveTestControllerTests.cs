@@ -20,4 +20,27 @@ public sealed class BallDriveTestControllerTests
         Assert.That(direction.z, Is.EqualTo(0f).Within(0.001f));
     }
 
+    [Test]
+    public void BuildTankDriveDirection_UsesTankYawForForwardAndReverse()
+    {
+        Vector3 forward = BallDriveTestController.BuildTankDriveDirection(1f, 90f);
+        Vector3 reverse = BallDriveTestController.BuildTankDriveDirection(-1f, 90f);
+
+        Assert.That(forward.x, Is.EqualTo(1f).Within(0.001f));
+        Assert.That(forward.y, Is.EqualTo(0f).Within(0.001f));
+        Assert.That(forward.z, Is.EqualTo(0f).Within(0.001f));
+        Assert.That(reverse.x, Is.EqualTo(-1f).Within(0.001f));
+        Assert.That(reverse.y, Is.EqualTo(0f).Within(0.001f));
+        Assert.That(reverse.z, Is.EqualTo(0f).Within(0.001f));
+    }
+
+    [Test]
+    public void CalculateTankYaw_TurnsLeftAndRightFromCurrentHeading()
+    {
+        float right = BallDriveTestController.CalculateTankYaw(10f, 1f, 90f, 0.5f);
+        float left = BallDriveTestController.CalculateTankYaw(10f, -1f, 90f, 0.5f);
+
+        Assert.That(right, Is.EqualTo(55f).Within(0.001f));
+        Assert.That(left, Is.EqualTo(325f).Within(0.001f));
+    }
 }
