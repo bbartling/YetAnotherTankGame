@@ -1,0 +1,10 @@
+# Heavy Unity WebGL output + packaged archives (port via Drive/USB, not git)
+webgl/
+dist/
+WEBGL_BUILD_MANIFEST.json
+*.zip
+*.zip.sha256
+
+.venv/
+__pycache__/
+*.pyc
